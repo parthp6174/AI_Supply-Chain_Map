@@ -1,5 +1,10 @@
 {
-  "about": "Topics for the news radar on the Update desk. Each topic has one or more Google News searches (the last 7 days) and the boxes, scenarios, companies and sites a matching headline is linked to when you add it to the log. Edit freely; ids must exist in src/supply/supply_data.py.",
+  "about": "Topics for the news radar on the Update desk. Each topic has one or more Google News searches (the last 7 days) and the boxes, scenarios, companies and sites a matching headline is linked to when you add it to the log. skipSources and skipTitles (regular expressions, case-insensitive) drop noise such as stock-pick listicles. Edit freely; ids must exist in src/supply/supply_data.py.",
+  "skipSources": ["IndexBox", "openPR.com", "AD HOC NEWS", "Stock Titan", "TradingNEWS", "tikr.com", "MarketBeat", "Zacks Investment Research", "Simply Wall St", "Pluang", "AInvest"],
+  "skipTitles": ["\\bmarket\\b.{0,40}\\b(size|share|report|forecast|outlook|analysis|to|through)\\b.{0,40}\\b20[3-4]\\d\\b", "stock price, news, quote",
+                 "\\b(stocks?|shares?) to (buy|own|watch|hold)\\b", "\\bshould you (buy|sell)\\b", "\\bis it time to (buy|sell)\\b", "\\bbetter\\b.{0,40}\\bstock\\b",
+                 "\\bvs\\.? .{0,60}\\b(stock|investors)\\b", "\\b(after-hours|pre-market|premarket) at\\b", "\\bprice target\\b", "\\bstock (price )?forecast\\b",
+                 "\\bbuy \\d+ .{0,30}stocks?\\b", "\\b(monthly|quarterly) (payment|dividend)\\b"],
   "topics": [
     {"id": "minerals", "label": "China export controls", "queries": ["China export controls rare earths", "China gallium germanium export ban", "indium export controls China"],
      "links": {"nodes": ["ree", "gallium", "indium", "tungsten"], "scenarios": ["minerals"], "companies": ["mp"]}},
@@ -29,7 +34,7 @@
      "links": {"nodes": ["campus", "hyper"]}},
     {"id": "capex", "label": "Hyperscaler capex", "queries": ["AI capex guidance Microsoft Alphabet Amazon Meta"],
      "links": {"nodes": ["hyper"], "companies": ["msft", "googl", "amzn", "meta"]}},
-    {"id": "labs", "label": "OpenAI, Anthropic and lab funding", "queries": ["OpenAI funding compute deal", "Anthropic funding compute deal", "xAI funding"],
+    {"id": "labs", "label": "OpenAI, Anthropic and lab funding", "queries": ["OpenAI funding compute deal", "Anthropic funding compute deal", "Musk xAI funding round"],
      "links": {"nodes": ["labs", "capital"]}},
     {"id": "credit", "label": "AI debt and credit", "queries": ["Oracle debt credit rating AI", "CoreWeave debt", "AI data center bonds private credit"],
      "links": {"nodes": ["capital", "neo"], "scenarios": ["finance"], "companies": ["orcl", "crwv"]}},

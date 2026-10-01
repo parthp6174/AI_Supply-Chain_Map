@@ -12,7 +12,7 @@ The site lives at **https://parthp6174.github.io/AI_Supply-Chain_Map/** (the Inv
 The Supply Chain Atlas has an **Update desk** section (linked from the navigation on both pages). Everyone sees when prices and headlines were last refreshed, the news radar, and a form that opens a suggestion on GitHub. After the owner connects GitHub once, the desk can also:
 
 - **Refresh now**: fetch the latest prices and headlines and republish both pages (about two minutes, with live progress).
-- **News radar**: headlines from the last 10 days on every chokepoint, scenario and money topic, collected from Google News every 3 hours. **Add to log** turns a headline into a draft entry with its source and links filled in; **Hide** clears one you don't need.
+- **News radar**: stories from the last 10 days on every chokepoint, scenario and money topic, collected from Google News every 3 hours, with repeat coverage grouped and stock-pick noise filtered out. **Add to log** turns a headline into a draft entry with its source and links filled in; **Hide** clears one you don't need.
 - **Publish, edit or delete developments**, including changes to the pages: re-rate a chokepoint, change a site's status, move a scenario, update a projection or an Investment Atlas project, or add a new site or project. Publishing rebuilds both pages in about two minutes.
 - **Turn on automatic updates**, and switch them back on if GitHub pauses them (see below).
 - Show anything the last build had to leave out, so a mistake in an entry never takes the site down.

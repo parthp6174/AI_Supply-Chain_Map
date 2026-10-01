@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 """Collect recent headlines for the news radar on the Update desk.
 
-Runs Google News searches (last 7 days) for each topic in data/news_queries.json, removes duplicates,
-tags each headline with the topics that found it and writes site/data/news.json. The page only shows
-these headlines; nothing reaches the development log until someone adds it.
+Runs Google News searches (last 7 days) for each topic in data/news_queries.json, drops obvious noise
+(stock-pick listicles, market-research spam, the sources and title patterns listed in that file), groups
+reports of the same story into one headline with its other sources, tags each with the topics that found
+it and writes site/data/news.json. The page only shows these headlines; nothing reaches the development
+log until someone adds it.
 
     python scripts/fetch_news.py                 # fetch if the last run is older than 3 hours
     python scripts/fetch_news.py --mode always   # fetch now
@@ -66,9 +68,61 @@ def fetch(url, timeout=20):
         return r.read()
 
 
-def collect(topics, days=10, per_query=10, cap=160, pause=1.0, fetcher=fetch):
+STOP = set("""a an and are as at be been but by for from has have how in into is it its of on or over says said than
+that the their this to up was were what when why will with after amid about more new now out vs via could would
+may might just here there they them who whose which while""".split())
+
+
+def tokens(title):
+    """Distinctive words of a headline, with amounts normalised ("$15B" and "15 billion" match)."""
+    t = title.lower().replace("\u2019", "'")
+    t = re.sub(r"'s\b", "", t)
+    t = re.sub(r"\$?(\d+(?:\.\d+)?)\s*(?:bn|b|billion)\b", r"\1 billion", t)
+    t = re.sub(r"\$?(\d+(?:\.\d+)?)\s*(?:tn|trillion)\b", r"\1 trillion", t)
+    t = re.sub(r"\$?(\d+(?:\.\d+)?)\s*(?:mn|m|million)\b", r"\1 million", t)
+    return {w for w in re.findall(r"[a-z0-9]+(?:\.\d+)?", t) if w not in STOP and (len(w) >= 3 or w[0].isdigit())}
+
+
+def same_story(a, b):
+    shared = len(a & b)
+    return shared >= 3 and shared / max(1, min(len(a), len(b))) >= 0.5
+
+
+def noise_filter(cfg):
+    sources = {s.lower() for s in cfg.get("skipSources", [])}
+    pats = [re.compile(p, re.I) for p in cfg.get("skipTitles", [])]
+    def is_noise(r):
+        t = r["t"]
+        return (len(re.findall(r"\w+", t)) < 4 or re.match(r"^(https?://|www\.)", t) is not None
+                or r["src"].lower() in sources or any(p.search(t) for p in pats))
+    return is_noise
+
+
+def cluster(rows, cap):
+    """Group reports of the same story. The earliest report gives a stable id; the most typical title leads."""
+    groups = []
+    for r in sorted(rows, key=lambda r: r["d"]):
+        r["tok"] = tokens(r["t"])
+        home = next((g for g in groups if any(same_story(r["tok"], m["tok"]) for m in g)), None)
+        (home.append(r) if home else groups.append([r]))
+    out = []
+    for g in groups:
+        lead = max(g, key=lambda m: (sum(len(m["tok"] & o["tok"]) for o in g if o is not m), m["d"]))
+        topics = []
+        for m in g:
+            topics += [t for t in m["topics"] if t not in topics]
+        others = sorted((m for m in g if m is not lead), key=lambda m: m["d"], reverse=True)
+        out.append(dict(id=g[0]["id"], ids=[m["id"] for m in g], t=lead["t"], src=lead["src"], srcUrl=lead["srcUrl"], u=lead["u"],
+                        d=iso(max(m["d"] for m in g)), first=iso(g[0]["d"]), topics=topics, n=len(g),
+                        more=[dict(src=m["src"], u=m["u"]) for m in others[:5]]))
+    out.sort(key=lambda r: r["d"], reverse=True)
+    return out[:cap]
+
+
+def collect(topics, days=10, per_query=10, cap=160, pause=1.0, fetcher=fetch, cfg=None):
     cutoff = now_utc() - dt.timedelta(days=days)
-    seen, report = {}, dict(queries=0, ok=0, failed=[])
+    is_noise = noise_filter(cfg or {})
+    seen, report = {}, dict(queries=0, ok=0, failed=[], dropped=0)
     for t in topics:
         for q in t["queries"]:
             report["queries"] += 1
@@ -86,9 +140,13 @@ def collect(topics, days=10, per_query=10, cap=160, pause=1.0, fetcher=fetch):
                     if t["id"] not in seen[k]["topics"]:
                         seen[k]["topics"].append(t["id"])
                     continue
-                seen[k] = dict(id=k, t=r["t"], src=r["src"], srcUrl=r["srcUrl"], u=r["u"], d=iso(r["d"]), topics=[t["id"]])
+                if is_noise(r):
+                    report["dropped"] += 1
+                    continue
+                seen[k] = dict(id=k, t=r["t"], src=r["src"], srcUrl=r["srcUrl"], u=r["u"], d=r["d"], topics=[t["id"]])
             time.sleep(pause)
-    items = sorted(seen.values(), key=lambda r: r["d"], reverse=True)[:cap]
+    items = cluster(list(seen.values()), cap)
+    report["headlines"] = len(seen)
     report["items"] = len(items)
     return items, report
 
@@ -119,8 +177,9 @@ def main():
             print(f"news: skipped, last update {age:.1f} h ago"); return
 
     with open(a.topics) as f:
-        topics = json.load(f)["topics"]
-    items, report = collect(topics)
+        cfg = json.load(f)
+    topics = cfg["topics"]
+    items, report = collect(topics, cfg=cfg)
     if not items and prev and prev.get("items"):
         prev["report"] = dict(report, note="every search failed; keeping the previous headlines")
         out = prev

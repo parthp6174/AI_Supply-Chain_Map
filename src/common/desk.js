@@ -345,16 +345,17 @@ function disconnect(msg){
 
 /* ---------------- news bookkeeping ---------------- */
 function hiddenSet(){ return readSet(K_HIDE) || new Set(); }
-function saveHidden(set){ setItem(K_HIDE, JSON.stringify([...set].slice(-800))); }
+function saveHidden(set){ setItem(K_HIDE, JSON.stringify([...set].slice(-2500))); }
 /* Headlines not seen on an earlier visit are "new"; nothing is new on the first visit. The full desk marks them seen. */
+function idsOf(it){ return Array.isArray(it.ids) && it.ids.length ? it.ids : [it.id]; }
 function newIds(){
   const N = ST.news;
   if (!N) return new Set();
   if (ST.newIdsFor === N.updated) return ST.newIds;
-  const seen = readSet(K_SEEN), ids = (N.items || []).map(it => it.id);
-  ST.newIds = seen ? new Set(ids.filter(id => !seen.has(id))) : new Set();
+  const seen = readSet(K_SEEN), items = N.items || [];
+  ST.newIds = seen ? new Set(items.filter(it => !idsOf(it).some(id => seen.has(id))).map(it => it.id)) : new Set();
   ST.newIdsFor = N.updated;
-  if (FULL){ const all = seen ? [...seen] : []; ids.forEach(id => { if (!seen || !seen.has(id)) all.push(id); }); setItem(K_SEEN, JSON.stringify(all.slice(-1200))); }
+  if (FULL){ const all = new Set(seen || []); items.forEach(it => idsOf(it).forEach(id => all.add(id))); setItem(K_SEEN, JSON.stringify([...all].slice(-2500))); }
   return ST.newIds;
 }
 function loggedSets(){
@@ -365,7 +366,10 @@ function loggedSets(){
   if (ST.dev){ ST.dev.entries.forEach(add); ST.dev.upcoming.forEach(add); }
   return {urls, titles};
 }
-function newsState(it, hid, lg){ return lg.urls.has(it.u) || lg.titles.has(normT(it.t)) ? "logged" : hid.has(it.id) ? "hidden" : "open"; }
+function newsState(it, hid, lg){
+  if (lg.urls.has(it.u) || lg.titles.has(normT(it.t)) || (it.more || []).some(m => lg.urls.has(m.u))) return "logged";
+  return idsOf(it).some(id => hid.has(id)) ? "hidden" : "open";
+}
 function newCount(){
   const N = ST.news; if (!N) return 0;
   const fresh = newIds(), hid = hiddenSet(), lg = loggedSets();
@@ -419,7 +423,7 @@ function renderStatus(){
       q && q.updated ? ago(q.updated) + (rep && total ? " · " + rep.prices_ok + " of " + total + " from Yahoo" : "") : "Live prices appear after the first update"),
     cell("Analyst targets", q && q.targetsUpdated ? stamp(q.targetsUpdated) : "Not yet", "Refreshed once a day"),
     cell("Headlines", n && n.updated ? stamp(n.updated) : "Not yet",
-      n ? (n.items || []).length + " from the last " + (n.days || 10) + " days" + (nc ? " · " + nc + " new" : "") : "Collected every 3 hours"),
+      n ? (n.items || []).length + " stories from the last " + (n.days || 10) + " days" + (nc ? " · " + nc + " new" : "") : "Collected every 3 hours"),
     auto,
     h("div", {class: "dk-cell dk-act"}, actionButton(), prog("top")));
   paintProg();
@@ -464,6 +468,7 @@ function renderNews(){
   const N = ST.news;
   box.append(h("div", {class: "dk-head"}, h("h3", {text: "News radar"}),
     N && N.updated ? h("span", {class: "dk-sub", text: "Google News, last " + (N.days || 10) + " days · updated " + stamp(N.updated)}) : null));
+  if (N && (N.items || []).length) box.append(h("p", {class: "dk-sub dk-radarnote", text: "Reports of the same story are grouped. Nothing here reaches the pages until it is added to the log."}));
   if (!N || !(N.items || []).length){
     box.append(h("p", {class: "dk-empty", text: ST.token ? "No headlines yet. Press Refresh now to collect them." : "Headlines appear here after the next update."}));
     return;
@@ -485,16 +490,25 @@ function renderNews(){
   list.slice(0, ST.newsLimit).forEach(it => {
     const u = safeUrl(it.u), st = newsState(it, hid, lg);
     const meta = h("div", {class: "dk-nmeta"}, h("span", {text: ago(it.d) || localDate(it.d)}), it.src ? h("span", {text: it.src}) : null,
+      it.n > 1 ? h("span", {text: it.n + " reports"}) : null,
       st === "open" && fresh.has(it.id) ? h("span", {class: "dk-new", text: "New"}) : null,
       st !== "open" ? h("span", {class: "dk-tag", text: st === "logged" ? "In the log" : "Hidden"}) : null);
     const title = u ? h("a", {class: "dk-nt", href: u, target: "_blank", rel: "noopener noreferrer", text: it.t}) : h("span", {class: "dk-nt", text: it.t});
     const tps = h("div", {class: "dk-ntopics"});
     (it.topics || []).forEach(id => { const t = topics.get(id); if (t) tps.append(h("span", {class: "dk-chip", text: t.label})); });
+    let also = null;
+    const more = (it.more || []).filter(m => m && m.src);
+    if (more.length){
+      also = h("div", {class: "dk-also"}, "Also: ");
+      more.forEach((m, i) => { const mu = safeUrl(m.u); also.append(i ? ", " : "", mu ? h("a", {href: mu, target: "_blank", rel: "noopener noreferrer", text: m.src}) : m.src); });
+      const rest = (it.n || 0) - 1 - more.length;
+      if (rest > 0) also.append(" and " + rest + " more");
+    }
     const act = h("div", {class: "dk-nact"},
       st !== "logged" ? h("button", {type: "button", class: "ghost", onclick: () => fillFromNews(it, topics)}, ST.token ? "Add to log" : "Suggest for the log") : null,
-      st === "hidden" ? h("button", {type: "button", class: "ghost", onclick: () => { hid.delete(it.id); saveHidden(hid); renderNews(); renderBar(); renderStatus(); }}, "Unhide")
-        : st === "open" ? h("button", {type: "button", class: "ghost", onclick: () => { hid.add(it.id); saveHidden(hid); renderNews(); renderBar(); renderStatus(); }}, "Hide") : null);
-    ol.append(h("li", {class: "dk-ni"}, meta, title, tps, act));
+      st === "hidden" ? h("button", {type: "button", class: "ghost", onclick: () => { idsOf(it).forEach(id => hid.delete(id)); saveHidden(hid); renderNews(); renderBar(); renderStatus(); }}, "Unhide")
+        : st === "open" ? h("button", {type: "button", class: "ghost", onclick: () => { idsOf(it).forEach(id => hid.add(id)); saveHidden(hid); renderNews(); renderBar(); renderStatus(); }}, "Hide") : null);
+    ol.append(h("li", {class: "dk-ni"}, meta, title, also, tps, act));
   });
   box.append(ol);
   if (!list.length) box.append(h("p", {class: "dk-empty", text: "Nothing new here. Tick “Show hidden and logged” to see everything."}));
@@ -738,7 +752,7 @@ function showPreview(){
 }
 function fillFromNews(it, topics){
   clearForm();
-  const d = localDate(it.d) || todayISO();
+  const d = localDate(it.first || it.d) || todayISO();
   $("#dk-date").value = d > todayISO() ? todayISO() : d;
   $("#dk-title").value = it.t;
   $("#dk-srclabel").value = (it.src ? it.src + ", " : "") + longDate($("#dk-date").value);
@@ -921,6 +935,7 @@ const CSS = `
 #desk a.dk-sub{color:var(--ink-2)}
 #desk .dk-empty{color:var(--muted);font-size:var(--fs-sm);margin:6px 0}
 #desk .dk-p{font-size:var(--fs-sm);color:var(--ink-2);margin:6px 0 10px}
+#desk .dk-radarnote{margin:0 0 8px}
 #desk .dk-nf{margin:4px 0 6px}
 #desk .dk-nf select{width:auto;max-width:100%}
 .dk-nlist{list-style:none;margin:0;padding:0;display:grid;max-height:780px;overflow:auto}
@@ -930,6 +945,8 @@ const CSS = `
 .dk-tag{color:var(--ink-2)}
 .dk-nt{font-weight:600;font-size:var(--fs-sm);color:var(--ink);line-height:1.35;text-decoration:none}
 a.dk-nt:hover{text-decoration:underline}
+.dk-also{font-size:var(--fs-xs);color:var(--muted)}
+.dk-also a{color:var(--ink-2)}
 .dk-ntopics{display:flex;flex-wrap:wrap;gap:4px}
 .dk-chip{font-size:10.5px;border:1px solid var(--line);border-radius:999px;padding:1px 7px;color:var(--ink-2)}
 .dk-nact{display:flex;gap:6px;flex-wrap:wrap}

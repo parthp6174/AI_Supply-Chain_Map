@@ -74,7 +74,7 @@ Anyone can also open an issue with the **New development** form; the weekly revi
 
 ### The news radar
 
-`data/news_queries.json` lists 17 topics, each with one or more Google News searches (last 7 days) and the chain links, scenarios, companies and sites a headline on that topic connects to. Edit it to add or sharpen a topic; ids must exist in `src/supply/supply_data.py`. `scripts/fetch_news.py` keeps up to 160 headlines from the last 10 days, removes duplicates and tags each with every topic that found it. Headlines link through Google News; replace the link with the publisher's own if you prefer.
+`data/news_queries.json` lists 17 topics, each with one or more Google News searches (last 7 days) and the chain links, scenarios, companies and sites a headline on that topic connects to. Edit it to add or sharpen a topic; ids must exist in `src/supply/supply_data.py`. `scripts/fetch_news.py` keeps up to 160 stories from the last 10 days. It groups reports of the same story under one headline (the desk lists the other sources), tags each story with every topic that found it, and drops noise: the sources in `skipSources` and titles matching the `skipTitles` patterns (stock-pick listicles, market-research press releases, price-target notes). Add to either list when junk gets through. Headlines link through Google News; replace the link with the publisher's own if you prefer.
 
 ### The weekly review
 

@@ -61,8 +61,8 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: site/data/news.json
-          key: news-${{ github.run_id }}
-          restore-keys: news-
+          key: news-v2-${{ github.run_id }}
+          restore-keys: news-v2-
 
       - name: Fetch prices from Yahoo Finance
         continue-on-error: true
@@ -87,7 +87,7 @@ jobs:
         uses: actions/cache/save@v4
         with:
           path: site/data/news.json
-          key: news-${{ github.run_id }}
+          key: news-v2-${{ github.run_id }}
 
       # --lenient: a broken development is left out and listed on the Update desk instead of stopping the site
       - name: Build pages
