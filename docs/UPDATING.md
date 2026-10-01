@@ -92,3 +92,14 @@ Publish from the desk, or rebuild (`python src/build.py`), check the build outpu
 - `src/atlas/data_items.py`: update `BUILDERS` (capex by year, revenue run-rate, operating cash flow, 2026 spend), `LABS` (commitments, revenue), `FLOWS` (new contracts) and `COLLECTORS`; run `python src/atlas/model.py` to see the new payback verdicts.
 - `src/supply/supply_data.py`: refresh market shares (HBM, wafers, substrates, optics, rack assembly) when new data appears, and the research snapshot in `Q` if Yahoo's coverage of a ticker is poor.
 - Change "Research as of" dates in the two templates.
+
+## 4. Changing the Update desk itself
+
+The desk is one file, `src/common/desk.js`, loaded only on the GitHub Pages build. After changing it, the templates or `src/build.py`, run the browser tests:
+
+```bash
+pip install playwright && playwright install chromium
+python tests/test_desk.py            # about 2 minutes; add --shots shots to save screenshots
+```
+
+They build the site into a temporary folder and answer every GitHub call with a stand-in, so nothing is published. They cover visitors, the news radar, connecting a key, turning the schedule on, Refresh now, publishing, editing and deleting, a paused workflow, build warnings, missing permissions, a cached page catching up, the Investment Atlas bar and phone layouts.

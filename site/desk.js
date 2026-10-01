@@ -1011,13 +1011,18 @@ async function init(){
   if (reloadIfBehind()) return;
   renderAll();
   if (ST.token) afterConnect();
-  setInterval(async () => {
+  let lastPoll = Date.now();
+  const poll = async () => {
     if (ST.busy || document.hidden) return;
+    lastPoll = Date.now();
     const was = ST.news && ST.news.updated;
     await loadStatus();
     renderBar();
     if (FULL){ renderStatus(); renderAlert(); if (ST.news && ST.news.updated !== was) renderNews(); }
-  }, 5 * 60 * 1000);
+  };
+  setInterval(poll, 5 * 60 * 1000);
+  // catch up as soon as someone comes back to a tab that was in the background
+  document.addEventListener("visibilitychange", () => { if (!document.hidden && Date.now() - lastPoll > 60 * 1000){ poll(); if (S.refreshLive) S.refreshLive(); } });
 }
 window.SCMAP_DESK = {rotateCron, slug, uniqueId, b64encode, b64decode, scheduleState, state: ST};
 init();

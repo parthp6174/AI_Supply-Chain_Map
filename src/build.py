@@ -6,6 +6,7 @@
     python src/build.py --quotes site/data/quotes.json   # embed the latest live quotes as the fallback snapshot
 
     python src/build.py --lenient                        # CI: skip broken developments and report them instead of failing
+    python src/build.py --out /tmp/site                  # write the site somewhere else (the desk tests do this)
 
 Inputs: src/supply/supply_data.py, src/atlas/data_items.py and data/developments.json.
 By default the build stops with a clear message if a development links to something that does not exist.
@@ -332,7 +333,7 @@ def dump(o):
 
 
 # ---------------------------------------------------------------- build
-def build(target, quotes_path, lenient=False):
+def build(target, quotes_path, lenient=False, site_dir=None):
     g = geo.load()
     problems = []
     dev = load_devs(problems, lenient)
@@ -440,15 +441,16 @@ def build(target, quotes_path, lenient=False):
     atlas_html = atpl.replace("__DATA__", dump(adata)).replace("__GEO__", dump(g))
 
     if gh:
-        out1 = os.path.join(ROOT, "site", "index.html"); out2 = os.path.join(ROOT, "site", "investment-atlas", "index.html")
+        site = site_dir or os.path.join(ROOT, "site")
+        out1 = os.path.join(site, "index.html"); out2 = os.path.join(site, "investment-atlas", "index.html")
         os.makedirs(os.path.dirname(out2), exist_ok=True)
         ver = "?v=" + rev if rev else ""
         open(out1, "w").write(full_document(supply_html, f'<script src="desk.js{ver}" defer></script>'))
         open(out2, "w").write(full_document(atlas_html, f'<script src="../desk.js{ver}" defer></script>'))
-        open(os.path.join(ROOT, "site", ".nojekyll"), "w").write("")
-        shutil.copyfile(os.path.join(ROOT, "src", "common", "desk.js"), os.path.join(ROOT, "site", "desk.js"))
-        os.makedirs(os.path.join(ROOT, "site", "data"), exist_ok=True)
-        with open(os.path.join(ROOT, "site", "data", "build.json"), "w") as f:
+        open(os.path.join(site, ".nojekyll"), "w").write("")
+        shutil.copyfile(os.path.join(ROOT, "src", "common", "desk.js"), os.path.join(site, "desk.js"))
+        os.makedirs(os.path.join(site, "data"), exist_ok=True)
+        with open(os.path.join(site, "data", "build.json"), "w") as f:
             json.dump(dict(built=dt.datetime.now(dt.timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z"),
                            rev=rev, warnings=problems, entries=len(dev["entries"]), upcoming=len(dev["upcoming"])), f, ensure_ascii=False)
     else:
@@ -466,8 +468,9 @@ if __name__ == "__main__":
     ap.add_argument("--target", choices=["github", "artifact"], default="github")
     ap.add_argument("--quotes", default=os.path.join(ROOT, "site", "data", "quotes.json"))
     ap.add_argument("--lenient", action="store_true", help="skip broken developments instead of failing (used in CI)")
+    ap.add_argument("--out", default=None, help="write the GitHub Pages site to this folder instead of site/ (used by tests)")
     a = ap.parse_args()
     try:
-        build(a.target, a.quotes, a.lenient)
+        build(a.target, a.quotes, a.lenient, a.out)
     except BuildError as e:
         print("BUILD FAILED\n" + str(e)); sys.exit(1)

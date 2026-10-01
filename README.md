@@ -59,6 +59,7 @@ src/common/                  map projection and precomputed country outlines
 src/build.py                 builds both pages
 scripts/fetch_quotes.py      price and analyst-target refresh
 scripts/fetch_news.py        news radar refresh
+tests/test_desk.py           browser tests for the Update desk (fake GitHub API)
 site/                        built pages (what GitHub Pages serves)
 ```
 
