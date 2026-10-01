@@ -89,12 +89,12 @@ def same_story(a, b):
 
 
 def noise_filter(cfg):
-    sources = {s.lower() for s in cfg.get("skipSources", [])}
+    sources = [s.lower() for s in cfg.get("skipSources", []) if s]
     pats = [re.compile(p, re.I) for p in cfg.get("skipTitles", [])]
     def is_noise(r):
         t = r["t"]
         return (len(re.findall(r"\w+", t)) < 4 or re.match(r"^(https?://|www\.)", t) is not None
-                or r["src"].lower() in sources or any(p.search(t) for p in pats))
+                or any(s in r["src"].lower() or s in r["srcUrl"].lower() for s in sources) or any(p.search(t) for p in pats))
     return is_noise
 
 

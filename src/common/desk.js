@@ -393,6 +393,7 @@ function renderBar(){
     h("span", {class: "dk-dot" + (q && q.updated ? (fresh ? "" : " stale") : " off"), "aria-hidden": "true"}),
     h("span", {class: "dk-bt"}, q && q.updated ? "Prices updated " + stamp(q.updated) : "Prices: 30 Sep 2026 snapshot",
       n && n.updated ? " · Headlines " + stamp(n.updated) + (nc ? " (" + nc + " new)" : "") : ""),
+    behind() ? h("a", {class: "dk-fresh", href: freshUrl(behind()), text: "This page has been updated: load the new version"}) : null,
     actionButton(), prog("any"),
     h("a", {class: "dk-link", href: CFG.deskUrl, text: FULL ? "Update desk ↓" : "Update desk →"}));
   paintProg();
@@ -903,6 +904,7 @@ const CSS = `
 .desk-bar .dk-link{font-weight:600;color:var(--ink);white-space:nowrap;text-decoration:none}
 .desk-bar .dk-link:hover{text-decoration:underline}
 .desk-bar .dk-prog{flex:1 1 100%;order:9}
+.desk-bar .dk-fresh{color:var(--ink);font-weight:600}
 .dk-dot{width:8px;height:8px;border-radius:50%;background:var(--good);flex:none;box-shadow:0 0 0 3px color-mix(in srgb,var(--good) 22%,transparent)}
 .dk-dot.stale{background:var(--warn);box-shadow:0 0 0 3px color-mix(in srgb,var(--warn) 25%,transparent)}
 .dk-dot.off{background:var(--faint);box-shadow:none}
@@ -986,13 +988,26 @@ a.dk-nt:hover{text-decoration:underline}
 @media (max-width:560px){ .dk-row2,.dk-chgrid{grid-template-columns:minmax(0,1fr)} .dk-er{grid-template-columns:minmax(0,1fr) auto} .dk-er .dv-date{display:none} }
 `;
 
+/* GitHub Pages caches each page for about 10 minutes. If the published build is newer than this copy
+   (a different commit), load the fresh one: automatically on arrival, or with a link once someone is reading. */
+const cameWith = (/[?&]v=([\w-]+)/.exec(location.search) || [])[1] || null;
+function behind(){ const live = ST.build && ST.build.rev; return live && DATA.rev && live !== DATA.rev ? live : null; }
+function freshUrl(v){ return location.pathname + "?v=" + encodeURIComponent(v) + location.hash; }
+function reloadIfBehind(){
+  const live = behind();
+  if (!live || cameWith === live || getItem("aiscm.rev") === live) return false;
+  setItem("aiscm.rev", live, false);
+  location.replace(freshUrl(live));
+  return true;
+}
 async function init(){
   document.head.append(h("style", {text: CSS}));
-  if (/[?&]v=\d+/.test(location.search) && history.replaceState) history.replaceState(null, "", location.pathname + location.hash);
+  if (cameWith && history.replaceState) history.replaceState(null, "", location.pathname + location.hash);
   if (FULL) buildDesk();
   addTocLink();
   renderAll();
   await loadStatus();
+  if (reloadIfBehind()) return;
   renderAll();
   if (ST.token) afterConnect();
   setInterval(async () => {

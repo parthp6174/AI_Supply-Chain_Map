@@ -1,6 +1,6 @@
 {
-  "about": "Topics for the news radar on the Update desk. Each topic has one or more Google News searches (the last 7 days) and the boxes, scenarios, companies and sites a matching headline is linked to when you add it to the log. skipSources and skipTitles (regular expressions, case-insensitive) drop noise such as stock-pick listicles. Edit freely; ids must exist in src/supply/supply_data.py.",
-  "skipSources": ["IndexBox", "openPR.com", "AD HOC NEWS", "Stock Titan", "TradingNEWS", "tikr.com", "MarketBeat", "Zacks Investment Research", "Simply Wall St", "Pluang", "AInvest"],
+  "about": "Topics for the news radar on the Update desk. Each topic has one or more Google News searches (the last 7 days) and the boxes, scenarios, companies and sites a matching headline is linked to when you add it to the log. skipSources (matched anywhere in a source's name or address) and skipTitles (regular expressions, case-insensitive) drop noise such as stock-pick listicles. Edit freely; ids must exist in src/supply/supply_data.py.",
+  "skipSources": ["indexbox", "openpr", "ad hoc news", "ad-hoc-news", "stock titan", "stocktitan", "tradingnews", "tikr.com", "marketbeat", "zacks", "simply wall st", "simplywall.st", "pluang", "ainvest"],
   "skipTitles": ["\\bmarket\\b.{0,40}\\b(size|share|report|forecast|outlook|analysis|to|through)\\b.{0,40}\\b20[3-4]\\d\\b", "stock price, news, quote",
                  "\\b(stocks?|shares?) to (buy|own|watch|hold)\\b", "\\bshould you (buy|sell)\\b", "\\bis it time to (buy|sell)\\b", "\\bbetter\\b.{0,40}\\bstock\\b",
                  "\\bvs\\.? .{0,60}\\b(stock|investors)\\b", "\\b(after-hours|pre-market|premarket) at\\b", "\\bprice target\\b", "\\bstock (price )?forecast\\b",

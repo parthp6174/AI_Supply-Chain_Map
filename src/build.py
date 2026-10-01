@@ -344,6 +344,7 @@ def build(target, quotes_path, lenient=False):
         raise BuildError("data/developments.json has problems:\n  - " + "\n  - ".join(problems))
     qmeta = merge_quotes(Q, quotes_path)
     gh = target == "github"
+    rev = (os.environ.get("GITHUB_SHA") or "")[:12]   # set by GitHub Actions; lets a cached page notice a newer build
     links = dict(
         supply=dict(companion="investment-atlas/" if gh else ARTIFACT_URLS["atlas"], quotes="data/quotes.json" if gh else None),
         atlas=dict(companion="../" if gh else ARTIFACT_URLS["supply"], quotes="../data/quotes.json" if gh else None))
@@ -394,7 +395,7 @@ def build(target, quotes_path, lenient=False):
                  atlas=atlas_pts, regions=regions, companies=companies, quotes=Q,
                  groups=[dict(id=a, label=b, keys=c) for a, b, c in D.GROUPS], sources=sources,
                  taiwan=dict(y1=round(O0["accel"], 3), y3=round(O1["accel"], 3)), devs=dev_payload(dev, "supply"),
-                 siteUrl=SITE_URL, desk=desk_config("supply") if gh else None)
+                 siteUrl=SITE_URL, rev=rev, desk=desk_config("supply") if gh else None)
     with open(os.path.join(ROOT, "src", "supply", "template.html")) as f:
         tpl = f.read()
     supply_html = tpl.replace("__DATA__", dump(sdata)).replace("__GEO__", dump(g))
@@ -433,7 +434,7 @@ def build(target, quotes_path, lenient=False):
     adata = dict(asOf="2026-09-30", target=target, supplyUrl=links["atlas"]["companion"], quotesUrl=links["atlas"]["quotes"],
                  quotesMeta=qmeta, repoUrl=REPO_URL, items=pts, sources=asources, flows=flows, builders=A.BUILDERS, labs=labs,
                  antSchedule=[list(x) for x in A.ANT_SCHEDULE], collectors=A.COLLECTORS, regions=aregions, labSigned=lab_signed,
-                 market=market, devs=dev_payload(dev, "atlas"), siteUrl=SITE_URL, desk=desk_config("atlas") if gh else None)
+                 market=market, devs=dev_payload(dev, "atlas"), siteUrl=SITE_URL, rev=rev, desk=desk_config("atlas") if gh else None)
     with open(os.path.join(ROOT, "src", "atlas", "template.html")) as f:
         atpl = f.read()
     atlas_html = atpl.replace("__DATA__", dump(adata)).replace("__GEO__", dump(g))
@@ -441,14 +442,15 @@ def build(target, quotes_path, lenient=False):
     if gh:
         out1 = os.path.join(ROOT, "site", "index.html"); out2 = os.path.join(ROOT, "site", "investment-atlas", "index.html")
         os.makedirs(os.path.dirname(out2), exist_ok=True)
-        open(out1, "w").write(full_document(supply_html, '<script src="desk.js" defer></script>'))
-        open(out2, "w").write(full_document(atlas_html, '<script src="../desk.js" defer></script>'))
+        ver = "?v=" + rev if rev else ""
+        open(out1, "w").write(full_document(supply_html, f'<script src="desk.js{ver}" defer></script>'))
+        open(out2, "w").write(full_document(atlas_html, f'<script src="../desk.js{ver}" defer></script>'))
         open(os.path.join(ROOT, "site", ".nojekyll"), "w").write("")
         shutil.copyfile(os.path.join(ROOT, "src", "common", "desk.js"), os.path.join(ROOT, "site", "desk.js"))
         os.makedirs(os.path.join(ROOT, "site", "data"), exist_ok=True)
         with open(os.path.join(ROOT, "site", "data", "build.json"), "w") as f:
             json.dump(dict(built=dt.datetime.now(dt.timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z"),
-                           warnings=problems, entries=len(dev["entries"]), upcoming=len(dev["upcoming"])), f, ensure_ascii=False)
+                           rev=rev, warnings=problems, entries=len(dev["entries"]), upcoming=len(dev["upcoming"])), f, ensure_ascii=False)
     else:
         d = os.path.join(ROOT, "dist", "artifact"); os.makedirs(d, exist_ok=True)
         out1 = os.path.join(d, "ai-supply-chain-atlas.html"); out2 = os.path.join(d, "ai-investment-atlas.html")
