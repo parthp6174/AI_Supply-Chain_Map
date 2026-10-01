@@ -1,0 +1,549 @@
+{
+  "about": "Dated log of developments for the AI Supply Chain Atlas and the AI Investment Atlas. Add an entry to 'entries' (newest first is fine; the build sorts by date) and push: the site rebuilds itself. 'links' tie an entry to boxes in the chain (nodes), map sites, scenarios, companies (watchlist keys) and Investment Atlas items. 'changes' are optional and edit the pages' data; see docs/UPDATING.md for every change type.",
+  "entries": [
+    {
+      "date": "2026-10-01",
+      "title": "Investment Atlas: Gulf projects now flagged for war risk",
+      "summary": "Stargate UAE is marked at risk after Iran's IRGC named it a target; Microsoft's UAE build and the AWS-HUMAIN zone carry a war-risk note after the 1 March drone strikes on AWS in the UAE and Bahrain. Headline amounts are unchanged.",
+      "pages": [
+        "atlas",
+        "supply"
+      ],
+      "links": {
+        "nodes": [
+          "sovereign"
+        ],
+        "scenarios": [
+          "gulf"
+        ],
+        "atlasItems": [
+          "uae-campus",
+          "msft-uae",
+          "aws-humain"
+        ]
+      },
+      "source": {
+        "label": "Rest of World, Mar 2026",
+        "url": "https://restofworld.org/2026/gulf-war-aws-data-center-attack-ai-investment-risk/"
+      }
+    },
+    {
+      "date": "2026-09-28",
+      "title": "Hormuz oil flows recover to about 7.4M barrels a day, but no ceasefire",
+      "summary": "Preliminary September data show about 7.4M barrels a day through the Strait of Hormuz against about 20M before the war. Iran still claims attacks and mediators have not secured a ceasefire, so the Gulf scenario stays live.",
+      "pages": [
+        "supply",
+        "atlas"
+      ],
+      "links": {
+        "nodes": [
+          "natgas",
+          "helium"
+        ],
+        "sites": [
+          "hormuz"
+        ],
+        "scenarios": [
+          "gulf"
+        ]
+      },
+      "source": {
+        "label": "Al Jazeera, 28 Sep 2026",
+        "url": "https://aljazeera.com/news/2026/9/28/iran-touts-hormuz-attacks-as-oil-flows-increase-despite-tensions"
+      }
+    },
+    {
+      "date": "2026-09-14",
+      "title": "TSMC plans 2nm at 110k and 3nm at 210k wafers a month by mid-2027; CoWoS to double by 2028",
+      "summary": "CoWoS capacity goes from about 130k wafers a month at end-2026 to about 260k at end-2028. Packaging, not wafers, remains the tightest step for AI accelerators.",
+      "pages": [
+        "supply"
+      ],
+      "links": {
+        "nodes": [
+          "foundry",
+          "cowos"
+        ],
+        "companies": [
+          "tsmc"
+        ],
+        "scenarios": [
+          "taiwan"
+        ]
+      },
+      "source": {
+        "label": "TrendForce, 14 Sep 2026",
+        "url": "https://www.trendforce.com/news/2026/09/14/news-tsmc-reportedly-targets-22-2nm-16-3nm-capacity-boost-by-mid-2027-cowos-to-double-by-2028/"
+      }
+    },
+    {
+      "date": "2026-08-28",
+      "title": "NVL72 rack output to top $710B in 2027, with shipments up more than 50%",
+      "summary": "TrendForce expects GB and Vera Rubin rack shipments to grow more than 50% in 2027, and the five big North American clouds' share of purchases to fall from about 70% to 60% as new buyers arrive.",
+      "pages": [
+        "supply",
+        "atlas"
+      ],
+      "links": {
+        "nodes": [
+          "servers",
+          "cooling"
+        ],
+        "companies": [
+          "honhai",
+          "quanta",
+          "nvda"
+        ]
+      },
+      "source": {
+        "label": "TrendForce, 28 Aug 2026",
+        "url": "https://www.trendforce.com/presscenter/news/20260828-13204.html"
+      }
+    },
+    {
+      "date": "2026-08-06",
+      "title": "Indium phosphide shortage now worse than DRAM's, says Lumentum's CEO",
+      "summary": "InP wafers for optical-link lasers are the scarcest input in AI networking; 6-inch capacity is being doubled, but the shortage is expected to last beyond 2027.",
+      "pages": [
+        "supply"
+      ],
+      "links": {
+        "nodes": [
+          "inp",
+          "lasers",
+          "optics"
+        ],
+        "companies": [
+          "lite",
+          "cohr",
+          "axt"
+        ],
+        "scenarios": [
+          "inp"
+        ]
+      },
+      "source": {
+        "label": "TrendForce, 6 Aug 2026",
+        "url": "https://trendforce.com/news/2026/08/06/news-inp-shortage-emerges-as-ai-optical-interconnect-bottleneck/"
+      }
+    },
+    {
+      "date": "2026-07-15",
+      "title": "ASML guides 2026 revenue to €43-45B and EUV capacity up 30% in 2027",
+      "summary": "About 65 low-NA EUV systems in 2026; Intel is using High-NA EUV in production; China is about 20% of sales.",
+      "pages": [
+        "supply"
+      ],
+      "links": {
+        "nodes": [
+          "litho"
+        ],
+        "companies": [
+          "asml"
+        ],
+        "scenarios": [
+          "euv"
+        ]
+      },
+      "source": {
+        "label": "MarketBeat, 15 Jul 2026",
+        "url": "https://www.marketbeat.com/instant-alerts/asml-q2-earnings-call-highlights-2026-07-15/"
+      }
+    },
+    {
+      "date": "2026-07-14",
+      "title": "PJM capacity auction clears $16.4B, about $6.3B of it from data centers",
+      "summary": "The mid-Atlantic grid tied its record capacity price and missed its supply target, raising power costs for new campuses.",
+      "pages": [
+        "supply",
+        "atlas"
+      ],
+      "links": {
+        "nodes": [
+          "grid"
+        ],
+        "sites": [
+          "pjm"
+        ],
+        "scenarios": [
+          "power"
+        ],
+        "companies": [
+          "ceg",
+          "vst"
+        ]
+      },
+      "source": {
+        "label": "Bloomberg Government, 14 Jul 2026",
+        "url": "https://news.bgov.com/artificial-intelligence/ai-bumps-power-cost-60-as-mega-us-grid-fails-to-hit-supply-goal"
+      }
+    },
+    {
+      "date": "2026-07-09",
+      "title": "S&P cuts Oracle to BBB-, one notch above junk",
+      "summary": "Oracle carries about $117B of bonds as it builds capacity for OpenAI's $300B contract.",
+      "pages": [
+        "supply",
+        "atlas"
+      ],
+      "links": {
+        "nodes": [
+          "capital",
+          "hyper"
+        ],
+        "companies": [
+          "orcl"
+        ],
+        "scenarios": [
+          "finance"
+        ]
+      },
+      "source": {
+        "label": "The Next Web, Jul 2026",
+        "url": "https://thenextweb.com/news/oracle-sp-downgrade-ai-spending-junk-risk"
+      }
+    },
+    {
+      "date": "2026-07-02",
+      "title": "Cleveland-Cliffs wins a $400M sole-source electrical-steel contract",
+      "summary": "The Defense Logistics Agency picked the only US producer meeting DoD and DOE specs for domain-refined grain-oriented electrical steel, the core material of transformers.",
+      "pages": [
+        "supply"
+      ],
+      "links": {
+        "nodes": [
+          "goes",
+          "transformers"
+        ],
+        "sites": [
+          "butler"
+        ],
+        "companies": [
+          "clf"
+        ]
+      },
+      "source": {
+        "label": "Hoodline, Jul 2026",
+        "url": "https://hoodline.com/2026/07/cleveland-cliffs-snags-400-million-defense-steel-deal-to-keep-transformers-on/"
+      }
+    },
+    {
+      "date": "2026-06-04",
+      "title": "ASPEED moves boards to E-glass as substrates run short",
+      "summary": "The largest maker of server management chips is designing around the T-glass and substrate squeeze.",
+      "pages": [
+        "supply"
+      ],
+      "links": {
+        "nodes": [
+          "bmc",
+          "substrate",
+          "glasscloth"
+        ],
+        "companies": [
+          "aspeed"
+        ]
+      },
+      "source": {
+        "label": "Taipei Times, 4 Jun 2026",
+        "url": "https://www.taipeitimes.com/News/biz/archives/2026/06/04/2003858478"
+      }
+    },
+    {
+      "date": "2026-05-11",
+      "title": "US transformer lead times stretch to four years",
+      "summary": "Generator step-up transformer demand is up 274% and substation demand 116% since 2019; prices are up about 80%.",
+      "pages": [
+        "supply",
+        "atlas"
+      ],
+      "links": {
+        "nodes": [
+          "transformers"
+        ],
+        "scenarios": [
+          "power"
+        ],
+        "companies": [
+          "hitachi",
+          "hdhe",
+          "enr"
+        ]
+      },
+      "source": {
+        "label": "pv magazine USA, 11 May 2026",
+        "url": "https://pv-magazine-usa.com/2026/05/11/u-s-transformer-market-faces-severe-supply-constraints-as-lead-times-extend-to-four-years/"
+      }
+    },
+    {
+      "date": "2026-04-14",
+      "title": "Russia restricts helium exports",
+      "summary": "With Qatar's Ras Laffan offline, Russia's export controls remove a possible substitute supply.",
+      "pages": [
+        "supply"
+      ],
+      "links": {
+        "nodes": [
+          "helium"
+        ],
+        "scenarios": [
+          "gulf"
+        ]
+      },
+      "source": {
+        "label": "IUMI, Jun 2026",
+        "url": "https://iumi.com/newsletter-june-2026/qatari-helium-shortages/"
+      }
+    },
+    {
+      "date": "2026-04-03",
+      "title": "Iran's IRGC names Stargate UAE as a target",
+      "summary": "A Revolutionary Guard general threatened the OpenAI-backed Abu Dhabi campus. The Investment Atlas now lists it as at risk.",
+      "pages": [
+        "supply",
+        "atlas"
+      ],
+      "links": {
+        "nodes": [
+          "sovereign"
+        ],
+        "sites": [
+          "abudhabi"
+        ],
+        "scenarios": [
+          "gulf"
+        ],
+        "atlasItems": [
+          "uae-campus"
+        ]
+      },
+      "source": {
+        "label": "The Next Web, Apr 2026",
+        "url": "https://thenextweb.com/news/iran-threatens-stargate-openai-abu-dhabi"
+      }
+    },
+    {
+      "date": "2026-03-19",
+      "title": "Iranian strikes heavily damage Qatar's Ras Laffan",
+      "summary": "The plant behind about a third of the world's helium was hit again on 19-20 March after a force majeure on 2 March; repairs are expected to take years. Helium spot prices doubled.",
+      "pages": [
+        "supply"
+      ],
+      "links": {
+        "nodes": [
+          "helium",
+          "natgas"
+        ],
+        "sites": [
+          "raslaffan"
+        ],
+        "scenarios": [
+          "gulf"
+        ],
+        "companies": [
+          "linde",
+          "skhynix",
+          "samsung"
+        ]
+      },
+      "source": {
+        "label": "Fortune, 21 Mar 2026",
+        "url": "https://fortune.com/2026/03/21/iran-war-helium-shortage-qatar-chip-supply-chains-ai-boom/"
+      }
+    },
+    {
+      "date": "2026-03-03",
+      "title": "Nvidia invests $2B each in Lumentum and Coherent",
+      "summary": "Nvidia is financing its laser suppliers to secure indium phosphide capacity for optical links.",
+      "pages": [
+        "supply"
+      ],
+      "links": {
+        "nodes": [
+          "lasers",
+          "inp"
+        ],
+        "companies": [
+          "lite",
+          "cohr",
+          "nvda"
+        ]
+      },
+      "source": {
+        "label": "DatacenterDynamics, Mar 2026",
+        "url": "https://www.datacenterdynamics.com/en/news/nvidia-pumps-2bn-into-optical-developer-lumentum/"
+      }
+    },
+    {
+      "date": "2026-03-01",
+      "title": "Drones knock out two of three AWS availability zones in the UAE",
+      "summary": "Iranian drones struck two Amazon Web Services data centers in the UAE and damaged one in Bahrain. The Investment Atlas now flags Stargate UAE, Microsoft's UAE build and AWS-HUMAIN as carrying war risk.",
+      "pages": [
+        "supply",
+        "atlas"
+      ],
+      "links": {
+        "nodes": [
+          "sovereign"
+        ],
+        "sites": [
+          "aws_uae",
+          "aws_bahrain"
+        ],
+        "scenarios": [
+          "gulf"
+        ],
+        "companies": [
+          "amzn",
+          "msft"
+        ],
+        "atlasItems": [
+          "uae-campus",
+          "msft-uae",
+          "aws-humain"
+        ]
+      },
+      "source": {
+        "label": "Rest of World, Mar 2026",
+        "url": "https://restofworld.org/2026/gulf-war-aws-data-center-attack-ai-investment-risk/"
+      }
+    },
+    {
+      "date": "2026-01-15",
+      "title": "US 25% Section 232 tariff on advanced AI chips takes effect",
+      "summary": "The tariff applies to imported advanced AI semiconductors, with exemptions.",
+      "pages": [
+        "supply",
+        "atlas"
+      ],
+      "links": {
+        "nodes": [
+          "gpu",
+          "asic",
+          "foundry"
+        ],
+        "companies": [
+          "nvda",
+          "amd",
+          "tsmc"
+        ]
+      },
+      "source": {
+        "label": "Thomson Reuters, 15 Jan 2026",
+        "url": "https://www.thomsonreuters.com/en-us/help/onesource-global-trade/regulatory-insights/2026/january-15th/trump-admin-tariffs-advanced-ai-chips-232"
+      }
+    },
+    {
+      "date": "2025-12-30",
+      "title": "PLA drill 'Justice Mission 2025' simulates a blockade of Taiwan",
+      "summary": "The exercise rehearsed the scenario that would cut off most leading-edge chips and advanced packaging.",
+      "pages": [
+        "supply"
+      ],
+      "links": {
+        "sites": [
+          "strait"
+        ],
+        "scenarios": [
+          "taiwan"
+        ],
+        "nodes": [
+          "foundry",
+          "cowos"
+        ]
+      },
+      "source": {
+        "label": "Samdesk",
+        "url": "https://www.samdesk.io/briefings/april-7-military-pressure-on-taiwan"
+      }
+    }
+  ],
+  "upcoming": [
+    {
+      "date": "2026-11-10",
+      "title": "China's pause on its October 2025 export controls ends",
+      "pages": [
+        "supply",
+        "atlas"
+      ],
+      "links": {
+        "nodes": [
+          "ree",
+          "gallium",
+          "indium",
+          "tungsten"
+        ],
+        "scenarios": [
+          "minerals"
+        ]
+      },
+      "source": {
+        "label": "Pillsbury",
+        "url": "https://pillsburylaw.com/en/news-and-insights/china-suspends-export-controls-certain-critical-minerals-related-items.html"
+      }
+    },
+    {
+      "date": "2026-11-27",
+      "title": "China's pause on its gallium, germanium and antimony ban to the US ends",
+      "pages": [
+        "supply",
+        "atlas"
+      ],
+      "links": {
+        "nodes": [
+          "gallium"
+        ],
+        "scenarios": [
+          "minerals"
+        ]
+      },
+      "source": {
+        "label": "Mining Technology",
+        "url": "https://www.mining-technology.com/news/china-suspends-ban-exports-us/"
+      }
+    },
+    {
+      "date": "2027-06-30",
+      "approx": "Mid-2027",
+      "title": "Earliest expected relief for T-glass cloth",
+      "pages": [
+        "supply"
+      ],
+      "links": {
+        "nodes": [
+          "glasscloth",
+          "substrate"
+        ],
+        "companies": [
+          "nittobo"
+        ]
+      },
+      "source": {
+        "label": "TrendForce Insights",
+        "url": "https://insights.trendforce.com/p/glass-fiber-cloth-shortage"
+      }
+    },
+    {
+      "date": "2028-01-01",
+      "approx": "2028",
+      "title": "US ban on Russian enriched uranium fully in force (waivers end with 2027)",
+      "pages": [
+        "supply"
+      ],
+      "links": {
+        "nodes": [
+          "enrich",
+          "nuclear"
+        ],
+        "companies": [
+          "leu",
+          "ccj"
+        ]
+      },
+      "source": {
+        "label": "S&P Global",
+        "url": "https://www.spglobal.com/energy/en/news-research/latest-news/electric-power/111524-russia-temporarily-bans-exports-to-us-of-enriched-uranium-after-us-curbed-imports"
+      }
+    }
+  ]
+}

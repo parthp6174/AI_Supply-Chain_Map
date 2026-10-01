@@ -1,0 +1,1296 @@
+<title>AI Investment Atlas</title>
+<meta name="description" content="Interactive map and payback model of AI data-center, chip and lab-funding investments announced 2024–2026.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..700&family=Big+Shoulders+Display:wght@600..900&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: masthead ledger → map band with a detail rail → stacked analysis sections on one 1240px column.
+   Color is reserved for money: UI stays steel-and-ink, only data marks carry hue. */
+:root{
+  --bg:#eef1f4; --surface:#fcfdfd; --raised:#ffffff;
+  --ink:#0f1720; --ink-2:#44505d; --muted:#5d6977; --faint:#8793a0;
+  --line:#d3dae1; --grid:#e3e8ed; --wash:#e9edf1;
+  --sea:#dde5ed; --land:#f4f6f8; --land-on:#ffffff; --border:#b8c3ce; --state:#d6dde5;
+  --c-compute:#2a78d6; --c-chips:#eb6834; --c-funding:#1baf7a;
+  --y24:#86b6ef; --y25:#3987e5; --y26:#1c5cab;
+  --good:#0ca30c; --warn:#fab219; --serious:#ec835a; --crit:#d03b3b;
+  --good-ink:#006300; --warn-ink:#7a4f00; --crit-ink:#a12828;
+  --focus:#1c5cab;
+  --font-display:"Big Shoulders Display","Arial Narrow","Roboto Condensed",sans-serif;
+  --font-sans:"Archivo",system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",sans-serif;
+  --font-mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --fs-xs:11px; --fs-sm:12.5px; --fs-md:14.5px; --fs-lg:17px; --fs-xl:22px;
+  --r:6px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0b1016; --surface:#111820; --raised:#161f29;
+    --ink:#e8edf2; --ink-2:#b4c0cc; --muted:#93a0ae; --faint:#6f7c8a;
+    --line:#263241; --grid:#1c2531; --wash:#18212b;
+    --sea:#0d141b; --land:#151e28; --land-on:#1c2733; --border:#2e3a48; --state:#243140;
+    --c-compute:#3987e5; --c-chips:#d95926; --c-funding:#199e70;
+    --y24:#1c5cab; --y25:#3987e5; --y26:#86b6ef;
+    --good-ink:#4cd264; --warn-ink:#f5c14a; --crit-ink:#f08080;
+    --focus:#86b6ef;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0b1016; --surface:#111820; --raised:#161f29;
+  --ink:#e8edf2; --ink-2:#b4c0cc; --muted:#93a0ae; --faint:#6f7c8a;
+  --line:#263241; --grid:#1c2531; --wash:#18212b;
+  --sea:#0d141b; --land:#151e28; --land-on:#1c2733; --border:#2e3a48; --state:#243140;
+  --c-compute:#3987e5; --c-chips:#d95926; --c-funding:#199e70;
+  --y24:#1c5cab; --y25:#3987e5; --y26:#86b6ef;
+  --good-ink:#4cd264; --warn-ink:#f5c14a; --crit-ink:#f08080;
+  --focus:#86b6ef;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--font-sans);font-size:var(--fs-md);line-height:1.5;margin:0}
+.wrap{max-width:1240px;margin:0 auto;padding-inline:clamp(16px,3vw,32px);padding-block:0}
+a{color:inherit;text-decoration-color:var(--faint);text-underline-offset:2px}
+a:hover{text-decoration-color:currentColor}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--focus);outline-offset:2px;border-radius:3px}
+.mono{font-family:var(--font-mono)}
+.num{font-variant-numeric:tabular-nums}
+.muted{color:var(--muted)}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+/* ---------- masthead ---------- */
+.masthead{padding-block:clamp(28px,5vw,56px) 8px}
+.eyebrow{font-family:var(--font-mono);font-size:var(--fs-xs);letter-spacing:.09em;text-transform:uppercase;color:var(--muted);display:flex;flex-wrap:wrap;gap:6px 14px}
+.eyebrow span+span::before{content:"";display:inline-block;width:4px;height:4px;border-radius:50%;background:var(--faint);margin-right:14px;vertical-align:middle}
+h1{font-family:var(--font-display);font-weight:800;font-size:clamp(46px,8.4vw,104px);line-height:.86;letter-spacing:.005em;text-transform:uppercase;margin:14px 0 16px;text-wrap:balance}
+.dek{font-size:clamp(16px,1.6vw,19px);line-height:1.45;max-width:62ch;color:var(--ink-2);margin:0}
+.keyrow{display:flex;flex-wrap:wrap;gap:8px 18px;margin-top:18px;font-size:var(--fs-sm);color:var(--ink-2)}
+.key{display:inline-flex;align-items:center;gap:7px}
+.dot{width:10px;height:10px;border-radius:50%;display:inline-block;flex:none}
+.dot.compute{background:var(--c-compute)} .dot.chips{background:var(--c-chips)} .dot.funding{background:var(--c-funding)}
+
+.kpis{display:grid;grid-template-columns:1.35fr repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;margin-top:28px}
+.kpi{background:var(--surface);padding:16px 18px 18px;display:flex;flex-direction:column;gap:4px;min-width:0}
+.kpi .label{font-size:var(--fs-sm);color:var(--ink-2);line-height:1.35}
+.kpi .value{font-size:clamp(26px,3vw,34px);font-weight:600;letter-spacing:-.01em;line-height:1.1}
+.kpi.hero .value{font-size:clamp(44px,5.4vw,64px);font-weight:600;letter-spacing:-.02em;line-height:1}
+.kpi .sub{font-size:var(--fs-xs);color:var(--muted);font-family:var(--font-mono);letter-spacing:.02em}
+.bottomline{margin-top:14px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px 16px;display:flex;flex-wrap:wrap;gap:10px 22px;align-items:baseline}
+.bottomline .bl-title{font-family:var(--font-mono);font-size:var(--fs-xs);text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.bl-group{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.bl-names{font-size:var(--fs-sm);font-weight:600}
+
+nav.toc{display:flex;flex-wrap:wrap;gap:4px 18px;margin:22px 0 0;font-size:var(--fs-sm)}
+nav.toc a{text-decoration:none;color:var(--ink-2);padding:4px 0;border-bottom:1px solid transparent}
+nav.toc a:hover{color:var(--ink);border-bottom-color:var(--ink)}
+nav.toc{align-items:center}
+nav.toc a.companion{margin-left:auto;color:var(--ink);font-weight:600}
+/* developments, market check */
+.devs{margin-top:14px;display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.dv-col{background:var(--surface);padding:12px 16px 14px;min-width:0}
+.dv-col .bl-title{font-family:var(--font-mono);font-size:var(--fs-xs);text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.dv-list{list-style:none;margin:8px 0 0;padding:0;display:grid;gap:10px}
+.dv-list.compact{gap:6px}
+.dv-item,.dv-list.compact li{display:grid;grid-template-columns:78px minmax(0,1fr);gap:10px;align-items:start}
+.dv-list.compact li{font-size:var(--fs-sm)}
+.dv-date{font-family:var(--font-mono);font-size:var(--fs-xs);color:var(--muted);padding-top:2px;white-space:nowrap}
+.dv-t{font-weight:600;font-size:var(--fs-sm);line-height:1.35}
+.dv-list.compact .dv-t{font-weight:400;color:var(--ink-2)}
+.dv-chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:5px}
+.dv-chip{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:2px 9px;font-size:var(--fs-xs);cursor:pointer;color:var(--ink-2);text-decoration:none}
+.dv-chip:hover{color:var(--ink);border-color:var(--faint)}
+.dv-src{display:inline-block;margin-top:5px;font-size:var(--fs-xs);color:var(--ink-2)}
+.dv-more{display:inline-block;margin-top:10px;font-size:var(--fs-sm);font-weight:600}
+.market{margin-top:14px;padding:16px 18px}
+.mk-head{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:baseline;justify-content:space-between}
+.mk-status{display:inline-flex;gap:8px;align-items:center;font-size:var(--fs-sm);color:var(--ink-2)}
+.livedot{width:8px;height:8px;border-radius:50%;background:var(--good);box-shadow:0 0 0 3px color-mix(in srgb,var(--good) 25%,transparent);display:inline-block;flex:none}
+.livedot.off{background:var(--faint);box-shadow:none}
+.mk-tbl{min-width:760px}
+.chg{font-variant-numeric:tabular-nums}
+.chg.neg,.upn{color:var(--crit-ink)} .chg.pos{color:var(--good-ink)}
+
+/* ---------- sections ---------- */
+section{padding-block:clamp(40px,6vw,64px) 0}
+.sec-head{display:grid;grid-template-columns:minmax(0,1fr);gap:8px;margin-bottom:18px;border-top:2px solid var(--ink);padding-top:14px}
+h2{font-family:var(--font-display);font-weight:800;text-transform:uppercase;font-size:clamp(30px,3.8vw,44px);line-height:.95;margin:0;letter-spacing:.01em;text-wrap:balance}
+.sec-head p{margin:0;max-width:72ch;color:var(--ink-2)}
+h3{font-size:var(--fs-lg);margin:0;line-height:1.3;text-wrap:balance}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r)}
+
+/* ---------- controls ---------- */
+.filters{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:center;margin-bottom:12px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:var(--r);background:var(--surface);overflow-x:auto;overflow-y:hidden;flex-wrap:nowrap;max-width:100%;scrollbar-width:none}
+.seg::-webkit-scrollbar{display:none}
+.seg button{border:0;background:transparent;padding:6px 11px;font-size:var(--fs-sm);cursor:pointer;color:var(--ink-2);display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.seg button+button{border-left:1px solid var(--line)}
+.seg button:hover{background:var(--wash);color:var(--ink)}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--surface)}
+.seg button[aria-pressed="true"] .dot{box-shadow:0 0 0 2px var(--surface)}
+.chipbtn[aria-pressed="false"] .dot{background:transparent!important;box-shadow:inset 0 0 0 1.5px var(--faint)}
+.search{position:relative;flex:1 1 200px;max-width:280px}
+.search input{width:100%;border:1px solid var(--line);border-radius:var(--r);background:var(--surface);padding:6px 10px 6px 30px;font-size:var(--fs-sm)}
+.search svg{position:absolute;left:9px;top:50%;transform:translateY(-50%);width:14px;height:14px;stroke:var(--muted);fill:none;stroke-width:2}
+.ghost{border:1px solid var(--line);background:var(--surface);border-radius:var(--r);padding:6px 11px;font-size:var(--fs-sm);cursor:pointer;color:var(--ink-2)}
+.ghost:hover{color:var(--ink);border-color:var(--faint)}
+
+/* ---------- map ---------- */
+.map-layout{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:14px;align-items:start}
+.map-card{position:relative;margin:0;padding:10px;min-width:0}
+.map-bar{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;margin-bottom:8px}
+.zoombtns{display:inline-flex;gap:4px}
+.zoombtns button{width:30px;height:30px;border:1px solid var(--line);border-radius:var(--r);background:var(--surface);cursor:pointer;font-size:16px;line-height:1;color:var(--ink-2)}
+.zoombtns button:hover{color:var(--ink);border-color:var(--faint)}
+.map-frame{position:relative;border-radius:4px;overflow:hidden;background:var(--surface)}
+#map-svg{display:block;width:100%;height:auto;aspect-ratio:1000/434.6;touch-action:pan-y;cursor:grab;user-select:none;-webkit-user-select:none}
+#map-svg.dragging{cursor:grabbing}
+.ocean{fill:var(--sea)}
+.country{fill:var(--land);stroke:var(--border);stroke-width:.6px;vector-effect:non-scaling-stroke}
+.country.on{fill:var(--land-on)}
+.states{fill:none;stroke:var(--state);stroke-width:.5px;vector-effect:non-scaling-stroke;pointer-events:none}
+.b{cursor:pointer}
+.b .m{stroke:var(--surface);stroke-width:1.5px;vector-effect:non-scaling-stroke;fill-opacity:.92}
+.b.program .m{fill-opacity:.13;stroke-width:1.4px}
+.b.nd .m{fill:var(--surface)!important;stroke-width:1.6px}
+.b.compute .m{fill:var(--c-compute)} .b.chips .m{fill:var(--c-chips)} .b.funding .m{fill:var(--c-funding)}
+.b.program.compute .m,.b.nd.compute .m{stroke:var(--c-compute)}
+.b.program.chips .m,.b.nd.chips .m{stroke:var(--c-chips)}
+.b.program.funding .m,.b.nd.funding .m{stroke:var(--c-funding)}
+.b .hit{fill:transparent;stroke:none}
+.b:hover .m,.b:focus-visible .m{stroke:var(--ink);stroke-width:2px}
+.b.sel .m{stroke:var(--ink);stroke-width:2.6px}
+.b:focus{outline:none}
+.map-hint{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);background:var(--ink);color:var(--surface);padding:8px 14px;border-radius:var(--r);font-size:var(--fs-sm);pointer-events:none;opacity:0;transition:opacity .2s}
+.map-hint.show{opacity:.92}
+.legend{display:flex;flex-wrap:wrap;gap:8px 20px;align-items:center;margin-top:10px;font-size:var(--fs-xs);color:var(--muted)}
+.legend .lg{display:inline-flex;align-items:center;gap:6px}
+.lg-sizes{display:inline-flex;align-items:flex-end;gap:10px}
+.lg-sizes span{display:inline-flex;flex-direction:column;align-items:center;gap:2px}
+.legend svg{display:block}
+.tip{position:absolute;z-index:5;pointer-events:none;background:var(--raised);border:1px solid var(--line);border-radius:var(--r);box-shadow:0 6px 24px rgba(0,0,0,.14);padding:9px 11px;max-width:260px;font-size:var(--fs-sm);line-height:1.35}
+.tip .t-val{font-size:18px;font-weight:600}
+.tip .t-title{font-weight:600}
+.tip .t-meta{color:var(--muted);font-size:var(--fs-xs);margin-top:2px}
+
+.detail{padding:16px;min-width:0;position:sticky;top:calc(env(safe-area-inset-top,0px) + 12px)}
+.detail h3{margin:10px 0 2px}
+.d-top{display:flex;align-items:center;gap:8px;justify-content:space-between}
+.catchip{display:inline-flex;align-items:center;gap:6px;font-size:var(--fs-xs);font-family:var(--font-mono);text-transform:uppercase;letter-spacing:.06em;color:var(--ink-2)}
+.d-who{color:var(--ink-2);font-size:var(--fs-sm)}
+.d-amt{font-size:34px;font-weight:600;letter-spacing:-.01em;margin:10px 0 0;line-height:1.1}
+.d-amt small{display:block;font-size:var(--fs-xs);font-weight:400;color:var(--muted);letter-spacing:0;font-family:var(--font-mono);margin-top:3px}
+.d-list{display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 12px;margin:12px 0;font-size:var(--fs-sm)}
+.d-list dt{color:var(--muted)} .d-list dd{margin:0}
+.d-note{font-size:var(--fs-sm);color:var(--ink-2);margin:0 0 12px}
+.d-src{font-size:var(--fs-xs);display:grid;gap:4px}
+.d-src a{color:var(--ink-2)}
+.d-near{margin-top:14px;border-top:1px solid var(--line);padding-top:10px}
+.d-near h4,.d-empty h4{margin:0 0 6px;font-size:var(--fs-xs);font-family:var(--font-mono);text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:500}
+.pick{display:grid;gap:2px;list-style:none;margin:0;padding:0}
+.pick button{display:grid;grid-template-columns:12px minmax(0,1fr) auto;gap:8px;align-items:center;width:100%;text-align:left;background:transparent;border:0;padding:6px 4px;border-radius:4px;cursor:pointer;font-size:var(--fs-sm)}
+.pick button:hover{background:var(--wash)}
+.pick .pv{font-variant-numeric:tabular-nums;color:var(--ink-2)}
+.pick .pt{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.xbtn{border:0;background:transparent;cursor:pointer;color:var(--muted);font-size:18px;line-height:1;padding:2px 6px;border-radius:4px}
+.xbtn:hover{color:var(--ink);background:var(--wash)}
+
+/* ---------- tables ---------- */
+.tbl-head{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:baseline;justify-content:space-between;margin:18px 0 8px}
+.tbl-head .count{font-size:var(--fs-sm);color:var(--ink-2)}
+.tbl-wrap{overflow:auto;max-height:560px;border:1px solid var(--line);border-radius:var(--r);background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:var(--fs-sm)}
+th,td{padding:8px 10px;text-align:left;vertical-align:top;border-bottom:1px solid var(--grid)}
+thead th{position:sticky;top:0;background:var(--surface);z-index:1;font-weight:600;font-size:var(--fs-xs);text-transform:uppercase;letter-spacing:.05em;color:var(--muted);border-bottom:1px solid var(--line);white-space:nowrap}
+th.sortable{cursor:pointer} th.sortable:hover{color:var(--ink)}
+th[aria-sort="descending"]::after{content:" ↓"} th[aria-sort="ascending"]::after{content:" ↑"}
+td.r,th.r{text-align:right}
+tbody tr.row{cursor:pointer}
+tbody tr.row:hover{background:var(--wash)}
+tbody tr.row.sel{background:color-mix(in srgb,var(--c-compute) 10%,transparent)}
+.t-title{font-weight:600;color:var(--ink)}
+.t-sub{color:var(--muted);font-size:var(--fs-xs)}
+.amt{font-variant-numeric:tabular-nums;font-weight:600;white-space:nowrap}
+.inv-tbl{min-width:960px}
+
+/* ---------- spenders ---------- */
+.grid2{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:14px}
+.panel{padding:16px 18px}
+.panel h3{margin-bottom:4px}
+.panel .cap{font-size:var(--fs-sm);color:var(--muted);margin:0 0 14px}
+.bars{display:grid;gap:10px;position:relative}
+.bar-row{display:grid;grid-template-columns:118px minmax(0,1fr) 64px;align-items:center;gap:10px}
+.bar-name{font-size:var(--fs-sm);font-weight:600;line-height:1.2}
+.bar-name small{display:block;font-weight:400;color:var(--muted);font-family:var(--font-mono);font-size:10.5px;letter-spacing:.03em}
+.track{position:relative;height:22px}
+.stack{display:flex;height:100%;gap:2px;position:relative;z-index:1}
+.seg-b{height:100%;min-width:2px;position:relative}
+.seg-b:last-child{border-radius:0 4px 4px 0}
+.seg-b:hover{filter:brightness(1.1)}
+.bar-total{font-variant-numeric:tabular-nums;font-weight:600;font-size:var(--fs-sm);text-align:right}
+.gridlines{position:absolute;inset:0 74px 0 128px;pointer-events:none}
+.gridlines i{position:absolute;top:-4px;bottom:-4px;width:1px;background:var(--grid)}
+.axis{display:grid;grid-template-columns:118px minmax(0,1fr) 64px;gap:10px;margin-top:6px;font-size:var(--fs-xs);color:var(--muted)}
+.axis .ticks{position:relative;height:14px}
+.axis .ticks span{position:absolute;transform:translateX(-50%);font-variant-numeric:tabular-nums;white-space:nowrap}
+.labseg{height:100%;background:var(--ink-2);display:flex;align-items:center;overflow:hidden;min-width:2px}
+.labseg span{color:var(--surface);font-size:10.5px;padding:0 5px;white-space:nowrap;font-weight:600}
+.collect{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;margin-top:14px}
+.collect > div{background:var(--surface);padding:14px 16px;display:grid;gap:3px;align-content:start}
+.collect .who{font-family:var(--font-mono);font-size:var(--fs-xs);text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+.collect .v{font-size:28px;font-weight:600;line-height:1.1}
+.collect .l{font-size:var(--fs-sm);color:var(--ink-2);line-height:1.35}
+.collect .s{font-size:var(--fs-xs);color:var(--muted)}
+details.numbers{margin-top:12px;font-size:var(--fs-sm)}
+details.numbers summary{cursor:pointer;color:var(--ink-2)}
+details.numbers table{margin-top:8px}
+
+/* ---------- payback ---------- */
+.controls{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px 22px;padding:16px 18px}
+.ctl{display:grid;gap:6px;align-content:start}
+.ctl label,.ctl .lbl{font-size:var(--fs-sm);font-weight:600;display:flex;justify-content:space-between;gap:8px}
+.ctl output{font-variant-numeric:tabular-nums;font-weight:600}
+.ctl .help{font-size:var(--fs-xs);color:var(--muted);line-height:1.35}
+input[type=range]{width:100%;accent-color:var(--ink)}
+.summary{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin:14px 0}
+.sum{padding:14px 16px;display:grid;gap:4px}
+.sum .k{font-family:var(--font-mono);font-size:var(--fs-xs);text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+.sum .big{font-size:clamp(20px,2.3vw,26px);font-weight:600;line-height:1.2}
+.sum .txt{font-size:var(--fs-sm);color:var(--ink-2)}
+.dumb{padding:16px 18px 10px}
+.dumb-legend{display:flex;flex-wrap:wrap;gap:8px 18px;font-size:var(--fs-xs);color:var(--muted);margin-bottom:10px;align-items:center}
+.dl-item{display:inline-flex;align-items:center;gap:6px}
+.dmk{width:11px;height:11px;border-radius:50%;display:inline-block}
+.dmk.today{border:2px solid var(--ink-2);background:var(--surface)}
+.dmk.need{background:var(--ink)}
+.drows{position:relative}
+.dgroup{margin-top:6px}
+.dgroup-h{font-family:var(--font-mono);font-size:var(--fs-xs);text-transform:uppercase;letter-spacing:.08em;color:var(--muted);padding:8px 0 4px;border-bottom:1px solid var(--line)}
+.drow{display:grid;grid-template-columns:230px minmax(0,1fr) 136px;gap:12px;align-items:center;padding:7px 0;border-bottom:1px solid var(--grid);cursor:default}
+.drow:hover{background:linear-gradient(90deg,transparent,var(--wash) 12%,var(--wash) 88%,transparent)}
+.dname{display:flex;flex-direction:column;gap:4px;min-width:0}
+.dname b{font-size:var(--fs-sm)}
+.dname b small{font-weight:400;color:var(--muted);font-family:var(--font-mono);font-size:10.5px;margin-left:6px;letter-spacing:.03em}
+.dplot{position:relative;height:26px}
+.dplot .gl{position:absolute;top:0;bottom:0;width:1px;background:var(--grid)}
+.dplot .conn{position:absolute;top:50%;height:2px;transform:translateY(-50%);border-radius:2px}
+.dplot .pt{position:absolute;top:50%;width:12px;height:12px;border-radius:50%;transform:translate(-50%,-50%);box-shadow:0 0 0 2px var(--surface)}
+.dplot .pt.today{border:2px solid var(--ink-2);background:var(--surface)}
+.dplot .pt.need{background:var(--ink)}
+.dval{text-align:right;font-variant-numeric:tabular-nums}
+.dval b{font-size:var(--fs-md)}
+.dval span{display:block;font-size:var(--fs-xs);color:var(--muted)}
+.daxis{display:grid;grid-template-columns:230px minmax(0,1fr) 136px;gap:12px;font-size:var(--fs-xs);color:var(--muted);padding-top:6px}
+.daxis .ticks{position:relative;height:14px}
+.daxis .ticks span{position:absolute;transform:translateX(-50%);white-space:nowrap;font-variant-numeric:tabular-nums}
+.dnote{font-size:var(--fs-xs);color:var(--muted);margin:10px 0 0}
+
+.vchip{display:inline-flex;align-items:center;gap:5px;padding:2px 8px 2px 6px;border-radius:999px;font-size:11.5px;font-weight:600;white-space:nowrap;width:max-content;border:1px solid;color:var(--ink)}
+.vchip svg{width:12px;height:12px;flex:none}
+.v-lead{background:color-mix(in srgb,var(--good) 14%,transparent);border-color:color-mix(in srgb,var(--good) 45%,transparent)}
+.v-lead svg{stroke:var(--good-ink)}
+.v-track{background:transparent;border-color:var(--faint)}
+.v-track svg{stroke:var(--ink-2)}
+.v-innovate{background:color-mix(in srgb,var(--warn) 20%,transparent);border-color:color-mix(in srgb,var(--warn) 60%,transparent)}
+.v-innovate svg{stroke:var(--warn-ink)}
+.v-break{background:color-mix(in srgb,var(--crit) 14%,transparent);border-color:color-mix(in srgb,var(--crit) 50%,transparent)}
+.v-break svg{stroke:var(--crit-ink)}
+.fchip{font-size:var(--fs-xs);color:var(--ink-2);white-space:nowrap}
+.fchip::before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:6px;vertical-align:1px;background:var(--faint)}
+.fchip.f-self::before{background:var(--good)}
+.fchip.f-stretch::before{background:var(--warn)}
+.fchip.f-ext::before{background:var(--crit)}
+.pb-tbl{min-width:900px}
+.notes-row td{background:var(--wash);font-size:var(--fs-sm);color:var(--ink-2)}
+.notes-row p{margin:0 0 6px;max-width:110ch}
+.toggle{border:0;background:transparent;padding:0;cursor:pointer;font:inherit;text-align:left;display:inline-flex;gap:6px;align-items:center}
+.toggle .caret{display:inline-block;transition:transform .15s;color:var(--muted)}
+.toggle[aria-expanded="true"] .caret{transform:rotate(90deg)}
+
+/* ---------- deals ---------- */
+.deal-bar{height:8px;background:var(--ink-2);border-radius:0 3px 3px 0;margin-top:5px;min-width:2px}
+.deal-tbl{min-width:880px}
+.grouprow td{background:var(--wash);font-weight:600;font-size:var(--fs-sm);color:var(--ink)}
+
+/* ---------- method ---------- */
+.method{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:28px}
+.method p,.method li{max-width:68ch;color:var(--ink-2)}
+.method h3{margin:18px 0 6px}
+.formula{font-family:var(--font-mono);font-size:var(--fs-sm);background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:10px 12px;overflow-x:auto;white-space:pre;color:var(--ink)}
+ol.sources{font-size:var(--fs-sm);padding-left:2.4em;margin:0;display:grid;gap:4px;columns:1}
+ol.sources li{color:var(--ink-2);word-break:break-word}
+footer{padding-block:48px 56px;font-size:var(--fs-xs);color:var(--muted)}
+
+@media (max-width:1099px){
+  .map-layout{grid-template-columns:minmax(0,1fr)}
+  .detail{position:static}
+  .grid2,.method,.devs{grid-template-columns:minmax(0,1fr)}
+}
+@media (max-width:760px){
+  .kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .kpi.hero{grid-column:1/-1}
+  .collect{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .summary{grid-template-columns:minmax(0,1fr)}
+  .drow{grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"name val" "plot plot";row-gap:4px}
+  .drow .dname{grid-area:name} .drow .dplot{grid-area:plot} .drow .dval{grid-area:val}
+  .daxis{grid-template-columns:minmax(0,1fr)}
+  .daxis > div:first-child,.daxis > div:last-child{display:none}
+  .bar-row,.axis{grid-template-columns:92px minmax(0,1fr) 56px}
+  .gridlines{inset:0 66px 0 102px}
+  .axis .ticks span.odd{display:none}
+  .kpis > .kpi:nth-child(4){grid-column:1/-1}
+}
+@media (prefers-reduced-motion:reduce){ *{transition:none!important;animation:none!important} }
+</style>
+
+<div class="wrap">
+<header class="masthead">
+  <div class="eyebrow"><span>AI capital ledger</span><span id="asof">As of 30 Sep 2026</span><span>US$ · headline amounts</span></div>
+  <h1>AI Investment Atlas</h1>
+  <p class="dek">The major AI build-outs announced since January 2024 — data centers, power, chips and lab funding — mapped, totalled, and tested against the revenue they must earn back by 2030.</p>
+  <div class="keyrow" id="keyrow"></div>
+  <div class="kpis" id="kpis"></div>
+  <div class="bottomline" id="bottomline"></div>
+  <div class="devs" id="devs"></div>
+  <nav class="toc" aria-label="Sections">
+    <a href="#map">Map</a><a href="#spenders">Spenders &amp; collectors</a><a href="#market">Market check</a><a href="#payback">Payback test</a><a href="#deals">Who owes whom</a><a href="#method">Method &amp; sources</a>
+    <a class="companion" id="supply-link" href="#" target="_blank" rel="noopener">Companion: AI Supply Chain Atlas ↗</a>
+  </nav>
+</header>
+
+<section id="map">
+  <div class="sec-head">
+    <h2>Where the money is landing</h2>
+    <p id="map-dek">Each circle is an announcement, sized by its headline dollar value. Filled circles are specific sites and funding rounds; pale rings are multi-site pledges and company-wide plans pinned at their flagship or headquarters. Hollow dots have no disclosed amount.</p>
+  </div>
+  <div class="filters" role="group" aria-label="Map filters">
+    <div class="seg" id="f-cat" aria-label="Category"></div>
+    <div class="seg" id="f-kind" aria-label="Type"></div>
+    <div class="seg" id="f-year" aria-label="Year announced"></div>
+    <label class="search"><span class="sr">Search announcements</span>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>
+      <input id="f-q" type="search" placeholder="Search company, place…" autocomplete="off">
+    </label>
+  </div>
+  <div class="map-layout">
+    <figure class="map-card card">
+      <div class="map-bar">
+        <div class="seg" id="regions" aria-label="Jump to region"></div>
+        <div class="zoombtns">
+          <button type="button" id="z-in" aria-label="Zoom in">+</button>
+          <button type="button" id="z-out" aria-label="Zoom out">−</button>
+        </div>
+      </div>
+      <div class="map-frame" id="map-frame">
+        <svg id="map-svg" viewBox="0 0 1000 434.6" role="group" aria-label="World map of AI investment announcements">
+          <g id="vp"><path class="ocean" id="ocean"></path><g id="countries"></g><path class="states" id="states"></path><g id="bubbles"></g></g>
+        </svg>
+        <div class="map-hint" id="map-hint">Use Ctrl + scroll or pinch to zoom · drag to pan</div>
+        <div class="tip" id="tip" hidden></div>
+      </div>
+      <div class="legend" id="legend"></div>
+    </figure>
+    <aside class="detail card" id="detail" aria-live="polite"></aside>
+  </div>
+  <div class="tbl-head">
+    <div class="count" id="inv-count"></div>
+    <button type="button" class="ghost" id="copy-inv">Copy table as CSV</button>
+  </div>
+  <div class="tbl-wrap"><table class="inv-tbl" id="inv-tbl"><thead></thead><tbody></tbody></table></div>
+</section>
+
+<section id="spenders">
+  <div class="sec-head">
+    <h2>Who's spending, who's collecting</h2>
+    <p>Seven companies own most of the new capacity. Two labs have signed for more than a trillion dollars of it. The suppliers are already booking the revenue.</p>
+  </div>
+  <div class="grid2">
+    <div class="card panel">
+      <h3>Capital spending by the biggest AI builders</h3>
+      <p class="cap">Capex spent in 2024–25 and guided for 2026, US$ billions. Oracle uses fiscal years ending May; SpaceXAI counts AI capex only.</p>
+      <div class="keyrow" style="margin:0 0 12px">
+        <span class="key"><span class="dot" style="background:var(--y24);border-radius:2px"></span>2024</span>
+        <span class="key"><span class="dot" style="background:var(--y25);border-radius:2px"></span>2025</span>
+        <span class="key"><span class="dot" style="background:var(--y26);border-radius:2px"></span>2026 (guided)</span>
+      </div>
+      <div class="bars" id="capex-bars"></div>
+      <div class="axis" id="capex-axis"></div>
+      <details class="numbers"><summary>Show the numbers</summary><div class="tbl-wrap" style="max-height:none"><table id="capex-tbl"></table></div></details>
+    </div>
+    <div class="card panel">
+      <h3>Compute the two biggest labs have signed for</h3>
+      <p class="cap">Priced multi-year purchase contracts, US$ billions. These are the labs' bills, and much of the builders' backlog.</p>
+      <div class="bars" id="lab-bars"></div>
+      <p class="cap" style="margin:12px 0 0" id="lab-note"></p>
+    </div>
+  </div>
+  <div class="collect" id="collectors"></div>
+  <div class="card market" id="market">
+    <div class="mk-head"><h3>Market check</h3><span class="mk-status" id="mk-status"></span></div>
+    <p class="cap" style="margin:4px 0 12px;font-size:var(--fs-sm);color:var(--muted)">The seven builders and the suppliers collecting their capex: latest price, the day's move and the average analyst target. The full 92-company watchlist is on the Supply Chain Atlas.</p>
+    <div class="tbl-wrap" style="max-height:none"><table class="mk-tbl" id="mk-tbl"><thead></thead><tbody></tbody></table></div>
+  </div>
+</section>
+
+<section id="payback">
+  <div class="sec-head">
+    <h2>The payback test</h2>
+    <p>For each builder, the capital spent or guided for 2024–26 is converted into the yearly revenue that would pay it back with a return. That is compared with the revenue its business has added since 2023. For the labs, their signed compute bills set the revenue they need. Move the assumptions to stress-test the verdicts.</p>
+  </div>
+  <div class="card controls" id="controls">
+    <div class="ctl"><label for="c-rate">Target return <output id="o-rate" for="c-rate">10%</output></label>
+      <input type="range" id="c-rate" min="0" max="15" step="1" value="10">
+      <div class="help">0% is plain breakeven. Big Tech's cost of capital sits near 9–10%.</div></div>
+    <div class="ctl"><span class="lbl" id="l-mode">Pay the capital back over</span>
+      <div class="seg" id="c-mode" role="group" aria-labelledby="l-mode"><button type="button" data-v="5yr" aria-pressed="true">5 years</button><button type="button" data-v="life" aria-pressed="false">Asset lives</button></div>
+      <div class="help">Asset lives: 60% servers and chips over 5 years, 40% buildings and power over 20.</div></div>
+    <div class="ctl"><label for="c-margin">Cash margin on new revenue <output id="o-margin" for="c-margin">60%</output></label>
+      <input type="range" id="c-margin" min="40" max="75" step="5" value="60">
+      <div class="help">Share left after power, staff and other running costs. AWS runs near 65%.</div></div>
+    <div class="ctl"><label for="c-credit">Growth credited to the build-out <output id="o-credit" for="c-credit">100%</output></label>
+      <input type="range" id="c-credit" min="25" max="100" step="5" value="100">
+      <div class="help">How much of the revenue Microsoft, Alphabet, Amazon and Meta added since 2023 counts as earned by the new capex.</div></div>
+    <div class="ctl"><label for="c-lab">Labs: compute as share of revenue <output id="o-lab" for="c-lab">50%</output></label>
+      <input type="range" id="c-lab" min="30" max="70" step="5" value="50">
+      <div class="help">The rest covers research staff, sales and profit. OpenAI's 2025 gross margin was 33%.</div></div>
+    <div class="ctl" style="align-content:end"><button type="button" class="ghost" id="c-reset">Reset assumptions</button></div>
+  </div>
+  <div class="summary" id="pb-summary"></div>
+  <div class="card dumb">
+    <h3>Revenue today versus revenue needed by 2030</h3>
+    <p class="cap muted" style="margin:4px 0 10px;font-size:var(--fs-sm)">Log scale, so the length of each line is the growth multiple still required. Rows are sorted from most to least covered.</p>
+    <div class="dumb-legend">
+      <span class="dl-item"><span class="dmk today"></span>Revenue today (added since 2023 for builders)</span>
+      <span class="dl-item"><span class="dmk need"></span>Revenue needed per year by 2030</span>
+      <span class="dl-item" id="vlegend"></span>
+    </div>
+    <div class="drows" id="drows"></div>
+    <div class="daxis" id="daxis"></div>
+    <p class="dnote" id="dnote"></p>
+  </div>
+  <div class="tbl-head">
+    <div class="count">Every figure behind the chart. Select a company for its revenue basis and notes.</div>
+    <button type="button" class="ghost" id="copy-pb">Copy table as CSV</button>
+  </div>
+  <div class="tbl-wrap" style="max-height:none"><table class="pb-tbl" id="pb-tbl"><thead></thead><tbody></tbody></table></div>
+</section>
+
+<section id="deals">
+  <div class="sec-head">
+    <h2>Who owes whom</h2>
+    <p>The build-out runs on a web of multi-year contracts and cross-investments. Much of the hyperscalers' record backlog is the labs' bills, and several suppliers are also the labs' shareholders and lenders.</p>
+  </div>
+  <div class="tbl-wrap" style="max-height:none"><table class="deal-tbl" id="deal-tbl"><thead></thead><tbody></tbody></table></div>
+</section>
+
+<section id="method">
+  <div class="sec-head">
+    <h2>How the numbers work</h2>
+    <p>Everything here comes from company filings, earnings calls and reported deals up to 29 September 2026. Headline amounts are as announced and often overlap, so the map total is a measure of ambition, not a sum of new money.</p>
+  </div>
+  <div class="method">
+    <div>
+      <h3>Builders (they own the data centers)</h3>
+      <div class="formula">capital      = capex 2024 + 2025 + 2026 guide × share serving the revenue line
+needed / yr  = capital × CRF(return, years) ÷ cash margin
+CRF(r, n)    = r ÷ (1 − (1 + r)^−n)          (1 ÷ n when r = 0)
+today        = revenue run-rate now − 2023 revenue, × credit share</div>
+      <p>Revenue lines: Microsoft Cloud, all of Alphabet, AWS, all of Meta, Oracle Cloud Infrastructure, and all revenue for CoreWeave and SpaceXAI's AI segment. Run-rates annualize the latest quarter. "Asset lives" mode splits capital 60/40 between servers (5 years) and buildings and power (20 years), in line with Alphabet's disclosed mix.</p>
+      <h3>Labs (they rent compute)</h3>
+      <div class="formula">needed / yr  = average yearly compute commitment, 2026–2030 ÷ compute share of revenue</div>
+      <p>OpenAI: about $600B of compute through 2030, its own February 2026 target, spread evenly over five years. Anthropic: the $518B in its IPO filing, each contract spread over its stated term (the Broadcom leases are assumed to run 2027–2033 and AMD 2027–2030). That averages <span id="ant-avg">$68B</span> a year for 2026–2030, peaking near $83B in 2027–29.</p>
+      <h3>Verdicts</h3>
+      <ul>
+        <li><b>Leading</b>: needs no more than 1.5× today's revenue and funds its 2026 spending from operating cash flow.</li>
+        <li><b>On track</b>: needs no more than 2×.</li>
+        <li><b>Must keep innovating</b>: needs 2–3.5×, which means growing roughly 18–34% a year to 2030.</li>
+        <li><b>Needs a breakthrough</b>: needs more than 3.5×.</li>
+      </ul>
+      <p>Growth needed = (needed ÷ today)^(1 ÷ 4.25) − 1, from October 2026 to the end of 2030. "Spend ÷ cash flow" divides 2026 capital spending by the last twelve months of operating cash flow; CoreWeave and SpaceXAI use adjusted EBITDA, and for the labs it is the compute bill divided by revenue.</p>
+      <h3>Cross-checks</h3>
+      <p>J.P. Morgan estimates the industry needs about $650B of annual revenue for a 10% return on its modeled build-out through 2030; Bain puts the revenue needed by 2030 at $2 trillion. Goldman Sachs expects the five biggest US hyperscalers to spend $1.2 trillion on AI in 2027. The default settings here land in the same range.</p>
+      <h3>Keeping it current</h3>
+      <p>New developments are logged in one data file shared with the Supply Chain Atlas; an entry can change a project's status or add a new project. On the GitHub version, share prices and analyst targets refresh from Yahoo Finance every 15 minutes on weekdays. Capex, revenue and backlog figures are updated after each earnings season, and the payback test reruns on the new numbers.</p>
+      <h3>Caveats</h3>
+      <ul>
+        <li>Headline figures mix different things: capex, multi-year pledges, contract values, bond authorizations and credit guarantees. Each is labeled in the table.</li>
+        <li>Builders' "today" is generous by default: it credits all growth since 2023 to the new capex. Lower the credit slider to see who depends on that.</li>
+        <li>Off-balance-sheet leases (Meta's Hyperion and El Paso ventures, Microsoft's neocloud contracts) are not in the capital figures. Neither is 2027 spending, which is guided higher almost everywhere.</li>
+        <li>Private-company revenue is reported, not audited. Anthropic reports part of its revenue on a gross basis.</li>
+        <li>Non-dollar amounts are converted at rates near the announcement date.</li>
+        <li>This is a research model, not investment advice.</li>
+      </ul>
+    </div>
+    <div>
+      <h3 style="margin-top:0">Sources</h3>
+      <ol class="sources" id="sources"></ol>
+    </div>
+  </div>
+</section>
+<footer>Compiled 30 September 2026 from public filings and reporting; Gulf entries revised 1 October 2026. Amounts in US dollars. Research model, not investment advice.</footer>
+</div>
+
+<script>
+const DATA = __DATA__;
+const GEO = __GEO__;
+(function(){
+"use strict";
+const $ = (s, r) => (r || document).querySelector(s);
+const SVGNS = "http://www.w3.org/2000/svg";
+const reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+function h(tag, attrs, ...kids){
+  const e = document.createElement(tag);
+  if (attrs) for (const k in attrs){
+    const v = attrs[k];
+    if (v == null || v === false) continue;
+    if (k === "class") e.className = v;
+    else if (k === "text") e.textContent = v;
+    else if (k === "style") e.setAttribute("style", v);
+    else if (k.startsWith("on")) e.addEventListener(k.slice(2), v);
+    else e.setAttribute(k, v === true ? "" : v);
+  }
+  for (const c of kids.flat()) if (c != null && c !== false) e.append(c.nodeType ? c : document.createTextNode(String(c)));
+  return e;
+}
+function s(tag, attrs){
+  const e = document.createElementNS(SVGNS, tag);
+  if (attrs) for (const k in attrs) if (attrs[k] != null) e.setAttribute(k, attrs[k]);
+  return e;
+}
+function trimZ(str){ return str.includes(".") ? str.replace(/0+$/,"").replace(/\.$/,"") : str; }
+function fmtB(v){
+  if (v == null) return "n/d";
+  const a = Math.abs(v);
+  if (a >= 1000) return "$" + trimZ((v/1000).toFixed(2)) + "T";
+  if (a >= 100) return "$" + Math.round(v) + "B";
+  if (a >= 10) return "$" + trimZ(v.toFixed(1)) + "B";
+  return "$" + trimZ(v.toFixed(2)) + "B";
+}
+const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+function fmtDate(d){ const [y,m] = d.split("-"); return MONTHS[+m-1] + " " + y; }
+function pct(x){ return Math.round(x*100) + "%"; }
+const CAT = {compute:"Data centers & power", chips:"Chips & manufacturing", funding:"AI company funding"};
+const KIND = {site:"Site", program:"Pledge / plan", funding:"Funding round"};
+const SRC = DATA.sources;
+function srcLinks(keys){
+  return keys.map(k => { const s0 = SRC[k]; return s0 ? h("a",{href:s0.u, target:"_blank", rel:"noopener", text:"[" + s0.n + "] " + s0.l}) : null; });
+}
+
+/* ================= masthead ================= */
+const items = DATA.items;
+function counts(){
+  const c = {compute:0, chips:0, funding:0};
+  items.forEach(i => c[i.cat]++);
+  return c;
+}
+(function keyrow(){
+  const c = counts(); const kr = $("#keyrow");
+  ["compute","chips","funding"].forEach(k => kr.append(h("span",{class:"key"}, h("span",{class:"dot " + k}), CAT[k] + " · " + c[k])));
+  kr.append(h("span",{class:"key muted", text: items.length + " announcements in " + new Set(items.map(i=>i.country)).size + " countries"}));
+})();
+
+/* ================= map ================= */
+const W = GEO.w, H = GEO.h;
+const svg = $("#map-svg"), vp = $("#vp"), bubblesG = $("#bubbles"), frame = $("#map-frame"), tip = $("#tip");
+svg.setAttribute("viewBox", "0 0 " + W + " " + H);
+svg.style.aspectRatio = W + "/" + H;
+$("#ocean").setAttribute("d", GEO.ocean);
+$("#states").setAttribute("d", GEO.states);
+const countryEls = {};
+GEO.countries.forEach(c => { const p = s("path",{d:c.d, class:"country"}); p.dataset.c = c.c; $("#countries").append(p); (countryEls[c.c] = countryEls[c.c] || []).push(p); });
+
+const F = {cats:new Set(["compute","chips","funding"]), kind:"all", year:"all", q:""};
+let selected = null;
+
+function rBase(it){ return it.amount == null ? 2.6 : 2.0 + 1.1*Math.sqrt(it.amount); }
+function matches(it){
+  if (!F.cats.has(it.cat)) return false;
+  if (F.kind !== "all" && it.kind !== F.kind) return false;
+  if (F.year !== "all" && !it.date.startsWith(F.year)) return false;
+  if (F.q){
+    const hay = (it.title + " " + it.who + " " + it.place + " " + it.country + " " + (it.partners||"")).toLowerCase();
+    if (!F.q.split(/\s+/).every(t => hay.includes(t))) return false;
+  }
+  return true;
+}
+function filtered(){ return items.filter(matches); }
+
+/* filters UI */
+const segSync = [];
+function segButtons(container, opts, isOn, onPick){
+  container.innerHTML = "";
+  const btns = opts.map(o => {
+    const b = h("button",{type:"button", class: o.dot ? "chipbtn" : null}, o.dot ? h("span",{class:"dot " + o.dot}) : null, o.label);
+    b.addEventListener("click", () => onPick(o.v));
+    container.append(b);
+    return [b, o.v];
+  });
+  const sync = () => btns.forEach(([b, v]) => b.setAttribute("aria-pressed", String(isOn(v))));
+  segSync.push(sync); sync();
+}
+function renderFilters(){ segSync.forEach(f => f()); }
+function buildFilters(){
+  segButtons($("#f-cat"), [{v:"compute",label:"Data centers & power",dot:"compute"},{v:"chips",label:"Chips",dot:"chips"},{v:"funding",label:"Funding",dot:"funding"}], v => F.cats.has(v), v => {
+    if (F.cats.has(v)) { if (F.cats.size > 1) F.cats.delete(v); } else F.cats.add(v);
+    update();
+  });
+  segButtons($("#f-kind"), [{v:"all",label:"All types"},{v:"site",label:"Sites"},{v:"program",label:"Pledges & plans"},{v:"funding",label:"Funding rounds"}], v => F.kind === v, v => { F.kind = v; update(); });
+  segButtons($("#f-year"), [{v:"all",label:"2024–26"},{v:"2024",label:"2024"},{v:"2025",label:"2025"},{v:"2026",label:"2026"}], v => F.year === v, v => { F.year = v; update(); });
+}
+let qTimer;
+$("#f-q").addEventListener("input", e => { clearTimeout(qTimer); qTimer = setTimeout(() => { F.q = e.target.value.trim().toLowerCase(); update(); }, 120); });
+
+/* bubbles */
+const bubbleEls = new Map();
+function buildBubbles(){
+  const order = items.slice().sort((a,b) => {
+    const pa = a.kind === "program" ? 1 : 0, pb = b.kind === "program" ? 1 : 0;
+    if (pa !== pb) return pb - pa;
+    return rBase(b) - rBase(a);
+  });
+  order.forEach(it => {
+    const g = s("g",{class:"b " + it.cat + (it.kind === "program" ? " program" : "") + (it.amount == null ? " nd" : ""), transform:"translate(" + it.x + " " + it.y + ")", tabindex:"0", role:"button"});
+    g.setAttribute("aria-label", it.title + ", " + (it.amount == null ? "amount not disclosed" : fmtB(it.amount)) + ", " + it.place);
+    g.dataset.id = it.id;
+    const hit = s("circle",{class:"hit", r:"4"});
+    const m = s("circle",{class:"m", r:String(rBase(it))});
+    g.append(hit, m);
+    bubblesG.append(g);
+    bubbleEls.set(it.id, {g, m, hit, it});
+  });
+}
+
+/* zoom */
+const Z = {k:1, tx:0, ty:0};
+const MINK = 1, MAXK = 22;
+function clampZ(k, tx, ty){
+  k = Math.max(MINK, Math.min(MAXK, k));
+  tx = Math.min(0, Math.max(W - W*k, tx));
+  ty = Math.min(0, Math.max(H - H*k, ty));
+  return [k, tx, ty];
+}
+function pxPerUnit(){ const w = svg.getBoundingClientRect().width || svg.clientWidth || 1000; return w / W; }
+function applyZ(){
+  vp.setAttribute("transform", "translate(" + Z.tx.toFixed(2) + " " + Z.ty.toFixed(2) + ") scale(" + Z.k.toFixed(4) + ")");
+  const ppu = pxPerUnit();
+  bubbleEls.forEach(({m, hit, it}) => {
+    const r = Math.max(rBase(it) / Math.pow(Z.k, 0.72), 3.2/(ppu*Z.k));
+    m.setAttribute("r", r.toFixed(3));
+    hit.setAttribute("r", Math.max(r, 9/(ppu*Z.k)).toFixed(3));
+  });
+  scheduleInView();
+}
+function setZ(k, tx, ty){ [Z.k, Z.tx, Z.ty] = clampZ(k, tx, ty); applyZ(); }
+function toSvg(cx, cy){ const r = svg.getBoundingClientRect(); return [(cx - r.left) * W / r.width, (cy - r.top) * H / r.height]; }
+function zoomAt(p, k){
+  const [nk] = clampZ(k, 0, 0);
+  const mx = (p[0] - Z.tx) / Z.k, my = (p[1] - Z.ty) / Z.k;
+  setZ(nk, p[0] - mx*nk, p[1] - my*nk);
+}
+let anim = null;
+function flyTo(k, tx, ty){
+  [k, tx, ty] = clampZ(k, tx, ty);
+  if (anim) cancelAnimationFrame(anim);
+  if (reduceMotion){ setZ(k, tx, ty); return; }
+  const c0 = [(W/2 - Z.tx)/Z.k, (H/2 - Z.ty)/Z.k], c1 = [(W/2 - tx)/k, (H/2 - ty)/k];
+  const l0 = Math.log(Z.k), l1 = Math.log(k), t0 = performance.now(), D = 520;
+  const step = now => {
+    let t = Math.min(1, (now - t0)/D); t = t < .5 ? 4*t*t*t : 1 - Math.pow(-2*t + 2, 3)/2;
+    const kk = Math.exp(l0 + (l1 - l0)*t), cx = c0[0] + (c1[0]-c0[0])*t, cy = c0[1] + (c1[1]-c0[1])*t;
+    setZ(kk, W/2 - cx*kk, H/2 - cy*kk);
+    if (t < 1) anim = requestAnimationFrame(step); else anim = null;
+  };
+  anim = requestAnimationFrame(step);
+}
+function fitBox(b, pad){
+  pad = pad || 0.9;
+  const k = Math.min(W/(b[2]-b[0]), H/(b[3]-b[1])) * pad;
+  flyTo(k, W/2 - k*(b[0]+b[2])/2, H/2 - k*(b[1]+b[3])/2);
+}
+function segRegions(){
+  const box = $("#regions"); box.innerHTML = "";
+  DATA.regions.forEach((r, i) => {
+    const b = h("button",{type:"button", "aria-pressed": String(i === 0), text:r.label});
+    b.addEventListener("click", () => { [...box.children].forEach(x => x.setAttribute("aria-pressed","false")); b.setAttribute("aria-pressed","true"); fitBox(r.box, i === 0 ? 1 : 0.92); });
+    box.append(b);
+  });
+}
+function clearRegionPress(){ [...$("#regions").children].forEach(x => x.setAttribute("aria-pressed","false")); }
+$("#z-in").addEventListener("click", () => { clearRegionPress(); const k = Z.k*1.8; flyTo(k, W/2 - ((W/2 - Z.tx)/Z.k)*k, H/2 - ((H/2 - Z.ty)/Z.k)*k); });
+$("#z-out").addEventListener("click", () => { clearRegionPress(); const k = Z.k/1.8; flyTo(k, W/2 - ((W/2 - Z.tx)/Z.k)*k, H/2 - ((H/2 - Z.ty)/Z.k)*k); });
+
+/* pointer: pan, pinch, click */
+const ptrs = new Map(); let pan = null, pinch = null, moved = false, downId = null;
+svg.addEventListener("pointerdown", e => {
+  if (e.button > 0) return;
+  ptrs.set(e.pointerId, [e.clientX, e.clientY]);
+  if (ptrs.size === 1){
+    pan = {x:e.clientX, y:e.clientY, tx:Z.tx, ty:Z.ty}; moved = false;
+    const g = e.target.closest && e.target.closest(".b"); downId = g ? g.dataset.id : null;
+  } else if (ptrs.size === 2){
+    const [a, b] = [...ptrs.values()];
+    pinch = {d: Math.hypot(a[0]-b[0], a[1]-b[1]) || 1, k: Z.k, m: toSvg((a[0]+b[0])/2, (a[1]+b[1])/2), tx: Z.tx, ty: Z.ty};
+    pan = null; moved = true;
+  }
+});
+svg.addEventListener("pointermove", e => {
+  if (!ptrs.has(e.pointerId)) return;
+  ptrs.set(e.pointerId, [e.clientX, e.clientY]);
+  if (pinch && ptrs.size >= 2){
+    const [a, b] = [...ptrs.values()];
+    const d = Math.hypot(a[0]-b[0], a[1]-b[1]) || 1;
+    const nk = clampZ(pinch.k * d / pinch.d, 0, 0)[0];
+    const mNow = toSvg((a[0]+b[0])/2, (a[1]+b[1])/2);
+    const mx = (pinch.m[0] - pinch.tx)/pinch.k, my = (pinch.m[1] - pinch.ty)/pinch.k;
+    setZ(nk, mNow[0] - mx*nk, mNow[1] - my*nk); clearRegionPress();
+  } else if (pan){
+    const dx = e.clientX - pan.x, dy = e.clientY - pan.y;
+    if (!moved && Math.hypot(dx, dy) > 4){ moved = true; svg.setPointerCapture(e.pointerId); svg.classList.add("dragging"); hideTip(); }
+    if (moved){ const u = W / svg.getBoundingClientRect().width; setZ(Z.k, pan.tx + dx*u, pan.ty + dy*u); clearRegionPress(); }
+  }
+});
+function endPtr(e){
+  if (!ptrs.has(e.pointerId)) return;
+  if (ptrs.size === 1 && !moved && e.type === "pointerup"){
+    if (downId) select(downId, {from:"map"});
+  }
+  ptrs.delete(e.pointerId);
+  if (ptrs.size < 2) pinch = null;
+  if (ptrs.size === 0){ pan = null; svg.classList.remove("dragging"); }
+}
+svg.addEventListener("pointerup", endPtr);
+svg.addEventListener("pointercancel", endPtr);
+let hintTimer;
+svg.addEventListener("wheel", e => {
+  if (!(e.ctrlKey || e.metaKey)){ const hn = $("#map-hint"); hn.classList.add("show"); clearTimeout(hintTimer); hintTimer = setTimeout(() => hn.classList.remove("show"), 1300); return; }
+  e.preventDefault(); clearRegionPress();
+  zoomAt(toSvg(e.clientX, e.clientY), Z.k * Math.exp(-e.deltaY * 0.0025));
+}, {passive:false});
+svg.addEventListener("dblclick", e => { e.preventDefault(); clearRegionPress(); const p = toSvg(e.clientX, e.clientY); const k = Z.k*2; const mx = (p[0]-Z.tx)/Z.k, my = (p[1]-Z.ty)/Z.k; flyTo(k, p[0]-mx*k, p[1]-my*k); });
+
+/* tooltip */
+function showTip(it, cx, cy){
+  tip.innerHTML = "";
+  tip.append(
+    h("div",{class:"t-val", text: it.amount == null ? "Amount not disclosed" : fmtB(it.amount)}),
+    h("div",{class:"t-title", text: it.title}),
+    h("div",{class:"t-meta", text: it.who + " · " + it.place}),
+    h("div",{class:"t-meta", text: fmtDate(it.date) + (it.gw ? " · " + it.gw + " GW" : "") + (it.amountNote ? " · " + it.amountNote : "")})
+  );
+  tip.hidden = false;
+  const fr = frame.getBoundingClientRect(), tw = tip.offsetWidth, th = tip.offsetHeight;
+  let x = cx - fr.left + 14, y = cy - fr.top + 14;
+  if (x + tw > fr.width - 6) x = cx - fr.left - tw - 14;
+  if (y + th > fr.height - 6) y = cy - fr.top - th - 14;
+  tip.style.left = Math.max(6, x) + "px"; tip.style.top = Math.max(6, y) + "px";
+}
+function hideTip(){ tip.hidden = true; }
+bubblesG.addEventListener("pointerover", e => { if (e.pointerType === "touch" || pan && moved) return; const g = e.target.closest(".b"); if (!g) return; showTip(bubbleEls.get(g.dataset.id).it, e.clientX, e.clientY); });
+bubblesG.addEventListener("pointermove", e => { if (tip.hidden || e.pointerType === "touch") return; const g = e.target.closest(".b"); if (!g) return; showTip(bubbleEls.get(g.dataset.id).it, e.clientX, e.clientY); });
+bubblesG.addEventListener("pointerout", e => { const g = e.target.closest(".b"); if (g && !g.contains(e.relatedTarget)) hideTip(); });
+bubblesG.addEventListener("focusin", e => { const g = e.target.closest(".b"); if (!g) return; const r = g.getBoundingClientRect(); showTip(bubbleEls.get(g.dataset.id).it, r.right, r.top); });
+bubblesG.addEventListener("focusout", hideTip);
+bubblesG.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " "){ const g = e.target.closest(".b"); if (g){ e.preventDefault(); select(g.dataset.id, {from:"map"}); } } });
+
+/* legend */
+(function legend(){
+  const L = $("#legend");
+  const circle = (r, cls) => { const sv = s("svg",{width:String(2*r+4), height:String(2*r+4), viewBox:"0 0 " + (2*r+4) + " " + (2*r+4), "aria-hidden":"true"}); sv.append(s("circle",{cx:String(r+2), cy:String(r+2), r:String(r), style:cls})); return sv; };
+  [["compute","var(--c-compute)"],["chips","var(--c-chips)"],["funding","var(--c-funding)"]].forEach(([k, c]) => L.append(h("span",{class:"lg"}, circle(5, "fill:" + c), CAT[k])));
+  L.append(h("span",{class:"lg"}, circle(6, "fill:var(--c-compute);fill-opacity:.13;stroke:var(--c-compute);stroke-width:1.4"), "Pledge or company-wide plan"));
+  L.append(h("span",{class:"lg"}, circle(3.5, "fill:var(--surface);stroke:var(--ink-2);stroke-width:1.5"), "Amount not disclosed"));
+  L.append(h("span",{class:"lg"}, "Area shows dollars, at world view:", h("span",{class:"lg-sizes", id:"lg-sizes"})));
+})();
+function legendSizes(){
+  const box = $("#lg-sizes"); if (!box) return; box.innerHTML = "";
+  const ppu = pxPerUnit();
+  [10,100,500].forEach(v => {
+    const r = Math.max(2, rBase({amount:v})*ppu), d = 2*r + 3;
+    const sv = s("svg",{width:String(d), height:String(d), viewBox:"0 0 " + d + " " + d, "aria-hidden":"true"});
+    sv.append(s("circle",{cx:String(d/2), cy:String(d/2), r:String(r), style:"fill:none;stroke:var(--ink-2);stroke-width:1"}));
+    box.append(h("span",null, sv, fmtB(v)));
+  });
+}
+
+/* biggest in view + detail */
+let ivTimer;
+function scheduleInView(){ clearTimeout(ivTimer); ivTimer = setTimeout(() => { if (!selected) renderDetail(); }, 160); }
+function inView(it){ const x = it.x*Z.k + Z.tx, y = it.y*Z.k + Z.ty; return x >= 0 && x <= W && y >= 0 && y <= H; }
+function pickList(list){
+  const ol = h("ol",{class:"pick"});
+  list.forEach(it => ol.append(h("li",null, h("button",{type:"button", onclick: () => select(it.id, {from:"list"})},
+    h("span",{class:"dot " + it.cat}), h("span",{class:"pt", text: it.title + " · " + it.who}), h("span",{class:"pv", text: it.amount == null ? "n/d" : fmtB(it.amount)})))));
+  return ol;
+}
+function renderDetail(){
+  const d = $("#detail"); d.innerHTML = "";
+  if (!selected){
+    const vis = filtered().filter(inView).filter(i => i.amount != null).sort((a,b) => b.amount - a.amount).slice(0, 8);
+    const tot = filtered().filter(inView).reduce((a,i) => a + (i.amount || 0), 0);
+    d.append(h("div",{class:"d-empty"},
+      h("h4",{text: Z.k > 1.05 ? "Biggest in this view" : "Biggest on the map"}),
+      vis.length ? pickList(vis) : h("p",{class:"muted", text:"Nothing in view with these filters."}),
+      h("p",{class:"muted", style:"font-size:var(--fs-xs);margin:12px 0 0", text: "Headline value in view: " + fmtB(tot) + ". Select a circle or a table row for details and sources."})));
+    return;
+  }
+  const it = items.find(i => i.id === selected);
+  const near = items.filter(o => o.id !== it.id && matches(o) && Math.hypot((o.ax - it.ax), (o.ay - it.ay)) < 1.6).sort((a,b) => (b.amount||0) - (a.amount||0));
+  const dl = h("dl",{class:"d-list"});
+  const add = (k, v) => { if (v) dl.append(h("dt",{text:k}), h("dd",{text:v})); };
+  add("Where", it.place + (it.country && !it.place.includes(it.country) ? ", " + it.country : ""));
+  add("Announced", fmtDate(it.date));
+  add("Capacity", it.gw ? it.gw + " GW" : null);
+  add("Status", it.status);
+  add("Partners", it.partners);
+  add("Pin", it.prec === "site" ? "Site location" : it.prec === "city" ? "City-level" : it.prec === "region" ? "Approximate (region)" : it.prec === "hq" ? "Headquarters" : "Country-level");
+  const top = h("div",{class:"d-top"}, h("span",{class:"catchip"}, h("span",{class:"dot " + it.cat}), CAT[it.cat] + " · " + KIND[it.kind]),
+    h("button",{type:"button", class:"xbtn", "aria-label":"Close details", onclick: () => select(null)}, "×"));
+  d.append(top, h("h3",{text: it.title}), h("div",{class:"d-who", text: it.who}),
+    h("div",{class:"d-amt"}, it.amount == null ? "Not disclosed" : fmtB(it.amount), it.amountNote ? h("small",{text: it.amountNote}) : null),
+    dl, it.note ? h("p",{class:"d-note", text: it.note}) : null,
+    h("div",{class:"d-src"}, ...srcLinks(it.src)));
+  if (near.length) d.append(h("div",{class:"d-near"}, h("h4",{text:"Also at or near this pin"}), pickList(near.slice(0, 8))));
+}
+function select(id, opt){
+  opt = opt || {};
+  selected = id;
+  bubbleEls.forEach(({g}, k) => g.classList.toggle("sel", k === id));
+  document.querySelectorAll("#inv-tbl tbody tr.row").forEach(tr => tr.classList.toggle("sel", tr.dataset.id === id));
+  renderDetail();
+  if (!id) return;
+  const it = items.find(i => i.id === id);
+  if (opt.from !== "map"){
+    const b = bubbleEls.get(id).g; bubblesG.append(b);
+    const k = Math.max(Z.k, it.prec === "country" ? 3 : 5);
+    const x = it.x*Z.k + Z.tx, y = it.y*Z.k + Z.ty;
+    if (!(Z.k >= k*0.8 && x > W*0.1 && x < W*0.9 && y > H*0.1 && y < H*0.9)) flyTo(k, W/2 - it.x*k, H/2 - it.y*k);
+    const r = frame.getBoundingClientRect();
+    if (opt.from === "table" && (r.bottom < 60 || r.top > window.innerHeight - 60)) frame.scrollIntoView({behavior: reduceMotion ? "auto" : "smooth", block:"center"});
+  }
+}
+
+/* investments table */
+const INV_COLS = [
+  {k:"title", label:"Announcement"}, {k:"cat", label:"Category"}, {k:"place", label:"Where"},
+  {k:"date", label:"Announced"}, {k:"amount", label:"Headline", r:true}, {k:"gw", label:"GW", r:true},
+  {k:"status", label:"Status"}, {k:"src", label:"Source", nosort:true}
+];
+let invSort = {k:"amount", dir:-1};
+function renderInvHead(){
+  const tr = h("tr");
+  INV_COLS.forEach(c => {
+    const th = h("th",{class:(c.r ? "r " : "") + (c.nosort ? "" : "sortable"), scope:"col", text:c.label});
+    if (!c.nosort){
+      th.setAttribute("tabindex","0");
+      if (invSort.k === c.k) th.setAttribute("aria-sort", invSort.dir < 0 ? "descending" : "ascending");
+      const go = () => { invSort = {k:c.k, dir: invSort.k === c.k ? -invSort.dir : (c.k === "amount" || c.k === "gw" || c.k === "date" ? -1 : 1)}; renderInvHead(); renderInvBody(); };
+      th.addEventListener("click", go); th.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " "){ e.preventDefault(); go(); } });
+    }
+    tr.append(th);
+  });
+  const thead = $("#inv-tbl thead"); thead.innerHTML = ""; thead.append(tr);
+}
+function renderInvBody(){
+  const list = filtered().slice().sort((a,b) => {
+    const k = invSort.k; let va = a[k], vb = b[k];
+    if (va == null && vb == null) return 0; if (va == null) return 1; if (vb == null) return -1;
+    if (typeof va === "string") return va.localeCompare(vb) * invSort.dir;
+    return (va - vb) * invSort.dir;
+  });
+  const tb = $("#inv-tbl tbody"); tb.innerHTML = "";
+  list.forEach(it => {
+    const tr = h("tr",{class:"row" + (it.id === selected ? " sel" : ""), tabindex:"0"});
+    tr.dataset.id = it.id;
+    const s0 = SRC[it.src[0]];
+    tr.append(
+      h("td",null, h("div",{class:"t-title", text: it.title}), h("div",{class:"t-sub", text: it.who})),
+      h("td",null, h("span",{class:"catchip", style:"text-transform:none;letter-spacing:0;font-family:var(--font-sans);font-size:var(--fs-sm)"}, h("span",{class:"dot " + it.cat}), CAT[it.cat]), h("div",{class:"t-sub", text: KIND[it.kind]})),
+      h("td",null, it.place, h("div",{class:"t-sub", text: it.country})),
+      h("td",{class:"num", style:"white-space:nowrap", text: fmtDate(it.date)}),
+      h("td",{class:"r"}, h("div",{class:"amt", text: it.amount == null ? "n/d" : fmtB(it.amount)}), it.amountNote ? h("div",{class:"t-sub", text: it.amountNote}) : null),
+      h("td",{class:"r num", text: it.gw ? String(it.gw) : "—"}),
+      h("td",{text: it.status}),
+      h("td",null, s0 ? h("a",{href:s0.u, target:"_blank", rel:"noopener", text:"[" + s0.n + "]", title:s0.l, onclick: e => e.stopPropagation()}) : null)
+    );
+    tr.addEventListener("click", () => select(it.id, {from:"table"}));
+    tr.addEventListener("keydown", e => { if (e.key === "Enter"){ e.preventDefault(); select(it.id, {from:"table"}); } });
+    tb.append(tr);
+  });
+  const tot = list.reduce((a,i) => a + (i.amount||0), 0);
+  const specific = list.filter(i => i.kind !== "program").reduce((a,i) => a + (i.amount||0), 0);
+  $("#inv-count").textContent = "Showing " + list.length + " of " + items.length + " announcements · headline " + fmtB(tot) + " (" + fmtB(specific) + " in specific sites and rounds, " + fmtB(tot - specific) + " in pledges and plans). Amounts overlap and are not additive.";
+}
+function update(){
+  renderFilters();
+  const vis = new Set(filtered().map(i => i.id));
+  bubbleEls.forEach(({g}, id) => { g.style.display = vis.has(id) ? "" : "none"; });
+  const on = new Set(filtered().map(i => i.iso));
+  Object.keys(countryEls).forEach(c => countryEls[c].forEach(p => p.classList.toggle("on", on.has(c))));
+  if (selected && !vis.has(selected)) selected = null;
+  renderInvBody(); renderDetail();
+}
+
+/* CSV copy */
+function csvCell(v){ v = v == null ? "" : String(v); return /[",\n]/.test(v) ? '"' + v.replace(/"/g,'""') + '"' : v; }
+function copyText(text, btn){
+  const done = () => { const t = btn.textContent; btn.textContent = "Copied"; setTimeout(() => btn.textContent = t, 1400); };
+  const fallback = () => {
+    const ta = h("textarea",{style:"position:fixed;left:-9999px;top:0"}); ta.value = text; document.body.append(ta); ta.select();
+    let ok = false; try { ok = document.execCommand("copy"); } catch(e){}
+    ta.remove(); if (ok) done(); else btn.textContent = "Copy blocked by browser";
+  };
+  if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done, fallback); else fallback();
+}
+$("#copy-inv").addEventListener("click", e => {
+  const rows = [["announcement","who","category","type","headline_usd_b","amount_note","gw","announced","place","country","status","source"]];
+  filtered().forEach(i => rows.push([i.title, i.who, CAT[i.cat], KIND[i.kind], i.amount, i.amountNote, i.gw, i.date, i.place, i.country, i.status, SRC[i.src[0]] ? SRC[i.src[0]].u : ""]));
+  copyText(rows.map(r => r.map(csvCell).join(",")).join("\n"), e.currentTarget);
+});
+
+/* ================= spenders ================= */
+(function spenders(){
+  const B = DATA.builders.slice().sort((a,b) => sum(b.capex) - sum(a.capex));
+  function sum(a){ return a.reduce((x,y) => x+y, 0); }
+  const max = 450, ticks = [0,100,200,300,400];
+  const wrap = $("#capex-bars");
+  const gl = h("div",{class:"gridlines","aria-hidden":"true"});
+  ticks.forEach(t => gl.append(h("i",{style:"left:" + (t/max*100) + "%"})));
+  wrap.append(gl);
+  const cols = ["var(--y24)","var(--y25)","var(--y26)"], yrs = ["2024","2025","2026 (guided)"];
+  B.forEach(b => {
+    const st = h("div",{class:"stack"});
+    const tot = sum(b.capex);
+    b.capex.forEach((v, i) => { if (v > 0){ const seg = h("div",{class:"seg-b", style:"width:" + (v/max*100) + "%;background:" + cols[i], title: b.name + " " + (b.id === "orcl" ? ["FY25","FY26","FY27 (guided)"][i] : yrs[i]) + ": " + fmtB(v)}); st.append(seg); } });
+    wrap.append(h("div",{class:"bar-row"}, h("div",{class:"bar-name"}, b.name, h("small",{text:b.ticker})), h("div",{class:"track"}, st), h("div",{class:"bar-total", text: fmtB(tot)})));
+  });
+  const ax = $("#capex-axis"); const tk = h("div",{class:"ticks"});
+  ticks.forEach(t => tk.append(h("span",{class: (t === 100 || t === 300) ? "odd" : null, style:"left:" + (t/max*100) + "%", text: t === 0 ? "$0" : "$" + t + "B"})));
+  ax.append(h("div"), tk, h("div"));
+  const tbl = $("#capex-tbl");
+  tbl.append(h("thead",null, h("tr",null, h("th",{text:"Company"}), h("th",{class:"r",text:"2024"}), h("th",{class:"r",text:"2025"}), h("th",{class:"r",text:"2026 guide"}), h("th",{class:"r",text:"Total"}), h("th",{text:"Basis"}))));
+  const tb = h("tbody");
+  B.forEach(b => tb.append(h("tr",null, h("td",{text:b.name}), ...b.capex.map(v => h("td",{class:"r num", text: v ? fmtB(v) : "n/d"})), h("td",{class:"r num amt", text: fmtB(sum(b.capex))}), h("td",{class:"t-sub", text:b.capexNote}))));
+  tbl.append(tb);
+
+  // labs' signed compute
+  const LB = $("#lab-bars");
+  const groups = {};
+  DATA.flows.filter(f => (f.from === "OpenAI" || f.from === "Anthropic") && f.type !== "Equity" && f.amount != null).forEach(f => (groups[f.from] = groups[f.from] || []).push(f));
+  const lmax = 650;
+  ["OpenAI","Anthropic"].forEach(name => {
+    const fs = (groups[name] || []).sort((a,b) => b.amount - a.amount);
+    const tot = fs.reduce((a,f) => a + f.amount, 0);
+    const st = h("div",{class:"stack"});
+    fs.forEach(f => {
+      const w = f.amount/lmax*100;
+      const seg = h("div",{class:"labseg", style:"width:" + w + "%", title: name + " → " + f.to + ": " + fmtB(f.amount) + " (" + f.term + ")"});
+      seg.append(h("span",{text: f.to.replace(" (AWS)","").replace(" Azure","").replace("Google Cloud","Google").replace("SpaceX (xAI)","xAI")}));
+      st.append(seg);
+    });
+    LB.append(h("div",{class:"bar-row", style:"grid-template-columns:78px minmax(0,1fr) 58px"}, h("div",{class:"bar-name", text:name}), h("div",{class:"track", style:"height:26px"}, st), h("div",{class:"bar-total", text: fmtB(tot)})));
+  });
+  requestAnimationFrame(fitLabSegs);
+  $("#lab-note").textContent = "OpenAI also has unpriced deals with AMD (6 GW), Broadcom (10 GW) and a 20-year, 8 GW lease in Ohio; it guides to about $600B of compute spending through 2030. Anthropic's total runs to 2036; about 80% is non-cancelable.";
+
+  const C = $("#collectors");
+  DATA.collectors.forEach(c => { const s0 = SRC[c.src]; C.append(h("div",null, h("div",{class:"who", text:c.name}), h("div",{class:"v", text:c.stat}), h("div",{class:"l", text:c.label}), h("div",{class:"s"}, c.sub + " ", s0 ? h("a",{href:s0.u, target:"_blank", rel:"noopener", text:"[" + s0.n + "]"}) : null))); });
+})();
+
+function fitLabSegs(){
+  document.querySelectorAll(".labseg").forEach(seg => { const sp = seg.querySelector("span"); if (!sp) return; sp.style.display = ""; if (sp.scrollWidth > seg.clientWidth - 2) sp.style.display = "none"; });
+}
+/* ================= payback model ================= */
+const YEARS = 4.25;
+const HYPER = new Set(["msft","googl","amzn","meta"]);
+function crf(r, n){ return r === 0 ? 1/n : r/(1 - Math.pow(1 + r, -n)); }
+function antAnnual(y0, y1){
+  let tot = 0;
+  DATA.antSchedule.forEach(([, amt, s0, e0]) => { const rate = amt/(e0 - s0); tot += rate * Math.max(0, Math.min(e0, y1) - Math.max(s0, y0)); });
+  return tot/(y1 - y0);
+}
+const P0 = {rate:10, mode:"5yr", margin:60, credit:100, lab:50};
+const P = Object.assign({}, P0);
+const VERD = {
+  lead:{label:"Leading", cls:"v-lead", icon:'<svg viewBox="0 0 16 16" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 8.5l3 3 6-7"/></svg>'},
+  track:{label:"On track", cls:"v-track", icon:'<svg viewBox="0 0 16 16" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h9M9 4.5L12.5 8 9 11.5"/></svg>'},
+  innovate:{label:"Must keep innovating", cls:"v-innovate", icon:'<svg viewBox="0 0 16 16" fill="none" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2.5l6 11H2z"/><path d="M8 6.8v3M8 11.9v.1"/></svg>'},
+  brk:{label:"Needs a breakthrough", cls:"v-break", icon:'<svg viewBox="0 0 16 16" fill="none" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="6"/><path d="M8 4.8v3.8M8 10.9v.1"/></svg>'}
+};
+const VCOL = {lead:"var(--good)", track:"var(--faint)", innovate:"var(--warn)", brk:"var(--crit)"};
+function vchip(v){ const sp = h("span",{class:"vchip " + VERD[v].cls}); sp.innerHTML = VERD[v].icon; sp.append(document.createTextNode(VERD[v].label)); return sp; }
+function fundLabel(r){ if (r.fundOverride) return r.fundOverride; return r.fund <= 1.1 ? "Self-funded" : r.fund <= 1.5 ? "Stretching cash flow" : "Needs outside capital"; }
+function fundCls(l){ return l === "Self-funded" ? "f-self" : l === "Stretching cash flow" ? "f-stretch" : "f-ext"; }
+function verdictOf(mult, fl){ if (mult <= 1.5 && fl === "Self-funded") return "lead"; if (mult <= 2) return "track"; if (mult <= 3.5) return "innovate"; return "brk"; }
+function runModel(){
+  const r = P.rate/100, m = P.margin/100, credit = P.credit/100, ls = P.lab/100;
+  const factor = P.mode === "5yr" ? crf(r, 5) : 0.6*crf(r, 5) + 0.4*crf(r, 20);
+  const rows = [];
+  DATA.builders.forEach(b => {
+    const K = b.capex.reduce((a,x) => a+x, 0), Kai = K*b.share;
+    const need = Kai*factor/m;
+    const gain = b.rev_now - b.rev_2023;
+    const today = gain*(HYPER.has(b.id) ? credit : 1);
+    const mult = need/today, fund = b.spend26/b.ocf;
+    const row = {grp:"b", b, id:b.id, name:b.name, ticker:b.ticker, capital:K, capitalAI:Kai, need, today, mult, fund,
+      growth: mult > 1 ? Math.pow(mult, 1/YEARS) - 1 : 0, fundBasis: b.ocfLabel || "operating cash flow (TTM)", fundShort: b.ocfLabel ? "vs adj. EBITDA" : "vs op. cash flow"};
+    row.fl = fundLabel(row); row.v = verdictOf(mult, row.fl); rows.push(row);
+  });
+  DATA.labs.forEach(l => {
+    const annual = l.annual || antAnnual(2026, 2031);
+    const need = annual/ls, mult = need/l.rev_now;
+    const row = {grp:"l", b:l, id:l.id, name:l.name, ticker:l.ticker, capital:l.commit, capitalAI:annual, need, today:l.rev_now, mult,
+      fund: annual/l.rev_now, growth: mult > 1 ? Math.pow(mult, 1/YEARS) - 1 : 0, fundBasis:"compute bill ÷ revenue", fundShort:"compute ÷ revenue", fundOverride:l.fundOverride};
+    row.fl = fundLabel(row); row.v = verdictOf(mult, row.fl); rows.push(row);
+  });
+  return rows;
+}
+function bind(id, key, out, fmt){
+  const inp = $("#" + id), o = $("#" + out);
+  inp.addEventListener("input", () => { P[key] = +inp.value; o.textContent = fmt(+inp.value); renderModel(); });
+}
+bind("c-rate","rate","o-rate", v => v + "%");
+bind("c-margin","margin","o-margin", v => v + "%");
+bind("c-credit","credit","o-credit", v => v + "%");
+bind("c-lab","lab","o-lab", v => v + "%");
+$("#c-mode").addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return; P.mode = b.dataset.v; [...$("#c-mode").children].forEach(x => x.setAttribute("aria-pressed", String(x === b))); renderModel(); });
+$("#c-reset").addEventListener("click", () => {
+  Object.assign(P, P0);
+  [["c-rate","rate","o-rate"],["c-margin","margin","o-margin"],["c-credit","credit","o-credit"],["c-lab","lab","o-lab"]].forEach(([i,k,o]) => { $("#" + i).value = P[k]; $("#" + o).textContent = P[k] + "%"; });
+  [...$("#c-mode").children].forEach(x => x.setAttribute("aria-pressed", String(x.dataset.v === P.mode)));
+  renderModel();
+});
+const LOG0 = Math.log(4), LOG1 = Math.log(800);
+function xpos(v){ return (Math.log(Math.max(4, Math.min(800, v))) - LOG0)/(LOG1 - LOG0)*100; }
+const DTICKS = [5,10,25,50,100,250,500];
+let openNotes = new Set();
+function renderModel(){
+  const rows = runModel();
+  const B = rows.filter(r => r.grp === "b"), L = rows.filter(r => r.grp === "l");
+  const sumF = (a, k) => a.reduce((x, r) => x + r[k], 0);
+  const bNeed = sumF(B,"need"), bToday = sumF(B,"today"), lNeed = sumF(L,"need"), lToday = sumF(L,"today");
+  const modeTxt = P.mode === "5yr" ? "within 5 years" : "over the assets' lives";
+
+  // masthead KPIs
+  const K = $("#kpis"); K.innerHTML = "";
+  const capGross = B.reduce((a,r) => a + r.capital, 0);
+  K.append(
+    h("div",{class:"kpi hero"}, h("div",{class:"label", text:"Capex spent or guided by the seven biggest AI builders, 2024–2026"}), h("div",{class:"value", text: fmtB(capGross)}), h("div",{class:"sub", text:"MSFT · GOOGL · AMZN · META · ORCL · CRWV · SPCX"})),
+    h("div",{class:"kpi"}, h("div",{class:"label", text:"Revenue they need per year by 2030"}), h("div",{class:"value", text: fmtB(bNeed)}), h("div",{class:"sub", text: P.rate + "% return " + modeTxt})),
+    h("div",{class:"kpi"}, h("div",{class:"label", text:"Revenue their businesses have added since 2023"}), h("div",{class:"value", text: fmtB(bToday)}), h("div",{class:"sub", text: P.credit + "% credited to the build-out"})),
+    h("div",{class:"kpi"}, h("div",{class:"label", text:"Compute OpenAI and Anthropic have signed for"}), h("div",{class:"value", text: fmtB(DATA.labSigned)}), h("div",{class:"sub", text:"Needs " + fmtB(lNeed) + "/yr of revenue vs " + fmtB(lToday) + " today"}))
+  );
+  const BL = $("#bottomline"); BL.innerHTML = "";
+  BL.append(h("span",{class:"bl-title", text:"Bottom line at current settings"}));
+  ["lead","track","innovate","brk"].forEach(v => {
+    const names = rows.filter(r => r.v === v).sort((a,b) => a.mult - b.mult).map(r => r.name);
+    if (names.length) BL.append(h("span",{class:"bl-group"}, vchip(v), h("span",{class:"bl-names", text: names.join(", ")})));
+  });
+
+  // summary strip
+  const S = $("#pb-summary"); S.innerHTML = "";
+  S.append(
+    h("div",{class:"card sum"}, h("div",{class:"k", text:"Builders · 7 companies"}),
+      h("div",{class:"big", text: fmtB(bNeed) + " a year needed · " + fmtB(bToday) + " added so far"}),
+      h("div",{class:"txt", text: "Together they need " + (bNeed/bToday).toFixed(2) + "× the revenue their businesses have added since 2023 to earn " + P.rate + "% " + modeTxt + " on " + fmtB(sumF(B,"capitalAI")) + " of AI capital."})),
+    h("div",{class:"card sum"}, h("div",{class:"k", text:"Labs · OpenAI and Anthropic"}),
+      h("div",{class:"big", text: fmtB(lNeed) + " a year needed · " + fmtB(lToday) + " today"}),
+      h("div",{class:"txt", text: "Their customers must pay about " + (lNeed/lToday).toFixed(1) + "× today's run-rate by 2030 for compute to stay at " + P.lab + "% of revenue. Much of that money flows on to the builders above."}))
+  );
+
+  // dumbbell
+  const DR = $("#drows"); DR.innerHTML = "";
+  const groups = [["Builders · own the data centers", B], ["Labs · rent the compute", L]];
+  groups.forEach(([title, list]) => {
+    const g = h("div",{class:"dgroup"}, h("div",{class:"dgroup-h", text: title}));
+    list.slice().sort((a,b) => a.mult - b.mult).forEach(r => {
+      const plot = h("div",{class:"dplot"});
+      DTICKS.forEach(t => plot.append(h("i",{class:"gl", style:"left:" + xpos(t) + "%"})));
+      const a = xpos(r.today), b = xpos(r.need);
+      plot.append(h("i",{class:"conn", style:"left:" + Math.min(a,b) + "%;width:" + Math.abs(b-a) + "%;background:" + VCOL[r.v]}));
+      plot.append(h("i",{class:"pt today", style:"left:" + a + "%"}), h("i",{class:"pt need", style:"left:" + b + "%"}));
+      const row = h("div",{class:"drow", tabindex:"0"},
+        h("div",{class:"dname"}, h("b",null, r.name, h("small",{text: r.ticker})), vchip(r.v)),
+        plot,
+        h("div",{class:"dval"}, h("b",{text: r.mult <= 1 ? "Covered" : r.mult.toFixed(1) + "×"}), h("span",{text: r.mult <= 1 ? fmtB(r.today) + " vs " + fmtB(r.need) : "+" + Math.round(r.growth*100) + "%/yr to 2030"})));
+      row.setAttribute("aria-label", r.name + ": today " + fmtB(r.today) + ", needed " + fmtB(r.need) + " per year, " + r.mult.toFixed(2) + " times, " + VERD[r.v].label);
+      row.title = r.name + " — today " + fmtB(r.today) + ", needed " + fmtB(r.need) + "/yr by 2030 (" + r.mult.toFixed(2) + "×). Spend ÷ cash: " + r.fund.toFixed(2) + " (" + r.fundBasis + "). " + r.fl + ".";
+      g.append(row);
+    });
+    DR.append(g);
+  });
+  const DA = $("#daxis"); DA.innerHTML = "";
+  const tk = h("div",{class:"ticks"}); DTICKS.forEach(t => tk.append(h("span",{style:"left:" + xpos(t) + "%", text: "$" + t + "B"})));
+  DA.append(h("div"), tk, h("div"));
+  $("#vlegend").innerHTML = "";
+  $("#vlegend").append("Line color follows the verdict");
+  $("#dnote").textContent = "Builders' 'today' is revenue added since 2023 in the business the capex serves (generous: " + P.credit + "% credited). Labs' 'today' is their annualized revenue. Hover a row for spend-to-cash-flow ratios.";
+
+  // payback table
+  const thead = $("#pb-tbl thead"); thead.innerHTML = "";
+  thead.append(h("tr",null, ...["Company","Capital at stake","Needed per year by 2030","Today","Multiple","Growth needed","Spend ÷ cash","Funding","Verdict"].map((t, i) => h("th",{class: i >= 1 && i <= 6 ? "r" : null, scope:"col", text:t}))));
+  const tb = $("#pb-tbl tbody"); tb.innerHTML = "";
+  rows.forEach(r => {
+    const open = openNotes.has(r.id);
+    const btn = h("button",{type:"button", class:"toggle", "aria-expanded": String(open)}, h("span",{class:"caret", text:"▸"}), h("span",{class:"t-title", text:r.name}));
+    const tr = h("tr",null,
+      h("td",null, btn, h("div",{class:"t-sub", text: r.grp === "b" ? "Builder · " + r.ticker : "Lab · private"})),
+      h("td",{class:"r num", text: fmtB(r.capital)}, h("div",{class:"t-sub", text: r.grp === "b" ? "capex 2024–26" : "signed compute"})),
+      h("td",{class:"r num amt", text: fmtB(r.need)}),
+      h("td",{class:"r num", text: fmtB(r.today)}),
+      h("td",{class:"r num", text: r.mult.toFixed(2) + "×"}),
+      h("td",{class:"r num", text: r.mult <= 1 ? "—" : "+" + Math.round(r.growth*100) + "%/yr"}),
+      h("td",{class:"r num", text: r.fund.toFixed(2)}, h("div",{class:"t-sub", text: r.fundShort})),
+      h("td",null, h("span",{class:"fchip " + fundCls(r.fl), text: r.fl})),
+      h("td",null, vchip(r.v))
+    );
+    const notes = h("tr",{class:"notes-row"}); notes.hidden = !open;
+    const b = r.b;
+    notes.append(h("td",{colspan:"9"},
+      h("p",null, h("b",{text:"Revenue basis: "}), b.revLine + "."),
+      h("p",null, h("b",{text: r.grp === "b" ? "AI capital counted: " : "Average compute bill: "}), r.grp === "b" ? fmtB(r.capitalAI) + " (" + Math.round(b.share*100) + "% of " + fmtB(r.capital) + " of capex)." : fmtB(r.capitalAI) + " a year over 2026–2030."),
+      b.capexNote ? h("p",null, h("b",{text:"Capital: "}), b.capexNote + ".") : null,
+      b.commitNote ? h("p",null, h("b",{text:"Commitments: "}), b.commitNote + ".") : null,
+      b.backlog ? h("p",null, h("b",{text:"Backlog: "}), b.backlog + ".") : null,
+      h("p",null, b.extra),
+      b.fundNote ? h("p",null, h("b",{text:"Funding: "}), b.fundNote) : null,
+      h("p",{class:"d-src", style:"display:flex;flex-wrap:wrap;gap:4px 12px"}, ...srcLinks(b.src))));
+    btn.addEventListener("click", () => { const o = btn.getAttribute("aria-expanded") !== "true"; btn.setAttribute("aria-expanded", String(o)); notes.hidden = !o; if (o) openNotes.add(r.id); else openNotes.delete(r.id); });
+    tb.append(tr, notes);
+  });
+  $("#copy-pb").onclick = e => {
+    const out = [["company","group","capital_usd_b","ai_capital_or_annual_compute_usd_b","needed_per_year_2030_usd_b","today_usd_b","multiple","growth_needed_per_year","spend_to_cash","funding","verdict","return","payback","cash_margin","credit","lab_compute_share"]];
+    rows.forEach(r => out.push([r.name, r.grp === "b" ? "builder" : "lab", r.capital.toFixed(1), r.capitalAI.toFixed(1), r.need.toFixed(1), r.today.toFixed(1), r.mult.toFixed(2), (r.growth*100).toFixed(1) + "%", r.fund.toFixed(2), r.fl, VERD[r.v].label, P.rate + "%", P.mode === "5yr" ? "5 years" : "asset lives", P.margin + "%", P.credit + "%", P.lab + "%"]));
+    copyText(out.map(x => x.map(csvCell).join(",")).join("\n"), e.currentTarget);
+  };
+}
+
+/* ================= deals ================= */
+(function deals(){
+  const thead = $("#deal-tbl thead");
+  thead.append(h("tr",null, ...["Who pays","Who gets it","Type","Amount","Term","Detail","Source"].map((t,i) => h("th",{class: i === 3 ? "r" : null, scope:"col", text:t}))));
+  const tb = $("#deal-tbl tbody");
+  const order = ["OpenAI","Anthropic"];
+  const payers = [...new Set(DATA.flows.map(f => f.from))].sort((a,b) => (order.indexOf(a) < 0 ? 9 : order.indexOf(a)) - (order.indexOf(b) < 0 ? 9 : order.indexOf(b)));
+  const maxA = Math.max(...DATA.flows.map(f => f.amount || 0));
+  const bucket = p => order.includes(p) ? p : "Everyone else";
+  const seen = new Set();
+  payers.forEach(p => {
+    const bk = bucket(p);
+    if (!seen.has(bk)){
+      seen.add(bk);
+      const fl = DATA.flows.filter(f => bucket(f.from) === bk);
+      const tot = fl.filter(f => f.type !== "Equity" && f.type !== "Guarantee").reduce((a,f) => a + (f.amount||0), 0);
+      const unpriced = fl.filter(f => f.amount == null).length;
+      tb.append(h("tr",{class:"grouprow"}, h("td",{colspan:"7", text: bk + (bk === "Everyone else" ? "" : " · " + fmtB(tot) + " of priced compute and chip commitments" + (unpriced ? " + " + unpriced + " unpriced" : ""))})));
+      fl.slice().sort((a,b) => (b.amount||0) - (a.amount||0)).forEach(f => {
+        const s0 = SRC[f.src[0]];
+        tb.append(h("tr",null,
+          h("td",{class:"t-title", text:f.from}), h("td",{text:f.to}), h("td",{text:f.type}),
+          h("td",{class:"r", style:"min-width:150px"}, h("div",{class:"amt", text: f.amount == null ? "Not priced" : fmtB(f.amount)}), f.amount ? h("div",{class:"deal-bar", style:"width:" + (f.amount/maxA*100) + "%;margin-left:auto"}) : null),
+          h("td",{class:"num", style:"white-space:nowrap", text:f.term}), h("td",{class:"t-sub", style:"font-size:var(--fs-sm)", text:f.note}),
+          h("td",null, s0 ? h("a",{href:s0.u, target:"_blank", rel:"noopener", text:"[" + s0.n + "]", title:s0.l}) : null)));
+      });
+    }
+  });
+})();
+
+/* ================= sources ================= */
+(function sources(){
+  const ol = $("#sources");
+  Object.values(SRC).sort((a,b) => a.n - b.n).forEach(s0 => ol.append(h("li",{value:String(s0.n)}, h("a",{href:s0.u, target:"_blank", rel:"noopener", text:s0.l}))));
+  $("#ant-avg").textContent = fmtB(antAnnual(2026, 2031));
+})();
+
+/* ================= companion, developments, market check ================= */
+const supplyLink = $("#supply-link");
+supplyLink.href = DATA.supplyUrl;
+if (DATA.target === "github"){ supplyLink.removeAttribute("target"); supplyLink.textContent = "Companion: AI Supply Chain Atlas →"; }
+const DEVS = DATA.devs || {entries:[], upcoming:[]};
+function fmtLong(d){ const p = d.split("-"); return (+p[2]) + " " + MONTHS[+p[1]-1] + " " + p[0]; }
+function isoToday(){ const d = new Date(); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); }
+const MKT = DATA.market || [];
+function devChips(L){
+  const w = h("div",{class:"dv-chips"});
+  (L.atlasItems || []).forEach(id => { const it = items.find(i => i.id === id); if (it) w.append(h("button",{type:"button", class:"dv-chip", onclick: () => { select(id, {from:"list"}); $("#map").scrollIntoView({behavior: reduceMotion ? "auto" : "smooth", block:"start"}); }}, it.title)); });
+  (L.companies || []).forEach(k => { const m = MKT.find(x => x.k === k); if (m) w.append(h("button",{type:"button", class:"dv-chip", onclick: () => $("#market").scrollIntoView({behavior: reduceMotion ? "auto" : "smooth", block:"start"})}, m.t)); });
+  const n = (L.nodes || []).length + (L.scenarios || []).length + (L.sites || []).length;
+  if (n) w.append(h("a",{class:"dv-chip", href: DATA.supplyUrl + "#log", target: DATA.target === "github" ? null : "_blank", rel:"noopener"}, "In the supply chain"));
+  return w;
+}
+function renderDevs(){
+  const box = $("#devs"); box.innerHTML = "";
+  const recent = h("div",{class:"dv-col"}, h("div",{class:"bl-title", text:"Latest developments"}));
+  const ol = h("ol",{class:"dv-list"});
+  DEVS.entries.slice(0, 4).forEach(e => ol.append(h("li",{class:"dv-item"}, h("span",{class:"dv-date", text: fmtLong(e.date)}),
+    h("div",{style:"min-width:0"}, h("div",{class:"dv-t", text:e.title}), devChips(e.links || {}),
+      e.source && e.source.url ? h("a",{class:"dv-src", href:e.source.url, target:"_blank", rel:"noopener", text:e.source.label || "Source"}) : null))));
+  recent.append(ol, h("a",{class:"dv-more", href: DATA.supplyUrl + "#log", target: DATA.target === "github" ? null : "_blank", rel:"noopener", text:"Full development log on the Supply Chain Atlas"}));
+  const today = isoToday();
+  const fixed = DEVS.upcoming.filter(e => e.date >= today).map(e => ({date:e.date, label:e.approx || fmtLong(e.date), title:e.title}));
+  const earn = MKT.filter(m => m.q.next && m.q.next >= today).map(m => ({date:m.q.next, label:fmtLong(m.q.next), title:m.n + " reports results"}))
+    .sort((a, b) => a.date.localeCompare(b.date)).slice(0, Math.max(0, 7 - fixed.length));
+  const ev = fixed.concat(earn).sort((a, b) => a.date.localeCompare(b.date));
+  const up = h("div",{class:"dv-col"}, h("div",{class:"bl-title", text:"Coming up"}));
+  const ul = h("ol",{class:"dv-list compact"});
+  ev.slice(0, 7).forEach(e => ul.append(h("li",null, h("span",{class:"dv-date", text:e.label}), h("span",{class:"dv-t", text:e.title}))));
+  up.append(ul);
+  box.append(recent, up);
+}
+let liveMeta = DATA.quotesMeta || null;
+function fmtPx(cur, v){
+  if (v == null) return "n/a";
+  return cur + v.toLocaleString("en-US", {minimumFractionDigits: v >= 10000 ? 0 : 2, maximumFractionDigits: v >= 10000 ? 0 : 2});
+}
+function fmtStamp(iso){ const d = new Date(iso); return isNaN(d) ? iso : d.toLocaleString([], {month:"short", day:"numeric", hour:"numeric", minute:"2-digit"}); }
+function renderMarket(){
+  const st = $("#mk-status"); st.innerHTML = "";
+  if (liveMeta && liveMeta.updated) st.append(h("span",{class:"livedot"}), "Live from Yahoo Finance · updated " + fmtStamp(liveMeta.updated));
+  else st.append(h("span",{class:"livedot off"}), DATA.quotesUrl ? "30 Sep 2026 close · live prices load once the price job has run" : "30 Sep 2026 close · live on the GitHub version");
+  const th = $("#mk-tbl thead"); th.innerHTML = "";
+  th.append(h("tr",null, ...[["Company"],["Last price","r"],["Day","r"],["Avg target","r"],["Upside","r"],["Consensus"],["As of"]].map(([t, c]) => h("th",{scope:"col", class:c || null, text:t}))));
+  const tb = $("#mk-tbl tbody"); tb.innerHTML = "";
+  MKT.forEach(m => {
+    const q = m.q;
+    tb.append(h("tr",null,
+      h("td",null, h("div",{class:"t-title", text:m.n}), h("div",{class:"t-sub", text:m.t})),
+      h("td",{class:"r num", style:"font-weight:600", text: fmtPx(q.cur, q.px)}),
+      h("td",{class:"r"}, q.chg == null ? h("span",{class:"t-sub", text:"—"}) : h("span",{class:"chg " + (q.chg < 0 ? "neg" : q.chg > 0 ? "pos" : ""), text:(q.chg > 0 ? "+" : q.chg < 0 ? "−" : "") + Math.abs(q.chg).toFixed(2) + "%"})),
+      h("td",{class:"r num", text: fmtPx(q.cur, q.tgt)}),
+      h("td",{class:"r num" + (q.up != null && q.up < 0 ? " upn" : ""), style:"font-weight:600", text: q.up == null ? "n/a" : (q.up > 0 ? "+" : q.up < 0 ? "−" : "") + Math.abs(q.up).toFixed(1) + "%"}),
+      h("td",null, q.rating || "n/a", q.n ? h("div",{class:"t-sub", text:q.n + " analysts"}) : null),
+      h("td",{class:"num t-sub", text: (+q.asof.slice(8)) + " " + MONTHS[+q.asof.slice(5, 7) - 1] + (q.live ? " · live" : "")})));
+  });
+}
+function refreshLive(){
+  if (!DATA.quotesUrl) return;
+  fetch(DATA.quotesUrl + "?t=" + Date.now(), {cache:"no-store"}).then(r => r.ok ? r.json() : null).then(js => {
+    if (!js || !js.quotes) return;
+    let n = 0;
+    MKT.forEach(m => {
+      const L = js.quotes[m.k], q = m.q;
+      if (!L || L.px == null || L.psrc !== "yahoo" || (L.date && q.asof && L.date < q.asof)) return;
+      q.px = L.px; q.asof = L.date || q.asof; q.chg = L.chg; q.live = true;
+      if (L.tsrc === "yahoo" && L.tgt){ q.tgt = L.tgt; q.n = L.n || q.n; q.rating = L.rating || q.rating; }
+      if (L.next) q.next = L.next;
+      if (q.tgt && (q.tgt / q.px > 3 || q.tgt / q.px < 0.3)) q.tgt = null;
+      q.up = q.tgt && q.px ? (q.tgt / q.px - 1) * 100 : null;
+      n++;
+    });
+    if (n){ liveMeta = {updated: js.updated, source: js.source}; renderMarket(); renderDevs(); }
+  }).catch(() => {});
+}
+
+/* ================= boot ================= */
+buildBubbles();
+buildFilters();
+segRegions();
+renderInvHead();
+update();
+applyZ();
+renderModel();
+legendSizes();
+renderDevs(); renderMarket();
+if (DATA.quotesUrl){ refreshLive(); setInterval(refreshLive, 5 * 60 * 1000); }
+let rzT; window.addEventListener("resize", () => { applyZ(); clearTimeout(rzT); rzT = setTimeout(() => { legendSizes(); fitLabSegs(); }, 150); });
+})();
+</script>

@@ -1,0 +1,58 @@
+name: New development
+description: Report news that should change the AI Supply Chain Atlas or the AI Investment Atlas
+title: "[Development] "
+labels: ["development"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Each development becomes one entry in `data/developments.json`. Give a date and a source; say what it affects if you can.
+  - type: input
+    id: date
+    attributes:
+      label: Date
+      description: When it happened or was announced (YYYY-MM-DD)
+      placeholder: "2026-10-15"
+    validations:
+      required: true
+  - type: input
+    id: headline
+    attributes:
+      label: Headline
+      placeholder: "China extends its pause on mineral export controls"
+    validations:
+      required: true
+  - type: textarea
+    id: summary
+    attributes:
+      label: What happened
+      description: Two or three sentences with the numbers that matter
+    validations:
+      required: true
+  - type: input
+    id: source
+    attributes:
+      label: Source link
+      placeholder: "https://..."
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      multiple: true
+      options:
+        - Minerals and materials
+        - Chips, memory, packaging
+        - Optics and networking
+        - Servers and systems
+        - Power, grid and sites
+        - New AI investment or data center
+        - Export controls, tariffs, geopolitics
+        - Company results or guidance
+        - Financing and credit
+  - type: textarea
+    id: change
+    attributes:
+      label: What should change on the pages (optional)
+      description: For example "Helium rating back to Watch", "Ras Laffan site back to operating", "add a $20B data center in Ohio"

@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+dist/
+src/common/ne/
+.DS_Store
+site/data/quotes.json

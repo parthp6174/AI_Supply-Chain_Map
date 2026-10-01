@@ -1,0 +1,79 @@
+name: Refresh prices and publish site
+
+# Rebuilds both pages and deploys them to GitHub Pages:
+#  - every 15 minutes on weekdays, 00:00-21:59 UTC (Tokyo's open through the US close, winter and summer)
+#  - on every push to main (for example, after editing data/developments.json)
+#  - on demand from the Actions tab
+on:
+  schedule:
+    - cron: "*/15 0-21 * * 1-5"
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      targets:
+        description: "Refresh analyst targets: auto (once a day), always, never"
+        default: auto
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      # carry the last good quotes (including once-a-day analyst targets) between runs
+      - name: Restore last quotes
+        uses: actions/cache/restore@v4
+        with:
+          path: site/data/quotes.json
+          key: quotes-${{ github.run_id }}
+          restore-keys: quotes-
+
+      - name: Fetch prices from Yahoo Finance
+        continue-on-error: true
+        run: python scripts/fetch_quotes.py --targets "${{ github.event.inputs.targets || 'auto' }}"
+
+      - name: Save quotes
+        if: always()
+        continue-on-error: true
+        uses: actions/cache/save@v4
+        with:
+          path: site/data/quotes.json
+          key: quotes-${{ github.run_id }}
+
+      - name: Build pages
+        run: python src/build.py --target github --quotes site/data/quotes.json
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
