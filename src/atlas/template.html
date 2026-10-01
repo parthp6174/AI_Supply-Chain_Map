@@ -355,6 +355,7 @@ footer{padding-block:48px 56px;font-size:var(--fs-xs);color:var(--muted)}
     <a href="#map">Map</a><a href="#spenders">Spenders &amp; collectors</a><a href="#market">Market check</a><a href="#payback">Payback test</a><a href="#deals">Who owes whom</a><a href="#method">Method &amp; sources</a>
     <a class="companion" id="supply-link" href="#" target="_blank" rel="noopener">Companion: AI Supply Chain Atlas ↗</a>
   </nav>
+  <div class="desk-bar" id="desk-bar" hidden></div>
 </header>
 
 <section id="map">
@@ -509,7 +510,7 @@ today        = revenue run-rate now − 2023 revenue, × credit share</div>
       <h3>Cross-checks</h3>
       <p>J.P. Morgan estimates the industry needs about $650B of annual revenue for a 10% return on its modeled build-out through 2030; Bain puts the revenue needed by 2030 at $2 trillion. Goldman Sachs expects the five biggest US hyperscalers to spend $1.2 trillion on AI in 2027. The default settings here land in the same range.</p>
       <h3>Keeping it current</h3>
-      <p>New developments are logged in one data file shared with the Supply Chain Atlas; an entry can change a project's status or add a new project. On the GitHub version, share prices and analyst targets refresh from Yahoo Finance every 15 minutes on weekdays. Capex, revenue and backlog figures are updated after each earnings season, and the payback test reruns on the new numbers.</p>
+      <p>New developments are logged in one data file shared with the Supply Chain Atlas, from the Update desk on the live site or on GitHub; an entry can change a project's status or add a new project. On the live site, share prices and analyst targets refresh from Yahoo Finance every 15 minutes on weekdays, and the Update desk can refresh them at any time. Capex, revenue and backlog figures are updated after each earnings season, and the payback test reruns on the new numbers.</p>
       <h3>Caveats</h3>
       <ul>
         <li>Headline figures mix different things: capex, multi-year pledges, contract values, bond authorizations and credit guarantees. Each is labeled in the table.</li>
@@ -1245,7 +1246,7 @@ function fmtStamp(iso){ const d = new Date(iso); return isNaN(d) ? iso : d.toLoc
 function renderMarket(){
   const st = $("#mk-status"); st.innerHTML = "";
   if (liveMeta && liveMeta.updated) st.append(h("span",{class:"livedot"}), "Live from Yahoo Finance · updated " + fmtStamp(liveMeta.updated));
-  else st.append(h("span",{class:"livedot off"}), DATA.quotesUrl ? "30 Sep 2026 close · live prices load once the price job has run" : "30 Sep 2026 close · live on the GitHub version");
+  else st.append(h("span",{class:"livedot off"}), DATA.quotesUrl ? "30 Sep 2026 close · live prices load once the price job has run" : ["30 Sep 2026 close · live prices on the ", h("a",{href:DATA.siteUrl + "investment-atlas/", target:"_blank", rel:"noopener", text:"live version"})]);
   const th = $("#mk-tbl thead"); th.innerHTML = "";
   th.append(h("tr",null, ...[["Company"],["Last price","r"],["Day","r"],["Avg target","r"],["Upside","r"],["Consensus"],["As of"]].map(([t, c]) => h("th",{scope:"col", class:c || null, text:t}))));
   const tb = $("#mk-tbl tbody"); tb.innerHTML = "";
@@ -1262,9 +1263,9 @@ function renderMarket(){
   });
 }
 function refreshLive(){
-  if (!DATA.quotesUrl) return;
-  fetch(DATA.quotesUrl + "?t=" + Date.now(), {cache:"no-store"}).then(r => r.ok ? r.json() : null).then(js => {
-    if (!js || !js.quotes) return;
+  if (!DATA.quotesUrl) return Promise.resolve(false);
+  return fetch(DATA.quotesUrl + "?t=" + Date.now(), {cache:"no-store"}).then(r => r.ok ? r.json() : null).then(js => {
+    if (!js || !js.quotes) return false;
     let n = 0;
     MKT.forEach(m => {
       const L = js.quotes[m.k], q = m.q;
@@ -1277,7 +1278,8 @@ function refreshLive(){
       n++;
     });
     if (n){ liveMeta = {updated: js.updated, source: js.source}; renderMarket(); renderDevs(); }
-  }).catch(() => {});
+    return n > 0;
+  }).catch(() => false);
 }
 
 /* ================= boot ================= */
@@ -1292,5 +1294,7 @@ legendSizes();
 renderDevs(); renderMarket();
 if (DATA.quotesUrl){ refreshLive(); setInterval(refreshLive, 5 * 60 * 1000); }
 let rzT; window.addEventListener("resize", () => { applyZ(); clearTimeout(rzT); rzT = setTimeout(() => { legendSizes(); fitLabSegs(); }, 150); });
+/* hooks for the Update desk bar (desk.js, GitHub Pages only) */
+window.SCMAP = {DATA, refreshLive};
 })();
 </script>

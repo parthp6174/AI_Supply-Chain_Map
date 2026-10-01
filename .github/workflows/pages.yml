@@ -1,19 +1,28 @@
 name: Refresh prices and publish site
 
 # Rebuilds both pages and deploys them to GitHub Pages:
-#  - every 15 minutes on weekdays, 00:00-21:59 UTC (Tokyo's open through the US close, winter and summer),
-#    at :07, :22, :37 and :52 past the hour; GitHub delays or drops scheduled runs at its busy :00 slot
-#  - on every push to main (for example, after editing data/developments.json)
-#  - on demand from the Actions tab
+#  - every 15 minutes on weekdays, 00:00-21:59 UTC (Tokyo's open through the US close, winter and summer);
+#    GitHub delays or drops scheduled runs at its busy :00 slot, so they run a few minutes past
+#  - every 6 hours at weekends, mainly to collect headlines for the news radar
+#  - on every push to main (for example, after publishing from the Update desk or editing data/developments.json)
+#  - on demand from the Actions tab or the Update desk's Refresh now button
+#
+# GitHub runs the schedule under the account that last changed one of the two schedule lines, and only if that
+# account can run workflows here. Change them only from the site owner's account; the Update desk's
+# "Turn on automatic updates" button does it in one click.
 on:
   schedule:
     - cron: "7,22,37,52 0-21 * * 1-5"
+    - cron: "7 1,7,13,19 * * 0,6"
   push:
     branches: [main]
   workflow_dispatch:
     inputs:
       targets:
         description: "Refresh analyst targets: auto (once a day), always, never"
+        default: auto
+      news:
+        description: "Collect headlines: auto (every 3 hours), always, never"
         default: auto
 
 permissions:
@@ -40,7 +49,7 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      # carry the last good quotes (including once-a-day analyst targets) between runs
+      # carry the last good quotes (including once-a-day analyst targets) and headlines between runs
       - name: Restore last quotes
         uses: actions/cache/restore@v4
         with:
@@ -48,9 +57,21 @@ jobs:
           key: quotes-${{ github.run_id }}
           restore-keys: quotes-
 
+      - name: Restore last headlines
+        uses: actions/cache/restore@v4
+        with:
+          path: site/data/news.json
+          key: news-${{ github.run_id }}
+          restore-keys: news-
+
       - name: Fetch prices from Yahoo Finance
         continue-on-error: true
         run: python scripts/fetch_quotes.py --targets "${{ github.event.inputs.targets || 'auto' }}"
+
+      # skipped on pushes so published entries go live quickly; scheduled runs collect them every 3 hours
+      - name: Collect headlines from Google News
+        continue-on-error: true
+        run: python scripts/fetch_news.py --mode "${{ github.event_name == 'push' && 'never' || github.event.inputs.news || 'auto' }}"
 
       - name: Save quotes
         if: always()
@@ -60,8 +81,17 @@ jobs:
           path: site/data/quotes.json
           key: quotes-${{ github.run_id }}
 
+      - name: Save headlines
+        if: always()
+        continue-on-error: true
+        uses: actions/cache/save@v4
+        with:
+          path: site/data/news.json
+          key: news-${{ github.run_id }}
+
+      # --lenient: a broken development is left out and listed on the Update desk instead of stopping the site
       - name: Build pages
-        run: python src/build.py --target github --quotes site/data/quotes.json
+        run: python src/build.py --target github --quotes site/data/quotes.json --lenient
 
       - uses: actions/configure-pages@v5
 

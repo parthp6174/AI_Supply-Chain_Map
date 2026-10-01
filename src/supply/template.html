@@ -421,6 +421,7 @@ footer{padding-block:48px 56px;font-size:var(--fs-xs);color:var(--muted)}
     <a href="#chain">The chain</a><a href="#where">Map</a><a href="#choke">Chokepoints</a><a href="#worst">Worst cases</a><a href="#watch">Watchlist</a><a href="#log">What's changed</a><a href="#method">Method &amp; sources</a>
     <a class="companion" id="atlas-link" href="#" target="_blank" rel="noopener">Companion: AI Investment Atlas ↗</a>
   </nav>
+  <div class="desk-bar" id="desk-bar" hidden></div>
 </header>
 
 <section id="chain">
@@ -520,6 +521,8 @@ footer{padding-block:48px 56px;font-size:var(--fs-xs);color:var(--muted)}
   </div>
   <div class="tbl-wrap"><table class="w-tbl" id="w-tbl"><thead></thead><tbody></tbody></table></div>
 </section>
+
+<section id="desk" hidden></section>
 
 <section id="log">
   <div class="sec-head">
@@ -1437,7 +1440,7 @@ function renderPxStatus(){
   const w = $("#w-live"); w.innerHTML = "";
   if (live) w.append(h("span",{class:"livedot"}), h("span",null, "Live prices from Yahoo Finance, updated ", h("b",{text: fmtStamp(LIVE.meta.updated)}), ". They refresh every 15 minutes on weekdays and analyst targets once a day; rows that Yahoo could not price keep the 30 Sep snapshot."));
   else if (DATA.quotesUrl) w.append(h("span",{class:"livedot off"}), h("span",{text:"Showing the 30 Sep 2026 snapshot (Stock Analysis). Live Yahoo Finance prices load here once the site's price job has run."}));
-  else w.append(h("span",{class:"livedot off"}), h("span",null, "Showing the 30 Sep 2026 snapshot (Stock Analysis). The ", h("a",{href:DATA.repoUrl, target:"_blank", rel:"noopener", text:"GitHub version"}), " refreshes prices from Yahoo Finance every 15 minutes."));
+  else w.append(h("span",{class:"livedot off"}), h("span",null, "Showing the 30 Sep 2026 snapshot (Stock Analysis). The ", h("a",{href:DATA.siteUrl, target:"_blank", rel:"noopener", text:"live version"}), " refreshes prices from Yahoo Finance every 15 minutes."));
 }
 function mergeLive(js){
   const qs = js && js.quotes; if (!qs) return false;
@@ -1457,10 +1460,12 @@ function mergeLive(js){
   return n > 0;
 }
 function refreshLive(){
-  if (!DATA.quotesUrl) return;
-  fetch(DATA.quotesUrl + "?t=" + Date.now(), {cache:"no-store"}).then(r => r.ok ? r.json() : null).then(js => {
-    if (js && mergeLive(js)){ renderPxStatus(); renderWatch(); renderStrip(); renderNodeDetail(); renderChokeTable(); renderScen(); renderDevs(); }
-  }).catch(() => {});
+  if (!DATA.quotesUrl) return Promise.resolve(false);
+  return fetch(DATA.quotesUrl + "?t=" + Date.now(), {cache:"no-store"}).then(r => r.ok ? r.json() : null).then(js => {
+    if (!js || !mergeLive(js)) return false;
+    renderPxStatus(); renderWatch(); renderStrip(); renderNodeDetail(); renderChokeTable(); renderScen(); renderDevs();
+    return true;
+  }).catch(() => false);
 }
 
 /* ---------------- developments ---------------- */
@@ -1505,9 +1510,11 @@ function renderLog(){
   DEVS.entries.forEach(e => ol.append(devItem(e, true)));
   const ht = $("#howto"); ht.innerHTML = "";
   const gh = DATA.target === "github";
+  const live = h("a",{href:DATA.siteUrl, target:"_blank", rel:"noopener", text:"live version"});
   ht.append(
-    h("li",null, h("b",{text:"Prices and analyst targets: "}), gh ? "refreshed automatically from Yahoo Finance every 15 minutes on weekdays, targets and report dates once a day." : "this copy shows the 30 Sep 2026 snapshot; the GitHub version refreshes them from Yahoo Finance every 15 minutes."),
-    h("li",null, h("b",{text:"Developments: "}), "each is one entry in data/developments.json. An entry can link to boxes, sites, scenarios and companies, and can change a chokepoint's rating, a site's status or a scenario, or add a new site or Investment Atlas project. Pushing the file rebuilds the site."),
+    h("li",null, h("b",{text:"Prices and analyst targets: "}), gh ? "refreshed from Yahoo Finance every 15 minutes on weekdays, with targets and report dates once a day. The Update desk above can refresh them at any time." : ["this copy shows the 30 Sep 2026 snapshot; the ", live, " refreshes them from Yahoo Finance every 15 minutes."]),
+    h("li",null, h("b",{text:"Developments: "}), "each is one entry in data/developments.json, published from the Update desk on the live site or edited on GitHub. An entry can link to boxes, sites, scenarios and companies, and can change a chokepoint's rating, a site's status or a scenario, or add a new site or Investment Atlas project. Publishing rebuilds both pages in about two minutes."),
+    h("li",null, h("b",{text:"News radar: "}), "the Update desk collects headlines on every chokepoint and scenario from Google News every 3 hours, ready to add to the log in one click."),
     h("li",null, h("b",{text:"Weekly review: "}), "Claude checks the news against the watch items under each scenario, adds sourced entries and updates the data, then rebuilds both pages."),
     h("li",null, h("b",{text:"Quarterly: "}), "after each earnings season, capex, revenue and backlog figures in the Investment Atlas are refreshed and the payback test rerun."),
     h("li",null, h("b",{text:"Suggest one: "}), h("a",{href: DATA.repoUrl + "/issues/new?template=new-development.yml", target:"_blank", rel:"noopener", text:"open a development form on GitHub"}), " with a date, a source link and what it affects."));
@@ -1524,5 +1531,7 @@ renderStrip(); renderWatch();
 renderPxStatus(); renderDevs(); renderLog();
 if (DATA.quotesUrl){ refreshLive(); setInterval(refreshLive, 5 * 60 * 1000); }
 window.addEventListener("resize", () => applyZ());
+/* hooks for the Update desk (desk.js, GitHub Pages only) */
+window.SCMAP = {DATA, NODES, NODE, CO, QU, SC, SCEN, refreshLive, selectNode, goWatch, scrollToEl};
 })();
 </script>

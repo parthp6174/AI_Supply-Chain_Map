@@ -4,3 +4,5 @@ dist/
 src/common/ne/
 .DS_Store
 site/data/quotes.json
+site/data/news.json
+site/data/build.json
