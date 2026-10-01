@@ -8,7 +8,7 @@ There are three update paths: prices and headlines update themselves, developmen
 
 1. restores the last `site/data/quotes.json` and `site/data/news.json` from the Actions cache;
 2. runs `scripts/fetch_quotes.py`, which downloads the latest price for all 92 tickers in one batch and, once a day, each company's average analyst target, rating, number of analysts and next report date;
-3. runs `scripts/fetch_news.py` when the headlines are more than 3 hours old (always on **Refresh now**, never on a push, so published entries go live quickly);
+3. runs `scripts/fetch_news.py` when the headlines are more than 3 hours old (always on **Refresh now**; on a push only when there are none yet, so published entries go live quickly);
 4. rebuilds both pages with those numbers embedded (`--lenient`, see below), and deploys to GitHub Pages.
 
 Scheduled runs are set a few minutes past the quarter-hour because GitHub delays, and sometimes drops, scheduled jobs at the start of the hour.

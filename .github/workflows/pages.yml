@@ -68,10 +68,10 @@ jobs:
         continue-on-error: true
         run: python scripts/fetch_quotes.py --targets "${{ github.event.inputs.targets || 'auto' }}"
 
-      # skipped on pushes so published entries go live quickly; scheduled runs collect them every 3 hours
+      # on pushes only when there are none yet, so published entries go live quickly; scheduled runs collect every 3 hours
       - name: Collect headlines from Google News
         continue-on-error: true
-        run: python scripts/fetch_news.py --mode "${{ github.event_name == 'push' && 'never' || github.event.inputs.news || 'auto' }}"
+        run: python scripts/fetch_news.py --mode "${{ github.event_name == 'push' && 'missing' || github.event.inputs.news || 'auto' }}"
 
       - name: Save quotes
         if: always()

@@ -8,6 +8,7 @@ these headlines; nothing reaches the development log until someone adds it.
     python scripts/fetch_news.py                 # fetch if the last run is older than 3 hours
     python scripts/fetch_news.py --mode always   # fetch now
     python scripts/fetch_news.py --mode never    # keep the previous file
+    python scripts/fetch_news.py --mode missing  # fetch only if there are no headlines yet (used on pushes)
 
 Like the price script, it never fails the build: if every search fails, the previous headlines stay.
 """
@@ -94,7 +95,7 @@ def collect(topics, days=10, per_query=10, cap=160, pause=1.0, fetcher=fetch):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--mode", choices=["auto", "always", "never"], default="auto")
+    ap.add_argument("--mode", choices=["auto", "always", "never", "missing"], default="auto")
     ap.add_argument("--max-age-hours", type=float, default=3.0)
     ap.add_argument("--topics", default=os.path.join(ROOT, "data", "news_queries.json"))
     ap.add_argument("--out", default=os.path.join(ROOT, "site", "data", "news.json"))
@@ -107,6 +108,8 @@ def main():
         prev = None
     if a.mode == "never":
         print("news: skipped (mode never)"); return
+    if a.mode == "missing" and prev and prev.get("items"):
+        print("news: skipped, headlines already present"); return
     if a.mode == "auto" and prev and prev.get("updated"):
         try:
             age = (now_utc() - dt.datetime.fromisoformat(prev["updated"].replace("Z", "+00:00"))).total_seconds() / 3600
