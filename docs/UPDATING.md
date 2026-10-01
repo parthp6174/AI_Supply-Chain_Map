@@ -10,6 +10,8 @@ There are three update paths: prices update themselves, developments go into one
 2. runs `scripts/fetch_quotes.py`, which downloads the latest price for all 92 tickers in one batch and, once a day, each company's average analyst target, rating, number of analysts and next report date;
 3. rebuilds both pages with those numbers embedded, and deploys to GitHub Pages.
 
+Scheduled runs are set at :07, :22, :37 and :52 past the hour because GitHub delays, and sometimes drops, scheduled jobs at the start of the hour. GitHub also switches off scheduled jobs in a public repository after 60 days with no commits; the weekly development updates keep it active, and if it ever stops, the Actions tab shows a button to turn it back on.
+
 Open pages reload `data/quotes.json` every 5 minutes. Safeguards:
 - a ticker Yahoo cannot price keeps its last good price (or the 30 Sep 2026 snapshot), with its date shown;
 - a target more than 3x or under 0.3x the price (for example, one not adjusted for a split) is dropped instead of shown;

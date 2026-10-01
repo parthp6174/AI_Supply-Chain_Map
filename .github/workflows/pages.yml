@@ -1,12 +1,13 @@
 name: Refresh prices and publish site
 
 # Rebuilds both pages and deploys them to GitHub Pages:
-#  - every 15 minutes on weekdays, 00:00-21:59 UTC (Tokyo's open through the US close, winter and summer)
+#  - every 15 minutes on weekdays, 00:00-21:59 UTC (Tokyo's open through the US close, winter and summer),
+#    at :07, :22, :37 and :52 past the hour; GitHub delays or drops scheduled runs at its busy :00 slot
 #  - on every push to main (for example, after editing data/developments.json)
 #  - on demand from the Actions tab
 on:
   schedule:
-    - cron: "*/15 0-21 * * 1-5"
+    - cron: "7,22,37,52 0-21 * * 1-5"
   push:
     branches: [main]
   workflow_dispatch:
