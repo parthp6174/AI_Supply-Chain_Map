@@ -64,7 +64,8 @@ const ST = {token: getItem(K_TOKEN), login: null, quotes: null, news: null, buil
 class GhError extends Error { constructor(msg, status){ super(msg); this.status = status; } }
 async function gh(path, opt){
   opt = opt || {};
-  const headers = {"Accept": "application/vnd.github+json", "X-GitHub-Api-Version": "2022-11-28"};
+  // Only headers GitHub documents as allowed from another site (Authorization, Content-Type); anything else risks a blocked request.
+  const headers = {"Accept": "application/vnd.github+json"};
   if (ST.token) headers.Authorization = "Bearer " + ST.token;
   if (opt.body) headers["Content-Type"] = "application/json";
   let r;
