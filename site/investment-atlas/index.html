@@ -1257,7 +1257,7 @@ function renderMarket(){
   const st = $("#mk-status"); st.innerHTML = "";
   if (liveMeta && liveMeta.updated) st.append(h("span",{class:"livedot"}), "Live from Yahoo Finance · updated " + fmtStamp(liveMeta.updated));
   else if (DATA.quotesUrl) st.append(h("span",{class:"livedot off"}), "30 Sep 2026 close · live prices load once the price job has run");
-  else st.append(h("span",{class:"livedot off"}), "30 Sep 2026 close · live prices on the ", h("a",{href:DATA.siteUrl + "investment-atlas/", target:"_blank", rel:"noopener", text:"live version"}));
+  else st.append(h("span",{class:"livedot off"}), h("span",null, "30 Sep 2026 close · live prices on the ", h("a",{href:DATA.siteUrl + "investment-atlas/", target:"_blank", rel:"noopener", text:"live version"})));
   const th = $("#mk-tbl thead"); th.innerHTML = "";
   th.append(h("tr",null, ...[["Company"],["Last price","r"],["Day","r"],["Avg target","r"],["Upside","r"],["Consensus"],["As of"]].map(([t, c]) => h("th",{scope:"col", class:c || null, text:t}))));
   const tb = $("#mk-tbl tbody"); tb.innerHTML = "";

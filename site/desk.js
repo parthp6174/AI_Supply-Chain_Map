@@ -389,13 +389,14 @@ function renderBar(){
   barEl.hidden = false; barEl.textContent = "";
   const q = ST.quotes, n = ST.news, nc = newCount();
   const fresh = q && q.updated && Date.now() - Date.parse(q.updated) < 2 * 3600 * 1000;
-  barEl.append(
+  const parts = [
     h("span", {class: "dk-dot" + (q && q.updated ? (fresh ? "" : " stale") : " off"), "aria-hidden": "true"}),
     h("span", {class: "dk-bt"}, q && q.updated ? "Prices updated " + stamp(q.updated) : "Prices: 30 Sep 2026 snapshot",
       n && n.updated ? " · Headlines " + stamp(n.updated) + (nc ? " (" + nc + " new)" : "") : ""),
     behind() ? h("a", {class: "dk-fresh", href: freshUrl(behind()), text: "This page has been updated: load the new version"}) : null,
     actionButton(), prog("any"),
-    h("a", {class: "dk-link", href: CFG.deskUrl, text: FULL ? "Update desk ↓" : "Update desk →"}));
+    h("a", {class: "dk-link", href: CFG.deskUrl, text: FULL ? "Update desk ↓" : "Update desk →"})];
+  barEl.append(...parts.filter(Boolean));   // DOM append() would print a null as text
   paintProg();
 }
 
@@ -744,8 +745,8 @@ function showPreview(){
   const e = res.entry;
   pv.textContent = "";
   pv.append(h("div", {class: "dk-lab", text: (res.kind === "upcoming" ? "Coming up" : "Development") + " · preview"}),
-    h("div", {class: "dv-date", text: e.approx || longDate(e.date)}), h("div", {class: "dv-t", text: e.title}),
-    e.summary ? h("p", {class: "dv-s", text: e.summary}) : null);
+    h("div", {class: "dv-date", text: e.approx || longDate(e.date)}), h("div", {class: "dv-t", text: e.title}));
+  if (e.summary) pv.append(h("p", {class: "dv-s", text: e.summary}));
   if (F.links.length){ const w = h("div", {class: "nchips"}); F.links.forEach(p => w.append(h("span", {class: "nchip", text: p.label}))); pv.append(w); }
   if (e.source && e.source.url) pv.append(h("a", {class: "dv-src", href: e.source.url, target: "_blank", rel: "noopener", text: e.source.label}));
   if (e.changes){ const ul = h("ul", {class: "dk-chlist"}); e.changes.forEach(c => ul.append(h("li", {text: describeChange(c)}))); pv.append(ul); }
