@@ -11,7 +11,8 @@ headlines come from fixtures made from the repo's own data. Exit code 1 if any c
 Covers: what visitors see; the news radar (grouping, hide, new, unsafe text and links); suggesting on GitHub;
 connecting and disconnecting a key; turning the schedule on; Refresh now; publishing, editing and deleting an
 entry with page changes (including a conflicting write); a paused workflow; build warnings; missing
-permissions; an expired key; a cached page catching up with a newer build; the Investment Atlas bar; phones.
+permissions; an expired key; a cached page catching up with a newer build; the switch between the two atlases;
+the Investment Atlas bar; phones.
 """
 import argparse, base64, datetime as dt, functools, hashlib, http.server, json, os, re, subprocess, sys, tempfile, threading, time, urllib.parse
 
@@ -266,6 +267,10 @@ def run_checks(browser):
     check("visitor: desk visible", page.is_visible("#desk"))
     check("visitor: bar shows Reload", "Reload" in page.inner_text("#desk-bar"), page.inner_text("#desk-bar"))
     check("visitor: toc link added", page.locator("nav.toc a[data-desk]").count() == 1)
+    tabs = page.locator(".atlases a")
+    check("switch: both atlases offered, this one marked", tabs.count() == 2 and tabs.nth(0).get_attribute("aria-current") == "page" and tabs.nth(1).get_attribute("aria-current") is None)
+    check("switch: sits above the page title", page.evaluate("document.querySelector('.atlases').getBoundingClientRect().bottom <= document.querySelector('h1').getBoundingClientRect().top"))
+    check("switch: Investment Atlas tab points to its page", page.evaluate("document.querySelector('#nav-atlas').href") == BASE + "investment-atlas/")
     check("visitor: radar lists stories", page.locator(".dk-ni").count() >= 15, page.locator(".dk-ni").count())
     check("visitor: unsafe headline shown as text", page.evaluate("window.__xss") is None and page.locator(".dk-nt", has_text="Bad headline").count() == 1)
     check("visitor: javascript: link not rendered", page.locator('a[href^="javascript"]').count() == 0)
@@ -436,10 +441,16 @@ def run_checks(browser):
     check("stale page: no page errors", not errors, errors[:3])
     ctx.close()
 
-    # 9. the Investment Atlas bar, and phones in both themes
+    # 9. the Investment Atlas: reached from the switch, its bar, and phones in both themes
     fake = FakeGitHub()
     ctx, page, errors = new_page(browser, fake, scheme="dark")
-    page.goto(BASE + "investment-atlas/"); page.wait_for_selector("#desk-bar .dk-bt", timeout=10000); page.wait_for_timeout(800)
+    page.goto(BASE); page.wait_for_selector("#dk-alert .dk-alertcard.warn", timeout=10000)    # the home page has finished talking to GitHub
+    fake.calls.clear()
+    page.click("#nav-atlas"); page.wait_for_url(BASE + "investment-atlas/"); page.wait_for_selector("#desk-bar .dk-bt", timeout=10000); page.wait_for_timeout(800)
+    check("switch: one click from the home page opens the Investment Atlas", page.inner_text("h1").strip().lower() == "ai investment atlas", page.inner_text("h1"))
+    check("switch: Investment Atlas marked there, Supply Chain Atlas links home", page.get_attribute("#nav-atlas", "aria-current") == "page" and page.evaluate("document.querySelector('#nav-supply').href") == BASE)
+    hero = page.inner_text("#kpis .kpi.hero .value").strip()
+    check("switch: capex figure matches the Investment Atlas headline", hero.startswith("$") and hero in page.inner_text("#nav-atlas-c"), (hero, page.inner_text("#nav-atlas-c")))
     check("atlas: bar with Refresh now", "Refresh now" in page.inner_text("#desk-bar"))
     clean_text(page, "atlas bar")
     check("atlas: desk link points back", page.get_attribute("nav.toc a[data-desk]", "href") == "../#desk")
@@ -453,6 +464,7 @@ def run_checks(browser):
         page.wait_for_function("document.querySelector('#dk-status').innerText.includes('Running')", timeout=10000)
         check(f"phone {scheme}: schedule shown as running", True)
         check(f"phone {scheme}: no sideways scroll", page.evaluate("document.documentElement.scrollWidth <= window.innerWidth + 1"), page.evaluate("[document.documentElement.scrollWidth, window.innerWidth]"))
+        check(f"phone {scheme}: switch fits on one line each", page.evaluate("[...document.querySelectorAll('.atlases .at-t')].every(e => e.getBoundingClientRect().height < 24)"))
         clean_text(page, f"phone {scheme}")
         shot(page.locator("#desk"), f"phone_{scheme}_desk.png")
         check(f"phone {scheme}: no page errors", not errors, errors[:3])

@@ -332,6 +332,14 @@ def dump(o):
     return json.dumps(o, separators=(",", ":"), ensure_ascii=False)
 
 
+def money(v):
+    """Billions of dollars the way the pages print them (mirrors fmtB in the Investment Atlas template)."""
+    trim = lambda t: t.rstrip("0").rstrip(".") if "." in t else t
+    if abs(v) >= 1000: return "$" + trim(f"{v / 1000:.2f}") + "T"
+    if abs(v) >= 100: return f"${round(v)}B"
+    return "$" + trim(f"{v:.1f}" if abs(v) >= 10 else f"{v:.2f}") + "B"
+
+
 # ---------------------------------------------------------------- build
 def build(target, quotes_path, lenient=False, site_dir=None):
     g = geo.load()
@@ -346,6 +354,9 @@ def build(target, quotes_path, lenient=False, site_dir=None):
     qmeta = merge_quotes(Q, quotes_path)
     gh = target == "github"
     rev = (os.environ.get("GITHUB_SHA") or "")[:12]   # set by GitHub Actions; lets a cached page notice a newer build
+    # one-line summaries for the switch at the top of both pages
+    nav = dict(supply=f"{len(nodes)} links from mine to model, {sum(1 for n in nodes if n.get('choke'))} chokepoints, {len(Q)} stocks",
+               atlas=f"The investment numbers: {money(sum(sum(b['capex']) for b in A.BUILDERS))} of capex, {len(items)} projects, the payback test")
     links = dict(
         supply=dict(companion="investment-atlas/" if gh else ARTIFACT_URLS["atlas"], quotes="data/quotes.json" if gh else None),
         atlas=dict(companion="../" if gh else ARTIFACT_URLS["supply"], quotes="../data/quotes.json" if gh else None))
@@ -396,7 +407,7 @@ def build(target, quotes_path, lenient=False, site_dir=None):
                  atlas=atlas_pts, regions=regions, companies=companies, quotes=Q,
                  groups=[dict(id=a, label=b, keys=c) for a, b, c in D.GROUPS], sources=sources,
                  taiwan=dict(y1=round(O0["accel"], 3), y3=round(O1["accel"], 3)), devs=dev_payload(dev, "supply"),
-                 siteUrl=SITE_URL, rev=rev, desk=desk_config("supply") if gh else None)
+                 siteUrl=SITE_URL, rev=rev, nav=nav, desk=desk_config("supply") if gh else None)
     with open(os.path.join(ROOT, "src", "supply", "template.html")) as f:
         tpl = f.read()
     supply_html = tpl.replace("__DATA__", dump(sdata)).replace("__GEO__", dump(g))
@@ -435,7 +446,7 @@ def build(target, quotes_path, lenient=False, site_dir=None):
     adata = dict(asOf="2026-09-30", target=target, supplyUrl=links["atlas"]["companion"], quotesUrl=links["atlas"]["quotes"],
                  quotesMeta=qmeta, repoUrl=REPO_URL, items=pts, sources=asources, flows=flows, builders=A.BUILDERS, labs=labs,
                  antSchedule=[list(x) for x in A.ANT_SCHEDULE], collectors=A.COLLECTORS, regions=aregions, labSigned=lab_signed,
-                 market=market, devs=dev_payload(dev, "atlas"), siteUrl=SITE_URL, rev=rev, desk=desk_config("atlas") if gh else None)
+                 market=market, devs=dev_payload(dev, "atlas"), siteUrl=SITE_URL, rev=rev, nav=nav, desk=desk_config("atlas") if gh else None)
     with open(os.path.join(ROOT, "src", "atlas", "template.html")) as f:
         atpl = f.read()
     atlas_html = atpl.replace("__DATA__", dump(adata)).replace("__GEO__", dump(g))

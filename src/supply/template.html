@@ -69,6 +69,15 @@ button,input,select{font:inherit;color:inherit}
 
 /* masthead */
 .masthead{padding-block:clamp(28px,5vw,56px) 8px}
+/* the two atlases: one switch at the very top of both pages, so neither half of the site is hidden behind a small link */
+.atlases{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;max-width:860px;margin-bottom:clamp(20px,3vw,30px)}
+.atlases a{display:grid;gap:2px;align-content:start;padding:10px 14px 11px;background:var(--bg);text-decoration:none;color:var(--ink-2);min-width:0}
+.atlases a:hover{background:var(--surface);color:var(--ink)}
+.atlases a[aria-current="page"]{background:var(--surface);color:var(--ink);box-shadow:inset 0 2px 0 var(--ink)}
+.atlases a:focus-visible{outline-offset:-2px}
+.atlases .at-t{font-weight:600;font-size:var(--fs-md);line-height:1.25}
+.atlases .at-c{font-family:var(--font-mono);font-size:var(--fs-xs);letter-spacing:.02em;line-height:1.45;color:var(--muted)}
+@media (max-width:560px){ .atlases .at-c{display:none} .atlases a{padding:9px 12px 10px} .atlases .at-t{font-size:var(--fs-sm)} }
 .eyebrow{font-family:var(--font-mono);font-size:var(--fs-xs);letter-spacing:.09em;text-transform:uppercase;color:var(--muted);display:flex;flex-wrap:wrap;gap:6px 14px}
 .eyebrow span+span::before{content:"";display:inline-block;width:4px;height:4px;border-radius:50%;background:var(--faint);margin-right:14px;vertical-align:middle}
 h1{font-family:var(--font-display);font-weight:800;font-size:clamp(44px,8vw,100px);line-height:.86;letter-spacing:.005em;text-transform:uppercase;margin:14px 0 16px;text-wrap:balance}
@@ -410,6 +419,10 @@ footer{padding-block:48px 56px;font-size:var(--fs-xs);color:var(--muted)}
 
 <div class="wrap">
 <header class="masthead">
+  <nav class="atlases" aria-label="The two atlases">
+    <a id="nav-supply" href="#"><span class="at-t">Supply Chain Atlas</span><span class="at-c" id="nav-supply-c"></span></a>
+    <a id="nav-atlas" href="#"><span class="at-t">Investment Atlas</span><span class="at-c" id="nav-atlas-c"></span></a>
+  </nav>
   <div class="eyebrow"><span>AI supply-chain ledger</span><span id="asof">Research as of 30 Sep 2026</span><span id="px-status">Prices: 30 Sep 2026 close, local currency</span></div>
   <h1>AI Supply Chain Atlas</h1>
   <p class="dek">Every link between a quartz mine and a frontier model: who makes each part, where it is made, which companies hold the chokepoints, what fails in the worst cases, and the share prices and forecasts to follow.</p>
@@ -601,6 +614,14 @@ const SRC = DATA.sources;
 function srcLinks(keys){ return (keys || []).map(k => { const o = SRC[k]; return o ? h("a",{href:o.u, target:"_blank", rel:"noopener", text:"[" + o.n + "] " + o.l}) : null; }); }
 $("#atlas-link").href = DATA.atlasUrl;
 if (DATA.target === "github"){ $("#atlas-link").removeAttribute("target"); $("#atlas-link").textContent = "Companion: AI Investment Atlas →"; }
+(function atlases(){   // the switch at the top: this page is marked, the other one is a link
+  const nav = DATA.nav || {}, gh = DATA.target === "github", other = $("#nav-atlas");
+  $("#nav-supply").setAttribute("aria-current", "page");
+  other.href = DATA.atlasUrl;
+  if (!gh){ other.target = "_blank"; other.rel = "noopener"; }
+  $("#nav-supply-c").textContent = nav.supply || "";
+  $("#nav-atlas-c").textContent = (nav.atlas || "") + (gh ? " →" : " ↗");
+})();
 
 /* ---------------- data prep ---------------- */
 const NODES = DATA.nodes, NODE = {}, OUTS = {};
