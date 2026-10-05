@@ -1,10 +1,10 @@
-# Keeping the atlases current
+# Keeping the pages current
 
 There are three update paths: prices and headlines update themselves, developments are logged from the Update desk (or in one file), and the deeper numbers are refreshed each quarter.
 
 ## 1. Prices, analyst targets and headlines (automatic)
 
-`.github/workflows/pages.yml` runs every 15 minutes on weekdays, every 6 hours at weekends, on every push to `main`, and on demand (the Update desk's **Refresh now** button or the Actions tab). Each run:
+`.github/workflows/pages.yml` is scheduled for every 15 minutes on weekdays and every 6 hours at weekends (GitHub runs schedules only when it has spare capacity: in practice every 4 to 9 hours), and also runs on every push to `main` and on demand (the Update desk's **Refresh now** button or the Actions tab). Each run:
 
 1. restores the last `site/data/quotes.json` and `site/data/news.json` from the Actions cache;
 2. runs `scripts/fetch_quotes.py`, which downloads the latest price for all 92 tickers in one batch and, once a day, each company's average analyst target, rating, number of analysts and next report date;
@@ -13,7 +13,7 @@ There are three update paths: prices and headlines update themselves, developmen
 
 Scheduled runs are set a few minutes past the quarter-hour because GitHub delays, and sometimes drops, scheduled jobs at the start of the hour.
 
-**Who the schedule runs as.** GitHub runs a schedule under the account that last changed one of its `cron` lines, and only if that account can run workflows in the repository. Change those lines only from the owner's account. The Update desk checks this and shows **Turn on automatic updates** when the schedule hasn't run; the button commits a one-minute shift of the schedule from the owner's account. Edits to other parts of the workflow file don't change who the schedule runs as.
+**If scheduled updates stop.** A new or changed schedule can take up to a day to start. If the Update desk shows that no scheduled update has run for a day, press **Restart automatic updates**: it shifts each scheduled minute by one, which makes GitHub register the schedule again. (An earlier note here blamed the account that wrote the schedule; that was wrong. The schedule started by itself on 2 October 2026.)
 
 GitHub also pauses schedules in a public repository after 60 days without a commit. Publishing from the desk counts as a commit; if it ever happens, the desk shows **Switch them back on**.
 
@@ -28,7 +28,7 @@ To add a company to the watchlist, add it to `C` and `Q` in `src/supply/supply_d
 
 ### From the Update desk
 
-1. Open the **Update desk** on the Supply Chain Atlas and connect GitHub once (README: "Connect GitHub").
+1. Open the **Update desk** on The Chain and connect GitHub once (README: "Connect GitHub").
 2. Press **Refresh now** if the headlines are more than a few hours old, then scan the **News radar**. Filter by topic; **Hide** what doesn't matter (hidden headlines are remembered in that browser).
 3. **Add to log** on a headline fills in the date, headline, source and the chain links for its topic. Write two or three sentences on what happened and why it matters, adjust the links, and add any changes (the same change types as the table below).
 4. **Preview**, then **Publish**. The desk commits the entry to `data/developments.json`, follows the rebuild, and reloads the page with the entry in the log, on both pages, about two minutes later.
@@ -55,7 +55,7 @@ Add one object to `entries` in `data/developments.json` and push. Locally, `pyth
 }
 ```
 
-`pages` picks where the entry appears (`supply`, `atlas` or both). Ids: link (node) ids, site ids and scenario ids are in `src/supply/supply_data.py`; company keys are the keys of `C` there; Investment Atlas ids are the first argument of each `it(...)` in `src/atlas/data_items.py`.
+`pages` picks where the entry appears (`supply`, `atlas` or both). Ids: link (node) ids, site ids and scenario ids are in `src/supply/supply_data.py`; company keys are the keys of `C` there; project ids are the first argument of each `it(...)` in `src/atlas/data_items.py`.
 
 | `type` | Fields | Effect |
 |---|---|---|
@@ -65,8 +65,8 @@ Add one object to `entries` in `data/developments.json` and push. Locally, `pyth
 | `add_site` | `node`, `name`, `lat`, `lon`, optional `who`, `note`, `status`, `id` (made from the name if left out) | Puts a new plant, mine or campus on the map |
 | `scenario_status` | `scenario`, optional `status` (`live`, `scheduled`, `plausible`, `tail`), `when` | Moves a worst case between "happening now", "on the calendar" and so on |
 | `quote_note` | `company`, `proj` | Replaces the "projection to follow" text in the watchlist |
-| `atlas_item_status` | `item`, optional `status`, `note_append` | Updates an Investment Atlas project |
-| `add_atlas_item` | `item`: `{title, who, cat, kind, date, place, country, lat, lon}`, optional `amount`, `status`, `note`, `prec` (default `city`), `gw`, `amount_note`, `partners`, `iso`, `id` (made from the title if left out) | Adds a new investment to the Investment Atlas map and table |
+| `atlas_item_status` | `item`, optional `status`, `note_append` | Updates an project in The Money |
+| `add_atlas_item` | `item`: `{title, who, cat, kind, date, place, country, lat, lon}`, optional `amount`, `status`, `note`, `prec` (default `city`), `gw`, `amount_note`, `partners`, `iso`, `id` (made from the title if left out) | Adds a new investment to The Money map and table |
 
 Dated events that have not happened yet (deadlines, plant openings) go in `upcoming` with a `date` (add `approx`, such as "Mid-2027", when the date is rough). Company report dates are added automatically from Yahoo.
 
@@ -102,4 +102,4 @@ pip install playwright && playwright install chromium
 python tests/test_desk.py            # about 2 minutes; add --shots shots to save screenshots
 ```
 
-They build the site into a temporary folder and answer every GitHub call with a stand-in, so nothing is published. They cover visitors, the news radar, connecting a key, turning the schedule on, Refresh now, publishing, editing and deleting, a paused workflow, build warnings, missing permissions, a cached page catching up, the Investment Atlas bar and phone layouts.
+They build the site into a temporary folder and answer every GitHub call with a stand-in, so nothing is published. They cover visitors, the news radar, connecting a key, turning the schedule on, Refresh now, publishing, editing and deleting, a paused workflow, build warnings, missing permissions, a cached page catching up, The Money bar and phone layouts.

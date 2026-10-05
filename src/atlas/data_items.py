@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Single source of truth for the AI Investment Atlas.
+"""Single source of truth for The Money.
 
 Amounts are US$ billions as announced (headline). None = not disclosed.
 cat:  compute = data centers & power, chips = chips & manufacturing, funding = AI company funding

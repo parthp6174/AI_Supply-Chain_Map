@@ -1,4 +1,4 @@
-"""AI Supply Chain Atlas: single source of truth for nodes, links, chokepoints, sites, scenarios and quotes.
+"""The Chain: single source of truth for nodes, links, chokepoints, sites, scenarios and quotes.
 All figures as researched through 30 Sep 2026. Shares are the cited sources' figures; where a source gives no
 number the text says so qualitatively."""
 
@@ -10,7 +10,7 @@ def src(key, label, url):
 ATLAS_URL = "https://claude.ai/artifact/4AnG4Rk35RdMEn3aKYr7Pm"
 
 # ---------------------------------------------------------------- sources
-src("atlas", "AI Investment Atlas (companion page): capex, lab commitments and financing flows", ATLAS_URL)
+src("atlas", "The Money (companion page): capex, lab commitments and financing flows", ATLAS_URL)
 src("tf_tsmc_cap", "TrendForce - TSMC targets 2nm/3nm capacity boost by mid-2027; CoWoS to double by 2028 (14 Sep 2026)", "https://www.trendforce.com/news/2026/09/14/news-tsmc-reportedly-targets-22-2nm-16-3nm-capacity-boost-by-mid-2027-cowos-to-double-by-2028/")
 src("th_tsmc_az", "Tom's Hardware - TSMC commits another $100B to Arizona for at least four more 2nm fabs", "https://www.tomshardware.com/tech-industry/tsmc-commits-another-100-billion-to-arizona-for-at-least-four-more-2nm-fabs")
 src("tf_hbm4", "TrendForce - Samsung, SK hynix tapped as Nvidia Rubin HBM4 suppliers; 2026 HBM shares (9 Mar 2026)", "https://www.trendforce.com/news/2026/03/09/news-samsung-sk%E2%80%AFhynix-reportedly-tapped-as-nvidia-rubin-hbm4-suppliers-shipments-could-start-in-march")
@@ -384,7 +384,7 @@ N("gaspower", "fab", "pw", "Gas-fired plants", "Gas-fired power plants",
   inputs=[I("turbines"), I("natgas")], exp="med", srcs=["oilprice_turb"])
 N("nuclear", "fab", "pw", "Nuclear power", "Nuclear power",
   "Existing reactors under long contracts to AI firms, restarts, uprates and planned small reactors.",
-  "Hyperscalers have signed restarts and small-reactor deals (see the Investment Atlas); fuel depends on enrichment, where Russia holds about 44%.",
+  "Hyperscalers have signed restarts and small-reactor deals (see The Money); fuel depends on enrichment, where Russia holds about 44%.",
   firms=[("ceg", None, None), ("vst", None, None), ("tln", None, None), ("oklo", None, None), ("kairos", None, None)],
   inputs=[I("enrich", p=0.5)], exp="med", srcs=["spg_uranium", "atlas"])
 
@@ -531,14 +531,14 @@ N("campus", "campus", "mx", "AI campuses", "AI data-center campuses",
           ("grid", "power", 0.65, 1.0), ("onsite", "power", 0.35, 1.0)])
 N("capital", "campus", "mx", "Capital & financing", "Capital: equity, debt and vendor financing",
   "Money that funds labs, neoclouds and campuses: equity rounds, bonds, private credit, and suppliers financing their customers.",
-  "Nvidia has become a major financier of its own customers (about $99B, per the Investment Atlas). S&P cut Oracle to BBB- with $117B of bonds outstanding; CoreWeave carries $35B of debt.",
+  "Nvidia has become a major financier of its own customers (about $99B, per The Money). S&P cut Oracle to BBB- with $117B of bonds outstanding; CoreWeave carries $35B of debt.",
   firms=[("nvda", None, "Vendor financing"), ("softbank", None, "OpenAI backer"), ("orcl", None, "Bond-funded build-out")],
   exp="high", srcs=["atlas", "tnw_oracle", "webull_crwv"])
 
 # ---- tier 9: compute sellers
 N("hyper", "ops", "mx", "Hyperscalers", "Hyperscale clouds",
   "Microsoft, Alphabet, Amazon, Meta and Oracle: the biggest buyers and builders.",
-  "2026 capex plans: Amazon $220B, Alphabet $200B, Microsoft $190B, Meta $137.5B, Oracle $92.5B (Investment Atlas).",
+  "2026 capex plans: Amazon $220B, Alphabet $200B, Microsoft $190B, Meta $137.5B, Oracle $92.5B (The Money).",
   firms=[("msft", None, None), ("googl", None, None), ("amzn", None, None), ("meta", None, None), ("orcl", None, None)],
   inputs=[I("campus")], exp="high", srcs=["atlas"])
 N("neo", "ops", "mx", "Neoclouds", "Neoclouds",
@@ -560,13 +560,13 @@ N("china_cloud", "ops", "mx", "China's AI clouds", "China's AI clouds",
 # ---- tier 10: models & demand
 N("labs", "demand", "mx", "Frontier labs", "Frontier AI labs",
   "OpenAI, Anthropic, Google DeepMind, Meta and xAI: the model builders.",
-  "OpenAI and Anthropic alone have signed about $1.14T of compute commitments against about $135B of combined annual revenue (Investment Atlas).",
+  "OpenAI and Anthropic alone have signed about $1.14T of compute commitments against about $135B of combined annual revenue (The Money).",
   firms=[("openai", None, None), ("anthropic", None, None), ("googl", None, "DeepMind"), ("meta", None, None), ("spcx", None, "xAI")],
   inputs=[("hyper", "compute", 0.7, 1.0), ("neo", "compute", 0.2, 1.0), ("sovereign", "compute", 0.1, 1.0), I("capital", p=0.6)],
   exp="high", srcs=["atlas"])
 N("users", "demand", "mx", "Users & businesses", "End demand: people and businesses paying for AI",
   "Consumers, developers and enterprises paying for AI products and API usage.",
-  "This revenue has to pay back everything to its left; the Investment Atlas tests whether it can by 2030.",
+  "This revenue has to pay back everything to its left; The Money tests whether it can by 2030.",
   firms=[], inputs=[("labs", "ai", 0.6, 1.0), ("hyper", "ai", 0.4, 1.0)], exp="high", srcs=["atlas"])
 
 # unmodeled share of a substitute group that is always available (e.g. other generation on the grid)
@@ -685,14 +685,14 @@ SC(id="finance", name="The money stops", status="plausible", when="If AI revenue
    exposed=["orcl", "crwv", "nbis", "spcx", "nvda", "amd", "avgo", "softbank", "vrt", "gev", "skhynix", "mu"],
    winners=[],
    recovery="Two to three years of digestion; memory and chip prices would fall fast.",
-   cost="In the Investment Atlas, OpenAI already needs revenue to grow about 34% a year just to break even on its commitments.",
+   cost="In The Money, OpenAI already needs revenue to grow about 34% a year just to break even on its commitments.",
    watch=["Oracle and CoreWeave credit spreads and refinancing", "Lab funding rounds and revenue run-rates",
           "Hyperscaler capex guidance each quarter"],
    srcs=["atlas", "tnw_oracle", "webull_crwv"])
 SC(id="compound", name="Everything at once", status="tail", when="The worst case",
    kind="compound",
    trigger="A Taiwan blockade lands while the Gulf war continues, China's mineral pauses lapse, power stays short and credit dries up.",
-   story="Supply collapses at the narrowest points and demand collapses behind it. The AI build-out stops for years, the $1.7T of 2024-26 capex has to be written down against far less revenue, and the payback math in the Investment Atlas fails for everyone except the cash-rich hyperscalers.",
+   story="Supply collapses at the narrowest points and demand collapses behind it. The AI build-out stops for years, the $1.7T of 2024-26 capex has to be written down against far less revenue, and the payback math in The Money fails for everyone except the cash-rich hyperscalers.",
    combine=["taiwan", "gulf", "minerals", "power"], extra={"capital": (0.5, 0.4)}, cut=(0.4, 0.5),
    exposed=["tsmc", "nvda", "orcl", "crwv", "skhynix", "asml", "innolight"],
    winners=[],
@@ -886,10 +886,10 @@ QT("vst", "$", 140.83, "2026-09-29", "Strong Buy", 20, 217.58, 54.5, url=US("vst
 QT("oklo", "$", 37.00, "2026-09-30", "Buy", 25, 76.43, 106.6, url=US("oklo"))
 QT("ccj", "$", 86.88, "2026-09-29", "Buy", 21, 127.77, 47.1, proj="US ban on Russian enriched uranium from 2028", url=US("ccj"))
 QT("leu", "$", 138.18, "2026-09-29", "Buy", 19, 247.40, 79.0, proj="US ban on Russian enriched uranium from 2028 (waivers to 2027)", url=US("leu"))
-QT("msft", "$", 512.90, "2026-09-30", "Strong Buy", 55, 577.26, 12.6, proj="2026 capex about $190B (Investment Atlas)", url=US("msft"))
-QT("googl", "$", 344.08, "2026-09-30", "Strong Buy", 61, 429.46, 24.8, proj="2026 capex about $200B (Investment Atlas)", url=US("googl"))
-QT("amzn", "$", 249.15, "2026-09-30", "Strong Buy", 59, 329.54, 32.3, proj="2026 capex about $220B (Investment Atlas)", url=US("amzn"))
-QT("meta", "$", 725.44, "2026-09-30", "Strong Buy", 62, 793.91, 9.4, proj="2026 capex about $137.5B (Investment Atlas)", url=US("meta"))
+QT("msft", "$", 512.90, "2026-09-30", "Strong Buy", 55, 577.26, 12.6, proj="2026 capex about $190B (The Money)", url=US("msft"))
+QT("googl", "$", 344.08, "2026-09-30", "Strong Buy", 61, 429.46, 24.8, proj="2026 capex about $200B (The Money)", url=US("googl"))
+QT("amzn", "$", 249.15, "2026-09-30", "Strong Buy", 59, 329.54, 32.3, proj="2026 capex about $220B (The Money)", url=US("amzn"))
+QT("meta", "$", 725.44, "2026-09-30", "Strong Buy", 62, 793.91, 9.4, proj="2026 capex about $137.5B (The Money)", url=US("meta"))
 QT("orcl", "$", 137.52, "2026-09-30", "Buy", 43, 237.97, 73.0, proj="S&P BBB- (9 Jul 2026); $117B of bonds; $300B OpenAI contract", url=US("orcl"))
 QT("crwv", "$", 87.10, "2026-09-30", "Buy", 41, 141.58, 62.6, proj="Revenue $26.3B next year vs $12.9B; debt $35B, $640M quarterly interest", url=US("crwv"))
 QT("nbis", "$", 237.36, "2026-09-29", "Buy", 19, 283.58, 19.5, url=US("nbis"))

@@ -255,23 +255,20 @@ function rotateCron(text){
   });
   return n ? out : null;
 }
-function firstRunText(){
-  const d = new Date(), wd = d.getUTCDay() >= 1 && d.getUTCDay() <= 5 && d.getUTCHours() < 22;
-  return wd ? "The first scheduled update usually runs within 15 to 30 minutes." : "Weekend updates run every 6 hours; weekday updates restart Monday.";
-}
+function firstRunText(){ return "GitHub may take up to a day to run it again; Refresh now works in the meantime."; }
 async function turnOnSchedule(){
   if (ST.busy || !ST.token) return;
   ST.busy = true; paintButtons();
   const where = "top";
-  setProg({state: "run", where, text: "Turning on automatic updates", t0: Date.now()});
+  setProg({state: "run", where, text: "Restarting automatic updates", t0: Date.now()});
   try {
     const f = await gh(REPO + "/contents/" + CFG.wfPath + "?ref=" + CFG.branch);
     const next = rotateCron(b64decode(f.content));
     if (!next) throw new GhError("Couldn't find the schedule in the workflow file.", -3);
-    await gh(REPO + "/contents/" + CFG.wfPath, {method: "PUT", body: {message: "Turn on automatic updates from the Update desk\n\nGitHub runs a schedule under the account that last changed it, so this change from the owner's account starts it.", content: b64encode(next), sha: f.sha, branch: CFG.branch}});
+    await gh(REPO + "/contents/" + CFG.wfPath, {method: "PUT", body: {message: "Restart automatic updates from the Update desk\n\nShifts each scheduled minute by one; changing the schedule makes GitHub register it again.", content: b64encode(next), sha: f.sha, branch: CFG.branch}});
     ST.health = Object.assign({}, ST.health, {wfBy: ST.login, wfAt: new Date().toISOString()});
     ST.manual = false;
-    setProg({state: "ok", where, text: "Automatic updates are on. " + firstRunText()});
+    setProg({state: "ok", where, text: "Schedule shifted. " + firstRunText()});
   } catch(e){
     if (e.status === 403 || e.status === 404){ ST.manual = true; setProg({state: "fail", where, text: "Your key can't change the workflow file. The box above shows two ways to fix that."}); }
     else setProg({state: "fail", where, text: explain(e, "change the schedule")});
@@ -308,8 +305,8 @@ function scheduleState(){
   const mine = s.wfBy && ST.login && s.wfBy.toLowerCase() === ST.login.toLowerCase();
   if (mine && changed > last && Date.now() - changed < 2 * 3600 * 1000) return "pending";
   if (!last) return "never";
-  const d = new Date(), busyHours = d.getUTCDay() >= 1 && d.getUTCDay() <= 5 && d.getUTCHours() >= 2 && d.getUTCHours() <= 21;
-  return Date.now() - last > (busyHours ? 3 : 12) * 3600 * 1000 ? "stopped" : "ok";
+  // GitHub runs this schedule every 4 to 9 hours in practice (measured 2-5 Oct 2026), so only a full day of silence counts as stopped
+  return Date.now() - last > 24 * 3600 * 1000 ? "stopped" : "ok";
 }
 async function connect(tok, remember, errEl, btn){
   tok = String(tok || "").trim();
@@ -401,7 +398,7 @@ function renderBar(){
   paintProg();
 }
 
-/* ---------------- full desk (Supply Chain Atlas page) ---------------- */
+/* ---------------- full desk (The Chain page) ---------------- */
 function renderStatus(){
   const box = $("#dk-status"); if (!box) return;
   box.textContent = "";
@@ -412,14 +409,14 @@ function renderStatus(){
   if (ST.token){
     const st = scheduleState(), s = ST.health || {};
     const map = {
-      ok: ["Running", "Last ran " + stamp(s.last), ""], pending: ["Turned on", "Waiting for the first scheduled run", ""],
-      never: ["Not running yet", "Turn them on below", "warn"], stopped: ["Stopped", "Last ran " + stamp(s.last), "warn"],
+      ok: ["Running", "Last ran " + stamp(s.last) + "; GitHub runs it every few hours", ""], pending: ["Turned on", "Waiting for the first scheduled run", ""],
+      never: ["Not running yet", "GitHub can take a day to start", "warn"], stopped: ["Stopped", "Last ran " + stamp(s.last), "warn"],
       disabled: ["Switched off", "GitHub paused the schedule", "warn"]};
-    const m = map[st] || ["Every 15 minutes", ST.health ? "Couldn't check GitHub" : "Checking…", ""];
+    const m = map[st] || ["On a schedule", ST.health ? "Couldn't check GitHub" : "Checking…", ""];
     auto = cell("Automatic updates", m[0], m[1], m[2]);
   } else {
     const b = ST.build;
-    auto = cell("Site rebuilt", b && b.built ? stamp(b.built) : "—", b && b.built ? ago(b.built) : "Every 15 minutes on weekdays");
+    auto = cell("Site rebuilt", b && b.built ? stamp(b.built) : "—", b && b.built ? ago(b.built) : "GitHub rebuilds it every few hours");
   }
   box.append(
     cell("Prices", q && q.updated ? stamp(q.updated) : "30 Sep snapshot",
@@ -438,14 +435,14 @@ function renderAlert(){
   const st = scheduleState();
   if (st === "never" || st === "stopped"){
     const card = h("div", {class: "dk-alertcard warn"},
-      h("b", {text: st === "never" ? "Automatic updates haven't started." : "Automatic updates seem to have stopped."}), " ",
+      h("b", {text: st === "never" ? "Automatic updates haven't started yet." : "No automatic update has run for a day."}), " ",
       st === "never"
-        ? "GitHub runs the schedule under the account that last changed it, and that was an account that can't run it here. Changing it once from your account fixes this; the button does it for you."
-        : "GitHub stops a schedule when the account that last changed it can't run it, and sometimes skips runs when it is busy. Changing the schedule once from your account usually restarts it; the button does it for you.");
+        ? "GitHub can take up to a day to start a new schedule, and then runs it when it has spare capacity. If a day has passed, shifting the schedule by a minute usually starts it; the button does that."
+        : "GitHub runs schedules when it has spare capacity, usually every few hours, but none has run for a day. Shifting the schedule by a minute usually restarts it; the button does that.");
     if (ST.manual) card.append(h("p", null, "Your key can't edit workflow files. Either add “Workflows: Read and write” to the key on GitHub and press the button again, or ",
       h("a", {href: CFG.repoUrl + "/edit/" + CFG.branch + "/" + CFG.wfPath, target: "_blank", rel: "noopener", text: "open the workflow file on GitHub"}),
       ", change each number before the first space in the two cron lines by one (for example 7,22,37,52 to 8,23,38,53) and press Commit changes."));
-    card.append(h("div", {class: "dk-alertact"}, h("button", {type: "button", class: "dk-btn dk-busy-off", onclick: turnOnSchedule}, "Turn on automatic updates")));
+    card.append(h("div", {class: "dk-alertact"}, h("button", {type: "button", class: "dk-btn dk-busy-off", onclick: turnOnSchedule}, "Restart automatic updates")));
     box.append(card);
   } else if (st === "disabled"){
     const why = ST.health.state === "disabled_inactivity" ? "GitHub pauses schedules in public repositories after 60 days without a commit." : "The workflow was switched off on the Actions tab.";
@@ -532,11 +529,11 @@ const CHANGES = {
     hint: c => { const s = S.SC[c.scenario]; return s ? "Now: " + OPT.name("scenstatus", s.status) + (s.when ? " · " + s.when : "") : ""; }},
   quote_note: {label: "Update a watchlist projection", f: [["company", "Company", "companies"], ["proj", "Projection to follow", "text"]], req: ["company", "proj"],
     hint: c => { const q = S.QU[c.company]; return q && q.proj ? "Now: " + q.proj : ""; }},
-  atlas_item_status: {label: "Update an Investment Atlas project", f: [["item", "Project", "atlas"], ["status", "New status", "status"], ["note_append", "Sentence to add to its note", "text"]], req: ["item"], any: ["status", "note_append"],
+  atlas_item_status: {label: "Update a project in The Money", f: [["item", "Project", "atlas"], ["status", "New status", "status"], ["note_append", "Sentence to add to its note", "text"]], req: ["item"], any: ["status", "note_append"],
     hint: c => { const a = (DATA.atlas || []).find(x => x.id === c.item); return a && a.s ? "Now: " + a.s : ""; }},
   add_site: {label: "Add a site to the map", f: [["name", "Name", "text"], ["who", "Company", "text"], ["node", "Link in the chain", "nodes"], ["lat", "Latitude", "lat"], ["lon", "Longitude", "lon"], ["status", "Status", "sitestatus"], ["note", "Note", "text"]], req: ["name", "node", "lat", "lon"],
     hint: () => "Tip: right-click the place in Google Maps and click the coordinates to copy them, then paste both into Latitude."},
-  add_atlas_item: {label: "Add an Investment Atlas project", f: [["title", "Project", "text"], ["who", "Who", "text"], ["cat", "Category", "cat"], ["kind", "Type", "kind"], ["amount", "Amount, US$ billions", "number"], ["amount_note", "Amount note", "text"], ["date", "Announced (YYYY-MM)", "ym"], ["status", "Status", "status"], ["place", "Place", "text"], ["country", "Country", "countries"], ["lat", "Latitude", "lat"], ["lon", "Longitude", "lon"], ["prec", "Pin marks", "prec"], ["gw", "Gigawatts", "number"], ["partners", "Partners", "text"], ["note", "Note", "text"]], req: ["title", "who", "cat", "kind", "date", "place", "country", "lat", "lon"],
+  add_atlas_item: {label: "Add a project to The Money", f: [["title", "Project", "text"], ["who", "Who", "text"], ["cat", "Category", "cat"], ["kind", "Type", "kind"], ["amount", "Amount, US$ billions", "number"], ["amount_note", "Amount note", "text"], ["date", "Announced (YYYY-MM)", "ym"], ["status", "Status", "status"], ["place", "Place", "text"], ["country", "Country", "countries"], ["lat", "Latitude", "lat"], ["lon", "Longitude", "lon"], ["prec", "Pin marks", "prec"], ["gw", "Gigawatts", "number"], ["partners", "Partners", "text"], ["note", "Note", "text"]], req: ["title", "who", "cat", "kind", "date", "place", "country", "lat", "lon"],
     hint: () => "Tip: right-click the place in Google Maps and click the coordinates to copy them, then paste both into Latitude."}
 };
 function buildOptions(){
@@ -596,8 +593,8 @@ function buildForm(){
       h("div", {class: "dk-row2"}, lab("dk-srclabel", "Source name", h("input", {type: "text", id: "dk-srclabel", placeholder: "Reuters, 1 Oct 2026"})),
         lab("dk-srcurl", "Source link", h("input", {type: "url", id: "dk-srcurl", placeholder: "https://"}))),
       h("div", {class: "dk-f"}, h("span", {text: "Show it on"}), h("div", {class: "dk-checks"},
-        h("label", {class: "chk", for: "dk-pg-supply"}, h("input", {type: "checkbox", id: "dk-pg-supply", checked: true}), "Supply Chain Atlas"),
-        h("label", {class: "chk", for: "dk-pg-atlas"}, h("input", {type: "checkbox", id: "dk-pg-atlas", checked: true}), "Investment Atlas"))),
+        h("label", {class: "chk", for: "dk-pg-supply"}, h("input", {type: "checkbox", id: "dk-pg-supply", checked: true}), "The Chain"),
+        h("label", {class: "chk", for: "dk-pg-atlas"}, h("input", {type: "checkbox", id: "dk-pg-atlas", checked: true}), "The Money"))),
       h("div", {class: "dk-f"}, h("label", {for: "dk-link-in", text: "Connect it to"}), linkIn, dl, sl, h("div", {class: "nchips", id: "dk-link-chips"})),
       h("div", {class: "dk-f", id: "dk-chwrap"}, h("span", {text: "Change the pages (optional)"}), h("div", {id: "dk-ch-list"}), chSel),
       h("div", {class: "dk-err", id: "dk-err", role: "alert"}),
@@ -735,7 +732,7 @@ function describeChange(c){
     case "quote_note": return nm("companies", c.company) + " projection: " + c.proj;
     case "atlas_item_status": return nm("atlas", c.item) + (c.status ? " status: " + c.status : "") + (c.note_append ? (c.status ? "; " : " note: ") + c.note_append : "");
     case "add_site": return "New map site: " + c.name + " (" + nm("nodes", c.node) + ")";
-    case "add_atlas_item": { const it = c.item || c; return "New Investment Atlas project: " + it.title + (it.amount != null && it.amount !== "" ? " ($" + it.amount + "B)" : ""); }
+    case "add_atlas_item": { const it = c.item || c; return "New project in The Money: " + it.title + (it.amount != null && it.amount !== "" ? " ($" + it.amount + "B)" : ""); }
   }
   return c.type;
 }

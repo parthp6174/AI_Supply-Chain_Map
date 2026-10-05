@@ -2,19 +2,19 @@
 
 Two linked, interactive pages about the AI build-out, with live share prices:
 
-- **AI Supply Chain Atlas** (`site/index.html`): every link from a quartz mine to a frontier model. 64 links in 11 stages, the companies at each one and their market shares, 91 mapped plants, mines and campuses, 31 chokepoints, ten failure scenarios run through a stress model, and a 92-company watchlist with prices, analyst targets and the projections to follow.
-- **AI Investment Atlas** (`site/investment-atlas/index.html`): 85 AI investments announced since 2024 on a world map, the capex of the seven biggest builders, the compute two labs have signed for, and a payback test of what revenue all of it has to earn by 2030.
+- **The Chain** (`site/index.html`): every link from a quartz mine to a frontier model. 64 links in 11 stages, the companies at each one and their market shares, 91 mapped plants, mines and campuses, 31 chokepoints, ten failure scenarios run through a stress model, and a 92-company watchlist with prices, analyst targets and the projections to follow.
+- **The Money** (`site/money/index.html`): 85 AI investments announced since 2024 on a world map, the capex of the seven biggest builders, the compute two labs have signed for, and a payback test of what revenue all of it has to earn by 2030.
 
-The site lives at **https://parthp6174.github.io/AI_Supply-Chain_Map/** (the Investment Atlas at `/investment-atlas/`).
+The site lives at **https://parthp6174.github.io/AI_Supply-Chain_Map/** (The Money at `/money/`; its first address, `/investment-atlas/`, redirects there).
 
 ## Run it from the site: the Update desk
 
-The Supply Chain Atlas has an **Update desk** section (linked from the navigation on both pages). Everyone sees when prices and headlines were last refreshed, the news radar, and a form that opens a suggestion on GitHub. After the owner connects GitHub once, the desk can also:
+The Chain has an **Update desk** section (linked from the navigation on both pages). Everyone sees when prices and headlines were last refreshed, the news radar, and a form that opens a suggestion on GitHub. After the owner connects GitHub once, the desk can also:
 
 - **Refresh now**: fetch the latest prices and headlines and republish both pages (about two minutes, with live progress).
 - **News radar**: stories from the last 10 days on every chokepoint, scenario and money topic, collected from Google News every 3 hours, with repeat coverage grouped and stock-pick noise filtered out. **Add to log** turns a headline into a draft entry with its source and links filled in; **Hide** clears one you don't need.
-- **Publish, edit or delete developments**, including changes to the pages: re-rate a chokepoint, change a site's status, move a scenario, update a projection or an Investment Atlas project, or add a new site or project. Publishing rebuilds both pages in about two minutes.
-- **Turn on automatic updates**, and switch them back on if GitHub pauses them (see below).
+- **Publish, edit or delete developments**, including changes to the pages: re-rate a chokepoint, change a site's status, move a scenario, update a projection or an project in The Money, or add a new site or project. Publishing rebuilds both pages in about two minutes.
+- **Restart automatic updates** if GitHub stops running them (see below).
 - Show anything the last build had to leave out, so a mistake in an entry never takes the site down.
 
 ### Connect GitHub (one time per browser)
@@ -26,18 +26,18 @@ The Supply Chain Atlas has an **Update desk** section (linked from the navigatio
 
 The key is kept only in that browser (or only for the session if you untick "Remember on this device") and is only sent to `api.github.com`. Commits made from the desk are made by your account.
 
-### Turn on automatic updates (one time)
+### Automatic updates
 
-GitHub runs a schedule under the account that last changed it. The schedule in this repository was written by a Claude account that can't run it, so the desk shows **Turn on automatic updates** until it runs: one click commits a one-minute shift of the schedule from your account. If you'd rather do it by hand, edit `.github/workflows/pages.yml` on GitHub and change each minute in the two `cron` lines by one (for example `7,22,37,52` to `8,23,38,53`).
+GitHub runs the update on a schedule, but only when it has spare capacity. The schedule asks for every 15 minutes on weekdays; in the first days GitHub ran it every 4 to 9 hours (it took about a day to start). Use **Refresh now** on the desk for fresh prices at any moment. If no scheduled update has run for a day, the desk offers **Restart automatic updates**, which shifts the schedule by a minute so GitHub registers it again.
 
 ## How it stays current
 
 | What | How often | How |
 |---|---|---|
-| Share prices | Every 15 minutes, Monday to Friday, and on demand | `.github/workflows/pages.yml` runs `scripts/fetch_quotes.py` (Yahoo Finance via `yfinance`) and redeploys. Open pages re-check every 5 minutes. |
+| Share prices | Every few hours (GitHub's schedule), and on demand | `.github/workflows/pages.yml` runs `scripts/fetch_quotes.py` (Yahoo Finance via `yfinance`) and redeploys. Open pages re-check every 5 minutes. |
 | Analyst targets, ratings, next report dates | Once a day | Same job; the script refreshes them when they are more than 20 hours old. |
 | Headlines for the news radar | Every 3 hours, and on demand | `scripts/fetch_news.py` runs the Google News searches in `data/news_queries.json`. Headlines are only shown on the desk; nothing reaches the pages until someone adds it. |
-| Developments | Whenever you add one | From the Update desk, or one entry in `data/developments.json` pushed to `main`. An entry is dated and sourced, links to the boxes, sites, scenarios, companies and Investment Atlas projects it touches, and can change ratings and statuses. |
+| Developments | Whenever you add one | From the Update desk, or one entry in `data/developments.json` pushed to `main`. An entry is dated and sourced, links to the boxes, sites, scenarios, companies and projects in The Money it touches, and can change ratings and statuses. |
 | Capex, revenue and backlog | After each earnings season | Edit `src/atlas/data_items.py` (builders, labs, deals) and push. |
 
 Visitors can suggest a development from the desk or with the **New development** issue form. The full procedure, including every kind of change an entry can make, is in [docs/UPDATING.md](docs/UPDATING.md).
@@ -69,7 +69,7 @@ site/                        built pages (what GitHub Pages serves)
 pip install -r requirements.txt
 python scripts/fetch_quotes.py          # optional: live prices into site/data/quotes.json
 python scripts/fetch_news.py --mode always   # optional: headlines into site/data/news.json
-python src/build.py                     # writes site/index.html and site/investment-atlas/index.html
+python src/build.py                     # writes site/index.html and site/money/index.html
 python -m http.server -d site 8000      # then open http://localhost:8000
 ```
 

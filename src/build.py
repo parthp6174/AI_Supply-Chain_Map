@@ -24,6 +24,9 @@ import data_items as A          # noqa: E402
 import supply_data as D         # noqa: E402
 import supply_model as M        # noqa: E402
 
+# Names shown to readers. To rename, change these and search src/, README.md and docs/ for the old page names.
+NAMES = dict(brand="Chokepoint", chain="The Chain", money="The Money")
+MONEY_PATH = "money"            # the investment page; "investment-atlas" (its first address) redirects here
 REPO = "Parthp6174/AI_Supply-Chain_Map"
 REPO_URL = "https://github.com/" + REPO
 SITE_URL = "https://parthp6174.github.io/AI_Supply-Chain_Map/"
@@ -206,7 +209,7 @@ def apply_developments(dev, nodes, sites, scen, quotes, items, sup_src, atl_src,
                 elif t == "add_atlas_item":
                     f = ch["item"]
                     iid = f.get("id") or slugify(f["title"], 40)
-                    if iid in item: raise ValueError(f"an Investment Atlas item with id '{iid}' already exists")
+                    if iid in item: raise ValueError(f"a project in The Money with id '{iid}' already exists")
                     if f["cat"] not in ATLAS_CAT: raise ValueError(f"category '{f['cat']}' must be compute, chips or funding")
                     if f["kind"] not in ATLAS_KIND: raise ValueError(f"type '{f['kind']}' must be site, program or funding")
                     if f.get("prec", "city") not in ATLAS_PREC: raise ValueError(f"pin precision '{f.get('prec')}' is not allowed")
@@ -332,8 +335,16 @@ def dump(o):
     return json.dumps(o, separators=(",", ":"), ensure_ascii=False)
 
 
+def redirect_page(to, name):
+    """A stub left at a page's old address: sends visitors (and their #section) to the new one."""
+    return ("<!doctype html>\n<html lang=\"en\">\n<head>\n<meta charset=\"utf-8\">\n<title>" + name + "</title>\n"
+            "<meta name=\"robots\" content=\"noindex\">\n<meta http-equiv=\"refresh\" content=\"0; url=" + to + "\">\n"
+            "<script>location.replace(" + json.dumps(to) + " + location.search + location.hash);</script>\n</head>\n"
+            "<body>\n<p>This page has moved: <a href=\"" + to + "\">" + name + "</a>.</p>\n</body>\n</html>\n")
+
+
 def money(v):
-    """Billions of dollars the way the pages print them (mirrors fmtB in the Investment Atlas template)."""
+    """Billions of dollars the way the pages print them (mirrors fmtB in The Money template)."""
     trim = lambda t: t.rstrip("0").rstrip(".") if "." in t else t
     if abs(v) >= 1000: return "$" + trim(f"{v / 1000:.2f}") + "T"
     if abs(v) >= 100: return f"${round(v)}B"
@@ -358,7 +369,7 @@ def build(target, quotes_path, lenient=False, site_dir=None):
     nav = dict(supply=f"{len(nodes)} links from mine to model, {sum(1 for n in nodes if n.get('choke'))} chokepoints, {len(Q)} stocks",
                atlas=f"The investment numbers: {money(sum(sum(b['capex']) for b in A.BUILDERS))} of capex, {len(items)} projects, the payback test")
     links = dict(
-        supply=dict(companion="investment-atlas/" if gh else ARTIFACT_URLS["atlas"], quotes="data/quotes.json" if gh else None),
+        supply=dict(companion=MONEY_PATH + "/" if gh else ARTIFACT_URLS["atlas"], quotes="data/quotes.json" if gh else None),
         atlas=dict(companion="../" if gh else ARTIFACT_URLS["supply"], quotes="../data/quotes.json" if gh else None))
 
     # ---------------- supply page
@@ -407,7 +418,7 @@ def build(target, quotes_path, lenient=False, site_dir=None):
                  atlas=atlas_pts, regions=regions, companies=companies, quotes=Q,
                  groups=[dict(id=a, label=b, keys=c) for a, b, c in D.GROUPS], sources=sources,
                  taiwan=dict(y1=round(O0["accel"], 3), y3=round(O1["accel"], 3)), devs=dev_payload(dev, "supply"),
-                 siteUrl=SITE_URL, rev=rev, nav=nav, desk=desk_config("supply") if gh else None)
+                 siteUrl=SITE_URL, rev=rev, nav=nav, names=NAMES, desk=desk_config("supply") if gh else None)
     with open(os.path.join(ROOT, "src", "supply", "template.html")) as f:
         tpl = f.read()
     supply_html = tpl.replace("__DATA__", dump(sdata)).replace("__GEO__", dump(g))
@@ -446,18 +457,20 @@ def build(target, quotes_path, lenient=False, site_dir=None):
     adata = dict(asOf="2026-09-30", target=target, supplyUrl=links["atlas"]["companion"], quotesUrl=links["atlas"]["quotes"],
                  quotesMeta=qmeta, repoUrl=REPO_URL, items=pts, sources=asources, flows=flows, builders=A.BUILDERS, labs=labs,
                  antSchedule=[list(x) for x in A.ANT_SCHEDULE], collectors=A.COLLECTORS, regions=aregions, labSigned=lab_signed,
-                 market=market, devs=dev_payload(dev, "atlas"), siteUrl=SITE_URL, rev=rev, nav=nav, desk=desk_config("atlas") if gh else None)
+                 market=market, devs=dev_payload(dev, "atlas"), siteUrl=SITE_URL, rev=rev, nav=nav, names=NAMES, desk=desk_config("atlas") if gh else None)
     with open(os.path.join(ROOT, "src", "atlas", "template.html")) as f:
         atpl = f.read()
     atlas_html = atpl.replace("__DATA__", dump(adata)).replace("__GEO__", dump(g))
 
     if gh:
         site = site_dir or os.path.join(ROOT, "site")
-        out1 = os.path.join(site, "index.html"); out2 = os.path.join(site, "investment-atlas", "index.html")
+        out1 = os.path.join(site, "index.html"); out2 = os.path.join(site, MONEY_PATH, "index.html")
         os.makedirs(os.path.dirname(out2), exist_ok=True)
         ver = "?v=" + rev if rev else ""
         open(out1, "w").write(full_document(supply_html, f'<script src="desk.js{ver}" defer></script>'))
         open(out2, "w").write(full_document(atlas_html, f'<script src="../desk.js{ver}" defer></script>'))
+        old = os.path.join(site, "investment-atlas"); os.makedirs(old, exist_ok=True)
+        open(os.path.join(old, "index.html"), "w").write(redirect_page("../" + MONEY_PATH + "/", NAMES["money"]))
         open(os.path.join(site, ".nojekyll"), "w").write("")
         shutil.copyfile(os.path.join(ROOT, "src", "common", "desk.js"), os.path.join(site, "desk.js"))
         os.makedirs(os.path.join(site, "data"), exist_ok=True)

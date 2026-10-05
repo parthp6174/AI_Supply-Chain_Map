@@ -11,8 +11,8 @@ headlines come from fixtures made from the repo's own data. Exit code 1 if any c
 Covers: what visitors see; the news radar (grouping, hide, new, unsafe text and links); suggesting on GitHub;
 connecting and disconnecting a key; turning the schedule on; Refresh now; publishing, editing and deleting an
 entry with page changes (including a conflicting write); a paused workflow; build warnings; missing
-permissions; an expired key; a cached page catching up with a newer build; the switch between the two atlases;
-the Investment Atlas bar; phones.
+permissions; an expired key; a cached page catching up with a newer build; the switch between the two pages;
+The Money bar; phones.
 """
 import argparse, base64, datetime as dt, functools, hashlib, http.server, json, os, re, subprocess, sys, tempfile, threading, time, urllib.parse
 
@@ -268,9 +268,9 @@ def run_checks(browser):
     check("visitor: bar shows Reload", "Reload" in page.inner_text("#desk-bar"), page.inner_text("#desk-bar"))
     check("visitor: toc link added", page.locator("nav.toc a[data-desk]").count() == 1)
     tabs = page.locator(".atlases a")
-    check("switch: both atlases offered, this one marked", tabs.count() == 2 and tabs.nth(0).get_attribute("aria-current") == "page" and tabs.nth(1).get_attribute("aria-current") is None)
+    check("switch: both pages offered, this one marked", tabs.count() == 2 and tabs.nth(0).get_attribute("aria-current") == "page" and tabs.nth(1).get_attribute("aria-current") is None)
     check("switch: sits above the page title", page.evaluate("document.querySelector('.atlases').getBoundingClientRect().bottom <= document.querySelector('h1').getBoundingClientRect().top"))
-    check("switch: Investment Atlas tab points to its page", page.evaluate("document.querySelector('#nav-atlas').href") == BASE + "investment-atlas/")
+    check("switch: The Money tab points to its page", page.evaluate("document.querySelector('#nav-atlas').href") == BASE + "money/")
     check("visitor: radar lists stories", page.locator(".dk-ni").count() >= 15, page.locator(".dk-ni").count())
     check("visitor: unsafe headline shown as text", page.evaluate("window.__xss") is None and page.locator(".dk-nt", has_text="Bad headline").count() == 1)
     check("visitor: javascript: link not rendered", page.locator('a[href^="javascript"]').count() == 0)
@@ -317,7 +317,7 @@ def run_checks(browser):
     check("owner: log lists every entry", page.locator("#dk-entries .dk-er").count() == N_ENTRIES + N_UPCOMING, page.locator("#dk-entries .dk-er").count())
     clean_text(page, "owner")
     shot(page, "owner_desk.png")
-    page.get_by_role("button", name="Turn on automatic updates").click()
+    page.get_by_role("button", name="Restart automatic updates").click()
     page.wait_for_function("document.querySelector('#dk-status .dk-prog').className.includes('ok')", timeout=10000)
     wf = [x for x in fake.puts if x[0] == "wf"]
     check("owner: workflow committed once", len(wf) == 1)
@@ -441,22 +441,25 @@ def run_checks(browser):
     check("stale page: no page errors", not errors, errors[:3])
     ctx.close()
 
-    # 9. the Investment Atlas: reached from the switch, its bar, and phones in both themes
+    # 9. The Money: reached from the switch, its bar, and phones in both themes
     fake = FakeGitHub()
     ctx, page, errors = new_page(browser, fake, scheme="dark")
     page.goto(BASE); page.wait_for_selector("#dk-alert .dk-alertcard.warn", timeout=10000)    # the home page has finished talking to GitHub
     fake.calls.clear()
-    page.click("#nav-atlas"); page.wait_for_url(BASE + "investment-atlas/"); page.wait_for_selector("#desk-bar .dk-bt", timeout=10000); page.wait_for_timeout(800)
-    check("switch: one click from the home page opens the Investment Atlas", page.inner_text("h1").strip().lower() == "ai investment atlas", page.inner_text("h1"))
-    check("switch: Investment Atlas marked there, Supply Chain Atlas links home", page.get_attribute("#nav-atlas", "aria-current") == "page" and page.evaluate("document.querySelector('#nav-supply').href") == BASE)
+    page.click("#nav-atlas"); page.wait_for_url(BASE + "money/"); page.wait_for_selector("#desk-bar .dk-bt", timeout=10000); page.wait_for_timeout(800)
+    check("switch: one click from the home page opens The Money", page.inner_text("h1").strip().lower() == "the money", page.inner_text("h1"))
+    check("switch: The Money marked there, The Chain links home", page.get_attribute("#nav-atlas", "aria-current") == "page" and page.evaluate("document.querySelector('#nav-supply').href") == BASE)
     hero = page.inner_text("#kpis .kpi.hero .value").strip()
-    check("switch: capex figure matches the Investment Atlas headline", hero.startswith("$") and hero in page.inner_text("#nav-atlas-c"), (hero, page.inner_text("#nav-atlas-c")))
+    check("switch: capex figure matches The Money headline", hero.startswith("$") and hero in page.inner_text("#nav-atlas-c"), (hero, page.inner_text("#nav-atlas-c")))
     check("atlas: bar with Refresh now", "Refresh now" in page.inner_text("#desk-bar"))
     clean_text(page, "atlas bar")
     check("atlas: desk link points back", page.get_attribute("nav.toc a[data-desk]", "href") == "../#desk")
     check("atlas: no GitHub calls on load", not fake.calls, fake.calls[:3])
     shot(page, "atlas_dark.png")
     check("atlas: no page errors", not errors, errors[:3])
+    page.goto(BASE + "investment-atlas/#payback"); page.wait_for_url(BASE + "money/#payback"); page.wait_for_selector("#desk-bar .dk-bt", timeout=10000)
+    check("old address: redirects to the page's new address and keeps the section", page.inner_text("h1").strip().lower() == "the money")
+    check("brand: shown in the switch on both pages", page.inner_text(".atlases .at-brand").strip().lower() == "chokepoint")
     ctx.close()
     for scheme in ("light", "dark"):
         ctx, page, errors = new_page(browser, FakeGitHub(schedule_runs=recent_schedule(), wf_by="Parthp6174"), scheme=scheme, width=390, height=844)

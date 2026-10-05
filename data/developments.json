@@ -1,10 +1,10 @@
 {
-  "about": "Dated log of developments for the AI Supply Chain Atlas and the AI Investment Atlas. Edit it from the site's Update desk, or add an entry here and push: the site rebuilds itself. 'links' tie an entry to boxes in the chain (nodes), map sites, scenarios, companies (watchlist keys) and Investment Atlas items. 'changes' are optional and edit the pages' data; docs/UPDATING.md lists every change type.",
+  "about": "Dated log of developments for The Chain and The Money. Edit it from the site's Update desk, or add an entry here and push: the site rebuilds itself. 'links' tie an entry to boxes in the chain (nodes), map sites, scenarios, companies (watchlist keys) and projects in The Money. 'changes' are optional and edit the pages' data; docs/UPDATING.md lists every change type.",
   "entries": [
     {
       "id": "2026-10-01-investment-atlas-gulf-projects-now-flagged-for-war-ri",
       "date": "2026-10-01",
-      "title": "Investment Atlas: Gulf projects now flagged for war risk",
+      "title": "The Money: Gulf projects now flagged for war risk",
       "summary": "Stargate UAE is marked at risk after Iran's IRGC named it a target; Microsoft's UAE build and the AWS-HUMAIN zone carry a war-risk note after the 1 March drone strikes on AWS in the UAE and Bahrain. Headline amounts are unchanged.",
       "pages": [
         "atlas",
@@ -311,7 +311,7 @@
       "id": "2026-04-03-iran-s-irgc-names-stargate-uae-as-a-target",
       "date": "2026-04-03",
       "title": "Iran's IRGC names Stargate UAE as a target",
-      "summary": "A Revolutionary Guard general threatened the OpenAI-backed Abu Dhabi campus. The Investment Atlas now lists it as at risk.",
+      "summary": "A Revolutionary Guard general threatened the OpenAI-backed Abu Dhabi campus. The Money now lists it as at risk.",
       "pages": [
         "supply",
         "atlas"
@@ -393,7 +393,7 @@
       "id": "2026-03-01-drones-knock-out-two-of-three-aws-availability-zones",
       "date": "2026-03-01",
       "title": "Drones knock out two of three AWS availability zones in the UAE",
-      "summary": "Iranian drones struck two Amazon Web Services data centers in the UAE and damaged one in Bahrain. The Investment Atlas now flags Stargate UAE, Microsoft's UAE build and AWS-HUMAIN as carrying war risk.",
+      "summary": "Iranian drones struck two Amazon Web Services data centers in the UAE and damaged one in Bahrain. The Money now flags Stargate UAE, Microsoft's UAE build and AWS-HUMAIN as carrying war risk.",
       "pages": [
         "supply",
         "atlas"

@@ -1,4 +1,4 @@
-<title>AI Investment Atlas</title>
+<title>The Money · Chokepoint</title>
 <meta name="description" content="Interactive map and payback model of AI data-center, chip and lab-funding investments announced 2024–2026.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -60,15 +60,16 @@ button,input,select{font:inherit;color:inherit}
 
 /* ---------- masthead ---------- */
 .masthead{padding-block:clamp(28px,5vw,56px) 8px}
-/* the two atlases: one switch at the very top of both pages, so neither half of the site is hidden behind a small link */
-.atlases{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;max-width:860px;margin-bottom:clamp(20px,3vw,30px)}
+/* the two pages: one switch at the very top of both pages, so neither half of the site is hidden behind a small link */
+.atlases{display:grid;grid-template-columns:auto repeat(2,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;max-width:860px;margin-bottom:clamp(20px,3vw,30px)}
 .atlases a{display:grid;gap:2px;align-content:start;padding:10px 14px 11px;background:var(--bg);text-decoration:none;color:var(--ink-2);min-width:0}
 .atlases a:hover{background:var(--surface);color:var(--ink)}
 .atlases a[aria-current="page"]{background:var(--surface);color:var(--ink);box-shadow:inset 0 2px 0 var(--ink)}
 .atlases a:focus-visible{outline-offset:-2px}
 .atlases .at-t{font-weight:600;font-size:var(--fs-md);line-height:1.25}
 .atlases .at-c{font-family:var(--font-mono);font-size:var(--fs-xs);letter-spacing:.02em;line-height:1.45;color:var(--muted)}
-@media (max-width:560px){ .atlases .at-c{display:none} .atlases a{padding:9px 12px 10px} .atlases .at-t{font-size:var(--fs-sm)} }
+.atlases .at-brand{display:flex;align-items:center;padding:0 18px;background:var(--ink);color:var(--surface);font-family:var(--font-display);font-weight:800;font-size:22px;letter-spacing:.05em;text-transform:uppercase}
+@media (max-width:560px){ .atlases{grid-template-columns:repeat(2,minmax(0,1fr))} .atlases .at-brand{grid-column:1/-1;padding:7px 12px;font-size:17px} .atlases .at-c{display:none} .atlases a{padding:9px 12px 10px} .atlases .at-t{font-size:var(--fs-sm)} }
 .eyebrow{font-family:var(--font-mono);font-size:var(--fs-xs);letter-spacing:.09em;text-transform:uppercase;color:var(--muted);display:flex;flex-wrap:wrap;gap:6px 14px}
 .eyebrow span+span::before{content:"";display:inline-block;width:4px;height:4px;border-radius:50%;background:var(--faint);margin-right:14px;vertical-align:middle}
 h1{font-family:var(--font-display);font-weight:800;font-size:clamp(46px,8.4vw,104px);line-height:.86;letter-spacing:.005em;text-transform:uppercase;margin:14px 0 16px;text-wrap:balance}
@@ -353,12 +354,13 @@ footer{padding-block:48px 56px;font-size:var(--fs-xs);color:var(--muted)}
 
 <div class="wrap">
 <header class="masthead">
-  <nav class="atlases" aria-label="The two atlases">
-    <a id="nav-supply" href="#"><span class="at-t">Supply Chain Atlas</span><span class="at-c" id="nav-supply-c"></span></a>
-    <a id="nav-atlas" href="#"><span class="at-t">Investment Atlas</span><span class="at-c" id="nav-atlas-c"></span></a>
+  <nav class="atlases" aria-label="Chokepoint sections">
+    <span class="at-brand">Chokepoint</span>
+    <a id="nav-supply" href="#"><span class="at-t">The Chain</span><span class="at-c" id="nav-supply-c"></span></a>
+    <a id="nav-atlas" href="#"><span class="at-t">The Money</span><span class="at-c" id="nav-atlas-c"></span></a>
   </nav>
   <div class="eyebrow"><span>AI capital ledger</span><span id="asof">As of 30 Sep 2026</span><span>US$ · headline amounts</span></div>
-  <h1>AI Investment Atlas</h1>
+  <h1>The Money</h1>
   <p class="dek">The major AI build-outs announced since January 2024 — data centers, power, chips and lab funding — mapped, totalled, and tested against the revenue they must earn back by 2030.</p>
   <div class="keyrow" id="keyrow"></div>
   <div class="kpis" id="kpis"></div>
@@ -366,7 +368,7 @@ footer{padding-block:48px 56px;font-size:var(--fs-xs);color:var(--muted)}
   <div class="devs" id="devs"></div>
   <nav class="toc" aria-label="Sections">
     <a href="#map">Map</a><a href="#spenders">Spenders &amp; collectors</a><a href="#market">Market check</a><a href="#payback">Payback test</a><a href="#deals">Who owes whom</a><a href="#method">Method &amp; sources</a>
-    <a class="companion" id="supply-link" href="#" target="_blank" rel="noopener">Companion: AI Supply Chain Atlas ↗</a>
+    <a class="companion" id="supply-link" href="#" target="_blank" rel="noopener">Companion: The Chain ↗</a>
   </nav>
   <div class="desk-bar" id="desk-bar" hidden></div>
 </header>
@@ -440,7 +442,7 @@ footer{padding-block:48px 56px;font-size:var(--fs-xs);color:var(--muted)}
   <div class="collect" id="collectors"></div>
   <div class="card market" id="market">
     <div class="mk-head"><h3>Market check</h3><span class="mk-status" id="mk-status"></span></div>
-    <p class="cap" style="margin:4px 0 12px;font-size:var(--fs-sm);color:var(--muted)">The seven builders and the suppliers collecting their capex: latest price, the day's move and the average analyst target. The full 92-company watchlist is on the Supply Chain Atlas.</p>
+    <p class="cap" style="margin:4px 0 12px;font-size:var(--fs-sm);color:var(--muted)">The seven builders and the suppliers collecting their capex: latest price, the day's move and the average analyst target. The full 92-company watchlist is on The Chain.</p>
     <div class="tbl-wrap" style="max-height:none"><table class="mk-tbl" id="mk-tbl"><thead></thead><tbody></tbody></table></div>
   </div>
 </section>
@@ -523,7 +525,7 @@ today        = revenue run-rate now − 2023 revenue, × credit share</div>
       <h3>Cross-checks</h3>
       <p>J.P. Morgan estimates the industry needs about $650B of annual revenue for a 10% return on its modeled build-out through 2030; Bain puts the revenue needed by 2030 at $2 trillion. Goldman Sachs expects the five biggest US hyperscalers to spend $1.2 trillion on AI in 2027. The default settings here land in the same range.</p>
       <h3>Keeping it current</h3>
-      <p>New developments are logged in one data file shared with the Supply Chain Atlas, from the Update desk on the live site or on GitHub; an entry can change a project's status or add a new project. On the live site, share prices and analyst targets refresh from Yahoo Finance every 15 minutes on weekdays, and the Update desk can refresh them at any time. Capex, revenue and backlog figures are updated after each earnings season, and the payback test reruns on the new numbers.</p>
+      <p>New developments are logged in one data file shared with The Chain, from the Update desk on the live site or on GitHub; an entry can change a project's status or add a new project. On the live site, share prices and analyst targets refresh from Yahoo Finance every few hours, and the Update desk can refresh them at any time. Capex, revenue and backlog figures are updated after each earnings season, and the payback test reruns on the new numbers.</p>
       <h3>Caveats</h3>
       <ul>
         <li>Headline figures mix different things: capex, multi-year pledges, contract values, bond authorizations and credit guarantees. Each is labeled in the table.</li>
@@ -1218,7 +1220,7 @@ function renderModel(){
 /* ================= companion, developments, market check ================= */
 const supplyLink = $("#supply-link");
 supplyLink.href = DATA.supplyUrl;
-if (DATA.target === "github"){ supplyLink.removeAttribute("target"); supplyLink.textContent = "Companion: AI Supply Chain Atlas →"; }
+if (DATA.target === "github"){ supplyLink.removeAttribute("target"); supplyLink.textContent = "Companion: The Chain →"; }
 (function atlases(){   // the switch at the top: this page is marked, the other one is a link
   const nav = DATA.nav || {}, gh = DATA.target === "github", other = $("#nav-supply");
   $("#nav-atlas").setAttribute("aria-current", "page");
@@ -1246,7 +1248,7 @@ function renderDevs(){
   DEVS.entries.slice(0, 4).forEach(e => ol.append(h("li",{class:"dv-item"}, h("span",{class:"dv-date", text: fmtLong(e.date)}),
     h("div",{style:"min-width:0"}, h("div",{class:"dv-t", text:e.title}), devChips(e.links || {}),
       e.source && e.source.url ? h("a",{class:"dv-src", href:e.source.url, target:"_blank", rel:"noopener", text:e.source.label || "Source"}) : null))));
-  recent.append(ol, h("a",{class:"dv-more", href: DATA.supplyUrl + "#log", target: DATA.target === "github" ? null : "_blank", rel:"noopener", text:"Full development log on the Supply Chain Atlas"}));
+  recent.append(ol, h("a",{class:"dv-more", href: DATA.supplyUrl + "#log", target: DATA.target === "github" ? null : "_blank", rel:"noopener", text:"Full development log on The Chain"}));
   const today = isoToday();
   const fixed = DEVS.upcoming.filter(e => e.date >= today).map(e => ({date:e.date, label:e.approx || fmtLong(e.date), title:e.title}));
   const earn = MKT.filter(m => m.q.next && m.q.next >= today).map(m => ({date:m.q.next, label:fmtLong(m.q.next), title:m.n + " reports results"}))
@@ -1268,7 +1270,7 @@ function renderMarket(){
   const st = $("#mk-status"); st.innerHTML = "";
   if (liveMeta && liveMeta.updated) st.append(h("span",{class:"livedot"}), "Live from Yahoo Finance · updated " + fmtStamp(liveMeta.updated));
   else if (DATA.quotesUrl) st.append(h("span",{class:"livedot off"}), "30 Sep 2026 close · live prices load once the price job has run");
-  else st.append(h("span",{class:"livedot off"}), h("span",null, "30 Sep 2026 close · live prices on the ", h("a",{href:DATA.siteUrl + "investment-atlas/", target:"_blank", rel:"noopener", text:"live version"})));
+  else st.append(h("span",{class:"livedot off"}), h("span",null, "30 Sep 2026 close · live prices on the ", h("a",{href:DATA.siteUrl + "money/", target:"_blank", rel:"noopener", text:"live version"})));
   const th = $("#mk-tbl thead"); th.innerHTML = "";
   th.append(h("tr",null, ...[["Company"],["Last price","r"],["Day","r"],["Avg target","r"],["Upside","r"],["Consensus"],["As of"]].map(([t, c]) => h("th",{scope:"col", class:c || null, text:t}))));
   const tb = $("#mk-tbl tbody"); tb.innerHTML = "";

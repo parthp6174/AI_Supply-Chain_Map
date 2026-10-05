@@ -1,4 +1,4 @@
-<title>AI Supply Chain Atlas</title>
+<title>The Chain · Chokepoint</title>
 <meta name="description" content="Interactive map of the AI supply chain from mines to models: who makes each part, where the chokepoints are, what breaks in the worst cases, and the stocks to watch.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -6,7 +6,7 @@
 <style>
 /* Layout: masthead ledger, then one 1240px column: chain diagram (the thesis) with its detail sheet,
    a facility map with a rail, the chokepoint register, the stress test and the watchlist.
-   Companion to the AI Investment Atlas: same steel-and-ink UI; hue is reserved for data. */
+   Companion to The Money: same steel-and-ink UI; hue is reserved for data. */
 :root{
   --bg:#eef1f4; --surface:#fcfdfd; --raised:#ffffff;
   --ink:#0f1720; --ink-2:#44505d; --muted:#5d6977; --faint:#8793a0;
@@ -69,15 +69,16 @@ button,input,select{font:inherit;color:inherit}
 
 /* masthead */
 .masthead{padding-block:clamp(28px,5vw,56px) 8px}
-/* the two atlases: one switch at the very top of both pages, so neither half of the site is hidden behind a small link */
-.atlases{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;max-width:860px;margin-bottom:clamp(20px,3vw,30px)}
+/* the two pages: one switch at the very top of both pages, so neither half of the site is hidden behind a small link */
+.atlases{display:grid;grid-template-columns:auto repeat(2,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;max-width:860px;margin-bottom:clamp(20px,3vw,30px)}
 .atlases a{display:grid;gap:2px;align-content:start;padding:10px 14px 11px;background:var(--bg);text-decoration:none;color:var(--ink-2);min-width:0}
 .atlases a:hover{background:var(--surface);color:var(--ink)}
 .atlases a[aria-current="page"]{background:var(--surface);color:var(--ink);box-shadow:inset 0 2px 0 var(--ink)}
 .atlases a:focus-visible{outline-offset:-2px}
 .atlases .at-t{font-weight:600;font-size:var(--fs-md);line-height:1.25}
 .atlases .at-c{font-family:var(--font-mono);font-size:var(--fs-xs);letter-spacing:.02em;line-height:1.45;color:var(--muted)}
-@media (max-width:560px){ .atlases .at-c{display:none} .atlases a{padding:9px 12px 10px} .atlases .at-t{font-size:var(--fs-sm)} }
+.atlases .at-brand{display:flex;align-items:center;padding:0 18px;background:var(--ink);color:var(--surface);font-family:var(--font-display);font-weight:800;font-size:22px;letter-spacing:.05em;text-transform:uppercase}
+@media (max-width:560px){ .atlases{grid-template-columns:repeat(2,minmax(0,1fr))} .atlases .at-brand{grid-column:1/-1;padding:7px 12px;font-size:17px} .atlases .at-c{display:none} .atlases a{padding:9px 12px 10px} .atlases .at-t{font-size:var(--fs-sm)} }
 .eyebrow{font-family:var(--font-mono);font-size:var(--fs-xs);letter-spacing:.09em;text-transform:uppercase;color:var(--muted);display:flex;flex-wrap:wrap;gap:6px 14px}
 .eyebrow span+span::before{content:"";display:inline-block;width:4px;height:4px;border-radius:50%;background:var(--faint);margin-right:14px;vertical-align:middle}
 h1{font-family:var(--font-display);font-weight:800;font-size:clamp(44px,8vw,100px);line-height:.86;letter-spacing:.005em;text-transform:uppercase;margin:14px 0 16px;text-wrap:balance}
@@ -419,12 +420,13 @@ footer{padding-block:48px 56px;font-size:var(--fs-xs);color:var(--muted)}
 
 <div class="wrap">
 <header class="masthead">
-  <nav class="atlases" aria-label="The two atlases">
-    <a id="nav-supply" href="#"><span class="at-t">Supply Chain Atlas</span><span class="at-c" id="nav-supply-c"></span></a>
-    <a id="nav-atlas" href="#"><span class="at-t">Investment Atlas</span><span class="at-c" id="nav-atlas-c"></span></a>
+  <nav class="atlases" aria-label="Chokepoint sections">
+    <span class="at-brand">Chokepoint</span>
+    <a id="nav-supply" href="#"><span class="at-t">The Chain</span><span class="at-c" id="nav-supply-c"></span></a>
+    <a id="nav-atlas" href="#"><span class="at-t">The Money</span><span class="at-c" id="nav-atlas-c"></span></a>
   </nav>
   <div class="eyebrow"><span>AI supply-chain ledger</span><span id="asof">Research as of 30 Sep 2026</span><span id="px-status">Prices: 30 Sep 2026 close, local currency</span></div>
-  <h1>AI Supply Chain Atlas</h1>
+  <h1>The Chain</h1>
   <p class="dek">Every link between a quartz mine and a frontier model: who makes each part, where it is made, which companies hold the chokepoints, what fails in the worst cases, and the share prices and forecasts to follow.</p>
   <div class="keyrow" id="keyrow"></div>
   <div class="kpis" id="kpis"></div>
@@ -432,7 +434,7 @@ footer{padding-block:48px 56px;font-size:var(--fs-xs);color:var(--muted)}
   <div class="devs" id="devs"></div>
   <nav class="toc" aria-label="Sections">
     <a href="#chain">The chain</a><a href="#where">Map</a><a href="#choke">Chokepoints</a><a href="#worst">Worst cases</a><a href="#watch">Watchlist</a><a href="#log">What's changed</a><a href="#method">Method &amp; sources</a>
-    <a class="companion" id="atlas-link" href="#" target="_blank" rel="noopener">Companion: AI Investment Atlas ↗</a>
+    <a class="companion" id="atlas-link" href="#" target="_blank" rel="noopener">Companion: The Money ↗</a>
   </nav>
   <div class="desk-bar" id="desk-bar" hidden></div>
 </header>
@@ -613,7 +615,7 @@ function pctS(x){ return Math.round(x * 100) + "%"; }
 const SRC = DATA.sources;
 function srcLinks(keys){ return (keys || []).map(k => { const o = SRC[k]; return o ? h("a",{href:o.u, target:"_blank", rel:"noopener", text:"[" + o.n + "] " + o.l}) : null; }); }
 $("#atlas-link").href = DATA.atlasUrl;
-if (DATA.target === "github"){ $("#atlas-link").removeAttribute("target"); $("#atlas-link").textContent = "Companion: AI Investment Atlas →"; }
+if (DATA.target === "github"){ $("#atlas-link").removeAttribute("target"); $("#atlas-link").textContent = "Companion: The Money →"; }
 (function atlases(){   // the switch at the top: this page is marked, the other one is a link
   const nav = DATA.nav || {}, gh = DATA.target === "github", other = $("#nav-atlas");
   $("#nav-supply").setAttribute("aria-current", "page");
@@ -987,7 +989,7 @@ function renderNodeDetail(){
         h("span",{class:"fs", text: [share, note].filter(Boolean).join(" · ") || (c.t ? c.t : "")})));
     });
     firms.append(ul);
-  } else firms.append(h("p",{class:"muted", style:"font-size:var(--fs-sm);margin:0", text: n.id === "campus" ? "Every builder in the Investment Atlas; see the hyperscalers, neoclouds and Gulf nodes to the right." : "Millions of people and businesses."}));
+  } else firms.append(h("p",{class:"muted", style:"font-size:var(--fs-sm);margin:0", text: n.id === "campus" ? "Every builder in The Money; see the hyperscalers, neoclouds and Gulf nodes to the right." : "Millions of people and businesses."}));
   const links = h("div",{class:"nd-links"});
   if (T){
     const upN = T.up.size, dnN = T.down.size;
@@ -1186,7 +1188,7 @@ function renderSiteDetail(){
   L.append(h("span",{class:"lg"}, dotSv("crit"), "Struck, offline or threatened"));
   L.append(h("span",{class:"lg"}, dotSv("warn"), "Short, tight or export-controlled"));
   const a = s("svg",{width:"14", height:"14", viewBox:"-7 -7 14 14", "aria-hidden":"true"}); a.append(s("circle",{r:"5", style:"fill:none;stroke:var(--faint)"}));
-  L.append(h("span",{class:"lg"}, a, "AI investment site (Investment Atlas), when shown"));
+  L.append(h("span",{class:"lg"}, a, "AI investment site (The Money), when shown"));
 })();
 
 /* ---------------- chokepoints ---------------- */
@@ -1459,9 +1461,9 @@ function renderPxStatus(){
   const live = LIVE.meta && LIVE.meta.updated;
   $("#px-status").textContent = live ? "Prices: Yahoo Finance, updated " + fmtStamp(LIVE.meta.updated) : "Prices: 30 Sep 2026 close, local currency";
   const w = $("#w-live"); w.innerHTML = "";
-  if (live) w.append(h("span",{class:"livedot"}), h("span",null, "Live prices from Yahoo Finance, updated ", h("b",{text: fmtStamp(LIVE.meta.updated)}), ". They refresh every 15 minutes on weekdays and analyst targets once a day; rows that Yahoo could not price keep the 30 Sep snapshot."));
+  if (live) w.append(h("span",{class:"livedot"}), h("span",null, "Live prices from Yahoo Finance, updated ", h("b",{text: fmtStamp(LIVE.meta.updated)}), ". GitHub refreshes them every few hours (the schedule asks for every 15 minutes on weekdays), the Update desk refreshes them on demand, and analyst targets once a day; rows that Yahoo could not price keep the 30 Sep snapshot."));
   else if (DATA.quotesUrl) w.append(h("span",{class:"livedot off"}), h("span",{text:"Showing the 30 Sep 2026 snapshot (Stock Analysis). Live Yahoo Finance prices load here once the site's price job has run."}));
-  else w.append(h("span",{class:"livedot off"}), h("span",null, "Showing the 30 Sep 2026 snapshot (Stock Analysis). The ", h("a",{href:DATA.siteUrl, target:"_blank", rel:"noopener", text:"live version"}), " refreshes prices from Yahoo Finance every 15 minutes."));
+  else w.append(h("span",{class:"livedot off"}), h("span",null, "Showing the 30 Sep 2026 snapshot (Stock Analysis). The ", h("a",{href:DATA.siteUrl, target:"_blank", rel:"noopener", text:"live version"}), " refreshes prices from Yahoo Finance through the day."));
 }
 function mergeLive(js){
   const qs = js && js.quotes; if (!qs) return false;
@@ -1499,7 +1501,7 @@ function devChips(L){
   (L.scenarios || []).forEach(id => { if (SC[id]) w.append(h("button",{type:"button", class:"nchip", onclick: () => { curScen = id; renderScenList(); renderScen(); scrollToEl($("#worst")); }}, "Scenario: " + SC[id].name)); });
   (L.sites || []).forEach(id => { const se = siteEls.get(id); if (se) w.append(h("button",{type:"button", class:"nchip", onclick: () => { selectSite(id); scrollToEl($("#where")); }}, "Site: " + se.x.name)); });
   (L.companies || []).forEach(k => { if (CO[k] && QU[k]) w.append(h("button",{type:"button", class:"nchip", onclick: () => goWatch(k)}, CO[k].t || CO[k].n)); });
-  if ((L.atlasItems || []).length) w.append(h("a",{class:"nchip", href: DATA.atlasUrl, target: DATA.target === "github" ? null : "_blank", rel:"noopener", style:"text-decoration:none"}, "Investment Atlas: " + L.atlasItems.length + (L.atlasItems.length > 1 ? " projects" : " project")));
+  if ((L.atlasItems || []).length) w.append(h("a",{class:"nchip", href: DATA.atlasUrl, target: DATA.target === "github" ? null : "_blank", rel:"noopener", style:"text-decoration:none"}, "The Money: " + L.atlasItems.length + (L.atlasItems.length > 1 ? " projects" : " project")));
   return w;
 }
 function devItem(e, full){
@@ -1533,11 +1535,11 @@ function renderLog(){
   const gh = DATA.target === "github";
   const live = h("a",{href:DATA.siteUrl, target:"_blank", rel:"noopener", text:"live version"});
   ht.append(
-    h("li",null, h("b",{text:"Prices and analyst targets: "}), gh ? "refreshed from Yahoo Finance every 15 minutes on weekdays, with targets and report dates once a day. The Update desk above can refresh them at any time." : ["this copy shows the 30 Sep 2026 snapshot; the ", live, " refreshes them from Yahoo Finance every 15 minutes."]),
-    h("li",null, h("b",{text:"Developments: "}), "each is one entry in data/developments.json, published from the Update desk on the live site or edited on GitHub. An entry can link to boxes, sites, scenarios and companies, and can change a chokepoint's rating, a site's status or a scenario, or add a new site or Investment Atlas project. Publishing rebuilds both pages in about two minutes."),
+    h("li",null, h("b",{text:"Prices and analyst targets: "}), gh ? "refreshed from Yahoo Finance on a schedule (GitHub runs it every few hours, not the 15 minutes it asks for), with targets and report dates once a day. The Update desk above can refresh them at any time." : ["this copy shows the 30 Sep 2026 snapshot; the ", live, " refreshes them from Yahoo Finance through the day."]),
+    h("li",null, h("b",{text:"Developments: "}), "each is one entry in data/developments.json, published from the Update desk on the live site or edited on GitHub. An entry can link to boxes, sites, scenarios and companies, and can change a chokepoint's rating, a site's status or a scenario, or add a new site or project in The Money. Publishing rebuilds both pages in about two minutes."),
     h("li",null, h("b",{text:"News radar: "}), "the Update desk collects headlines on every chokepoint and scenario from Google News every 3 hours, ready to add to the log in one click."),
     h("li",null, h("b",{text:"Weekly review: "}), "Claude checks the news against the watch items under each scenario, adds sourced entries and updates the data, then rebuilds both pages."),
-    h("li",null, h("b",{text:"Quarterly: "}), "after each earnings season, capex, revenue and backlog figures in the Investment Atlas are refreshed and the payback test rerun."),
+    h("li",null, h("b",{text:"Quarterly: "}), "after each earnings season, capex, revenue and backlog figures in The Money are refreshed and the payback test rerun."),
     h("li",null, h("b",{text:"Suggest one: "}), h("a",{href: DATA.repoUrl + "/issues/new?template=new-development.yml", target:"_blank", rel:"noopener", text:"open a development form on GitHub"}), " with a date, a source link and what it affects."));
 }
 
