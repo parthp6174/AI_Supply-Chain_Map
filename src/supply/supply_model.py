@@ -64,6 +64,23 @@ def outputs(A):
     return {o["id"]: sum(A[k] * w for k, w in o["mix"]) for o in D.OUTPUTS}
 
 
+def export_graph(expected=False):
+    """The chain and the scenarios as plain data for the JavaScript engine (src/common/odds_engine.js).
+    With expected=True each scenario also carries this module's own results, so tests can compare the two."""
+    graph = dict(nodes=[dict(id=n["id"], inputs=[list(x) for x in n["inputs"]]) for n in D.NODES],
+                 other={f"{i}|{g}": v for (i, g), v in D.GROUP_OTHER.items()},
+                 outputs=[dict(id=o["id"], label=o["label"], mix=[list(m) for m in o["mix"]]) for o in D.OUTPUTS])
+    scen = {}
+    for sc in D.SCEN:
+        e = dict(kind=sc.get("kind", "supply"), h0=scenario_shocks(sc, 0), h1=scenario_shocks(sc, 1))
+        if sc.get("cut"):
+            e["cut"] = list(sc["cut"])
+        if expected:
+            e["expect"] = [dict(links=avail(e[h]), outputs=outputs(avail(e[h]))) for h in ("h0", "h1")]
+        scen[sc["id"]] = e
+    return dict(graph=graph, scen=scen)
+
+
 # ---------------------------------------------------------------- layout
 COLW, BOXW, BOXH, ROWH, PADX, TOP = 104, 92, 34, 42, 30, 44
 SI_ROWS, PW_ROWS, LANE_GAP = 9, 3, 30

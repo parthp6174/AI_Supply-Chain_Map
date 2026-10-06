@@ -103,3 +103,20 @@ python tests/test_desk.py            # about 2 minutes; add --shots shots to sav
 ```
 
 They build the site into a temporary folder and answer every GitHub call with a stand-in, so nothing is published. They cover visitors, the news radar, connecting a key, turning the schedule on, Refresh now, publishing, editing and deleting, a paused workflow, build warnings, missing permissions, a cached page catching up, The Money bar and phone layouts.
+
+## 5. The probability engine
+
+`src/common/odds_engine.js` is the maths behind the probability lab (the lab's page is not built yet). It has no page, storage or network code, and the same file runs in the browser (`window.ODDS`) and in Node. What it does:
+
+- **Drivers.** An event has a probability. A range has a low case (undercut 1 time in 10), a central case and a high case (beaten 1 time in 10).
+- **Links.** Any two drivers can have a correlation. `reading()` puts one in plain numbers ("if A happens, B's chance goes from 25% to 60%") and `rhoForReading()` goes the other way. A set of links that cannot all be true together is replaced by the closest set that can, and the run reports how much it had to change.
+- **Futures.** `simulate()` draws thousands of futures, turns each into shocks on the chain and changes in orders, runs the same weakest-link model as `src/supply/supply_model.py`, and records what gets built and what limited it. `given` supposes a situation ("the blockade happens") so that everything linked to it shifts with it.
+- **Reading the results.** `summary()`, `whatMatters()` (which drivers move an outcome most), `bindingTable()` (what limits the build-out and how often), `subset()` and `profile()` (pick the futures with some outcome and see what they have in common).
+
+After changing it, or the chain in `src/supply/supply_data.py`, run:
+
+```bash
+node tests/test_engine.mjs           # a few seconds; needs Node 18 or later and python3
+```
+
+The tests compare the bell-curve functions with reference values from SciPy, the chain with the Python model on every link of every scenario, and simulated frequencies with the exact answers.

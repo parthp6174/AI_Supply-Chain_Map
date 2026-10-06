@@ -55,11 +55,13 @@ src/atlas/data_items.py      investments, builders, labs, deals
 src/atlas/model.py           payback model (Python mirror of the page's logic)
 src/*/template.html          page templates
 src/common/desk.js           the Update desk (GitHub Pages only)
+src/common/odds_engine.js    probability and correlation engine for the probability lab (its page is still to come)
 src/common/                  map projection and precomputed country outlines
 src/build.py                 builds both pages
 scripts/fetch_quotes.py      price and analyst-target refresh
 scripts/fetch_news.py        news radar refresh
 tests/test_desk.py           browser tests for the Update desk (fake GitHub API)
+tests/test_engine.mjs        tests for the probability engine (Node, no packages)
 site/                        built pages (what GitHub Pages serves)
 ```
 
