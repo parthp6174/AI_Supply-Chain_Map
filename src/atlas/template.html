@@ -61,7 +61,8 @@ button,input,select{font:inherit;color:inherit}
 /* ---------- masthead ---------- */
 .masthead{padding-block:clamp(28px,5vw,56px) 8px}
 /* the two pages: one switch at the very top of both pages, so neither half of the site is hidden behind a small link */
-.atlases{display:grid;grid-template-columns:auto repeat(2,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;max-width:860px;margin-bottom:clamp(20px,3vw,30px)}
+.atlases{display:grid;grid-template-columns:auto repeat(3,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;max-width:1080px;margin-bottom:clamp(20px,3vw,30px)}
+.atlases.two{grid-template-columns:auto repeat(2,minmax(0,1fr));max-width:860px}
 .atlases a{display:grid;gap:2px;align-content:start;padding:10px 14px 11px;background:var(--bg);text-decoration:none;color:var(--ink-2);min-width:0}
 .atlases a:hover{background:var(--surface);color:var(--ink)}
 .atlases a[aria-current="page"]{background:var(--surface);color:var(--ink);box-shadow:inset 0 2px 0 var(--ink)}
@@ -69,7 +70,7 @@ button,input,select{font:inherit;color:inherit}
 .atlases .at-t{font-weight:600;font-size:var(--fs-md);line-height:1.25}
 .atlases .at-c{font-family:var(--font-mono);font-size:var(--fs-xs);letter-spacing:.02em;line-height:1.45;color:var(--muted)}
 .atlases .at-brand{display:flex;align-items:center;padding:0 18px;background:var(--ink);color:var(--surface);font-family:var(--font-display);font-weight:800;font-size:22px;letter-spacing:.05em;text-transform:uppercase}
-@media (max-width:560px){ .atlases{grid-template-columns:repeat(2,minmax(0,1fr))} .atlases .at-brand{grid-column:1/-1;padding:7px 12px;font-size:17px} .atlases .at-c{display:none} .atlases a{padding:9px 12px 10px} .atlases .at-t{font-size:var(--fs-sm)} }
+@media (max-width:760px){ .atlases{grid-template-columns:repeat(3,minmax(0,1fr))} .atlases.two{grid-template-columns:repeat(2,minmax(0,1fr))} .atlases .at-brand{grid-column:1/-1;padding:7px 12px;font-size:17px} .atlases .at-c{display:none} .atlases a{padding:9px 12px 10px} .atlases .at-t{font-size:var(--fs-sm)} }
 .eyebrow{font-family:var(--font-mono);font-size:var(--fs-xs);letter-spacing:.09em;text-transform:uppercase;color:var(--muted);display:flex;flex-wrap:wrap;gap:6px 14px}
 .eyebrow span+span::before{content:"";display:inline-block;width:4px;height:4px;border-radius:50%;background:var(--faint);margin-right:14px;vertical-align:middle}
 h1{font-family:var(--font-display);font-weight:800;font-size:clamp(46px,8.4vw,104px);line-height:.86;letter-spacing:.005em;text-transform:uppercase;margin:14px 0 16px;text-wrap:balance}
@@ -358,6 +359,7 @@ footer{padding-block:48px 56px;font-size:var(--fs-xs);color:var(--muted)}
     <span class="at-brand">Chokepoint</span>
     <a id="nav-supply" href="#"><span class="at-t">The Chain</span><span class="at-c" id="nav-supply-c"></span></a>
     <a id="nav-atlas" href="#"><span class="at-t">The Money</span><span class="at-c" id="nav-atlas-c"></span></a>
+    <a id="nav-odds" href="#"><span class="at-t">The Odds</span><span class="at-c" id="nav-odds-c"></span></a>
   </nav>
   <div class="eyebrow"><span>AI capital ledger</span><span id="asof">As of 30 Sep 2026</span><span>US$ · headline amounts</span></div>
   <h1>The Money</h1>
@@ -1221,13 +1223,15 @@ function renderModel(){
 const supplyLink = $("#supply-link");
 supplyLink.href = DATA.supplyUrl;
 if (DATA.target === "github"){ supplyLink.removeAttribute("target"); supplyLink.textContent = "Companion: The Chain →"; }
-(function atlases(){   // the switch at the top: this page is marked, the other one is a link
-  const nav = DATA.nav || {}, gh = DATA.target === "github", other = $("#nav-supply");
+(function atlases(){   // the switch at the top: this page is marked, the others are links
+  const nav = DATA.nav || {}, gh = DATA.target === "github", other = $("#nav-supply"), odds = $("#nav-odds");
   $("#nav-atlas").setAttribute("aria-current", "page");
   other.href = DATA.supplyUrl;
   if (!gh){ other.target = "_blank"; other.rel = "noopener"; }
   $("#nav-atlas-c").textContent = nav.atlas || "";
   $("#nav-supply-c").textContent = (nav.supply || "") + (gh ? " →" : " ↗");
+  if (DATA.oddsUrl){ odds.href = DATA.oddsUrl; $("#nav-odds-c").textContent = (nav.odds || "") + " →"; }
+  else { odds.remove(); $(".atlases").classList.add("two"); }   // the claude.ai copies have no third page
 })();
 const DEVS = DATA.devs || {entries:[], upcoming:[]};
 function fmtLong(d){ const p = d.split("-"); return (+p[2]) + " " + MONTHS[+p[1]-1] + " " + p[0]; }

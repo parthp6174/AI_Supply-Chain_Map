@@ -1,0 +1,933 @@
+<title>The Odds · Chokepoint</title>
+<meta name="description" content="Set the odds on everything that could stall or speed up the AI build-out in 2027, and see what gets built.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..700&family=Big+Shoulders+Display:wght@600..900&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: masthead → the lab (a results rail beside the list of drivers) → links → method, on one 1240px column.
+   The UI stays steel-and-ink like the other two pages. One hue marks "your numbers" in every chart; whatever you
+   are being compared with (the starting numbers, or your numbers without a supposed situation) is drawn in ink. */
+:root{
+  --bg:#eef1f4; --surface:#fcfdfd; --raised:#ffffff;
+  --ink:#0f1720; --ink-2:#44505d; --muted:#5d6977; --faint:#8793a0;
+  --line:#d3dae1; --grid:#e3e8ed; --wash:#e9edf1;
+  --series:#2a78d6;
+  --good:#0ca30c; --warn:#fab219; --serious:#ec835a; --crit:#d03b3b;
+  --good-ink:#006300; --warn-ink:#7a4f00; --crit-ink:#a12828;
+  --focus:#1c5cab;
+  --font-display:"Big Shoulders Display","Arial Narrow","Roboto Condensed",sans-serif;
+  --font-sans:"Archivo",system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",sans-serif;
+  --font-mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --fs-xs:11px; --fs-sm:12.5px; --fs-md:14.5px; --fs-lg:17px; --fs-xl:22px;
+  --r:6px; --th:16px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0b1016; --surface:#111820; --raised:#161f29;
+    --ink:#e8edf2; --ink-2:#b4c0cc; --muted:#93a0ae; --faint:#6f7c8a;
+    --line:#263241; --grid:#1c2531; --wash:#18212b;
+    --series:#3987e5;
+    --good-ink:#4cd264; --warn-ink:#f5c14a; --crit-ink:#f08080;
+    --focus:#86b6ef;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0b1016; --surface:#111820; --raised:#161f29;
+  --ink:#e8edf2; --ink-2:#b4c0cc; --muted:#93a0ae; --faint:#6f7c8a;
+  --line:#263241; --grid:#1c2531; --wash:#18212b;
+  --series:#3987e5;
+  --good-ink:#4cd264; --warn-ink:#f5c14a; --crit-ink:#f08080;
+  --focus:#86b6ef;
+  color-scheme:dark;
+}
+@media (pointer:coarse){ :root{--th:24px} .ghost,.ghost.sm{min-height:40px;padding-inline:12px} .nf{min-height:42px} .seg button{min-height:38px} .tile select{min-height:32px} .xbtn{min-width:36px;min-height:36px} }
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--font-sans);font-size:var(--fs-md);line-height:1.5;margin:0}
+.wrap{max-width:1240px;margin:0 auto;padding-inline:clamp(16px,3vw,32px);padding-block:0}
+a{color:inherit;text-decoration-color:var(--faint);text-underline-offset:2px}
+a:hover{text-decoration-color:currentColor}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--focus);outline-offset:2px;border-radius:3px}
+.mono{font-family:var(--font-mono)}
+.muted{color:var(--muted)}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+/* ---------- masthead ---------- */
+.masthead{padding-block:clamp(28px,5vw,56px) 8px}
+.atlases{display:grid;grid-template-columns:auto repeat(3,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;max-width:1080px;margin-bottom:clamp(20px,3vw,30px)}
+.atlases a{display:grid;gap:2px;align-content:start;padding:10px 14px 11px;background:var(--bg);text-decoration:none;color:var(--ink-2);min-width:0}
+.atlases a:hover{background:var(--surface);color:var(--ink)}
+.atlases a[aria-current="page"]{background:var(--surface);color:var(--ink);box-shadow:inset 0 2px 0 var(--ink)}
+.atlases a:focus-visible{outline-offset:-2px}
+.atlases .at-t{font-weight:600;font-size:var(--fs-md);line-height:1.25}
+.atlases .at-c{font-family:var(--font-mono);font-size:var(--fs-xs);letter-spacing:.02em;line-height:1.45;color:var(--muted)}
+.atlases .at-brand{display:flex;align-items:center;padding:0 18px;background:var(--ink);color:var(--surface);font-family:var(--font-display);font-weight:800;font-size:22px;letter-spacing:.05em;text-transform:uppercase}
+@media (max-width:760px){ .atlases{grid-template-columns:repeat(3,minmax(0,1fr))} .atlases .at-brand{grid-column:1/-1;padding:7px 12px;font-size:17px} .atlases .at-c{display:none} .atlases a{padding:9px 12px 10px} .atlases .at-t{font-size:var(--fs-sm)} }
+.eyebrow{font-family:var(--font-mono);font-size:var(--fs-xs);letter-spacing:.09em;text-transform:uppercase;color:var(--muted);display:flex;flex-wrap:wrap;gap:6px 14px}
+.eyebrow span+span::before{content:"";display:inline-block;width:4px;height:4px;border-radius:50%;background:var(--faint);margin-right:14px;vertical-align:middle}
+h1{font-family:var(--font-display);font-weight:800;font-size:clamp(46px,8.4vw,104px);line-height:.86;letter-spacing:.005em;text-transform:uppercase;margin:14px 0 16px;text-wrap:balance}
+.dek{font-size:clamp(16px,1.6vw,19px);line-height:1.45;max-width:62ch;color:var(--ink-2);margin:0}
+.notice{margin-top:18px;display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 12px;align-items:baseline;background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--warn);border-radius:var(--r);padding:10px 14px;font-size:var(--fs-sm);color:var(--ink-2);max-width:92ch}
+.notice b{font-family:var(--font-mono);font-size:var(--fs-xs);font-weight:500;text-transform:uppercase;letter-spacing:.08em;color:var(--ink)}
+nav.toc{display:flex;flex-wrap:wrap;gap:4px 18px;margin:22px 0 0;font-size:var(--fs-sm);align-items:center}
+nav.toc a{text-decoration:none;color:var(--ink-2);padding:4px 0;border-bottom:1px solid transparent}
+nav.toc a:hover{color:var(--ink);border-bottom-color:var(--ink)}
+
+/* ---------- sections ---------- */
+section{padding-block:clamp(40px,6vw,64px) 0}
+.sec-head{display:grid;grid-template-columns:minmax(0,1fr);gap:8px;margin-bottom:18px;border-top:2px solid var(--ink);padding-top:14px}
+h2{font-family:var(--font-display);font-weight:800;text-transform:uppercase;font-size:clamp(30px,3.8vw,44px);line-height:.95;margin:0;letter-spacing:.01em;text-wrap:balance}
+.sec-head p{margin:0;max-width:72ch;color:var(--ink-2)}
+h3{font-size:var(--fs-lg);margin:0;line-height:1.3;text-wrap:balance}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r)}
+.k{font-family:var(--font-mono);font-size:var(--fs-xs);text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:500}
+.cap{font-size:var(--fs-xs);color:var(--muted);margin:0}
+.ghost{border:1px solid var(--line);background:var(--surface);border-radius:var(--r);padding:6px 11px;font-size:var(--fs-sm);cursor:pointer;color:var(--ink-2)}
+.ghost:hover{color:var(--ink);border-color:var(--faint)}
+.ghost:disabled{opacity:.5;cursor:default}
+.ghost[aria-pressed="true"]{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+.ghost.sm{padding:4px 9px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:var(--r);background:var(--surface);overflow:hidden;max-width:100%}
+.seg button{border:0;background:transparent;padding:4px 9px;font-size:var(--fs-xs);cursor:pointer;color:var(--ink-2);white-space:nowrap}
+.seg button+button{border-left:1px solid var(--line)}
+.seg button:hover{background:var(--wash);color:var(--ink)}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--surface)}
+.xbtn{border:0;background:transparent;cursor:pointer;color:var(--muted);font-size:16px;line-height:1;padding:2px 6px;border-radius:4px}
+.xbtn:hover{color:var(--ink);background:var(--wash)}
+
+/* ---------- the lab: results rail beside the drivers ---------- */
+.lab{display:grid;grid-template-columns:minmax(0,1fr) 440px;gap:24px;align-items:start}
+.rail{grid-column:2;grid-row:1;position:sticky;top:12px;max-height:calc(100vh - 24px);overflow:auto;overscroll-behavior:contain;scroll-margin-top:12px}
+.drivers{grid-column:1;grid-row:1;min-width:0;scroll-margin-top:12px}
+.rb{padding:16px 18px;border-top:1px solid var(--line)}
+.rb:first-child{border-top:0}
+.rb-h{display:flex;justify-content:space-between;align-items:center;gap:6px 12px;flex-wrap:wrap;margin-bottom:10px}
+.rb-h h3{font-size:var(--fs-md)}
+.live{transition:opacity .15s}
+.busy .live{opacity:.5}
+.hero .v{font-size:clamp(52px,6vw,64px);font-weight:600;letter-spacing:-.02em;line-height:1;margin-top:6px}
+.hero .v small{font-size:var(--fs-lg);font-weight:500;letter-spacing:0;color:var(--ink-2);margin-left:8px}
+.hero .sub{font-size:var(--fs-sm);color:var(--ink-2);margin:8px 0 0}
+.hero .delta{font-size:var(--fs-sm);margin:4px 0 0;font-weight:600}
+.tiles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;margin-top:14px}
+.tile{background:var(--surface);padding:10px 12px;display:grid;gap:3px;align-content:space-between}
+.tile .l{font-size:var(--fs-xs);color:var(--ink-2);line-height:1.4}
+.tile .v{font-size:24px;font-weight:600;line-height:1.15}
+.tile select{border:1px solid var(--line);border-radius:4px;background:var(--surface);padding:0 2px;font-size:var(--fs-xs);font-weight:600}
+.situ{background:var(--wash)}
+.situ .chips{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0}
+.chipx{display:inline-flex;align-items:center;gap:2px;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:1px 2px 1px 10px;font-size:var(--fs-sm)}
+.situ p{margin:0;font-size:var(--fs-sm);color:var(--ink-2)}
+.empty{font-size:var(--fs-sm);color:var(--ink-2);margin:0}
+.empty b{display:block;font-size:var(--fs-md);color:var(--ink);margin-bottom:4px}
+
+/* charts */
+.fig{margin:0}
+.legend{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:var(--fs-xs);color:var(--ink-2)}
+.lg{display:inline-flex;align-items:center;gap:6px}
+.sw{width:10px;height:10px;border-radius:2px;background:var(--series);flex:none}
+.sw.line{width:16px;height:2px;border-radius:1px;background:var(--ink-2)}
+.sw.tick{width:2px;height:12px;border-radius:0;background:var(--ink-2)}
+#hist{display:block;width:100%;height:auto;overflow:visible;margin-top:6px}
+#hist .bar{fill:var(--series)}
+#hist .bar.on{fill:color-mix(in srgb,var(--series) 72%,var(--ink))}
+#hist .ref{fill:none;stroke:var(--ink-2);stroke-width:2;stroke-linejoin:round;stroke-linecap:round}
+#hist .gl{stroke:var(--grid);stroke-width:1}
+#hist .ax{stroke:var(--line);stroke-width:1}
+#hist .med{stroke:var(--ink);stroke-width:1}
+#hist text{font-family:var(--font-sans);font-size:11px;fill:var(--muted)}
+#hist text.lab{fill:var(--ink);font-weight:600}
+#hist .hit{fill:transparent}
+details.numbers{margin-top:8px;font-size:var(--fs-sm)}
+details.numbers summary{cursor:pointer;color:var(--ink-2)}
+table{border-collapse:collapse;width:100%;font-size:var(--fs-sm)}
+th,td{padding:7px 10px;text-align:left;vertical-align:top;border-bottom:1px solid var(--grid)}
+thead th{font-weight:600;font-size:var(--fs-xs);text-transform:uppercase;letter-spacing:.05em;color:var(--muted);border-bottom:1px solid var(--line)}
+td.r,th.r{text-align:right;font-variant-numeric:tabular-nums}
+details.numbers table{margin-top:6px}
+details.numbers th,details.numbers td{padding:5px 8px}
+.rows{display:grid;gap:9px}
+.row{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr) 46px;gap:10px;align-items:center;font-size:var(--fs-sm);width:100%;text-align:left;background:transparent;border:0;padding:2px 4px;margin:0 -4px;border-radius:4px}
+button.row{cursor:pointer}
+button.row:hover{background:var(--wash)}
+.row .nm{min-width:0;line-height:1.25;font-weight:600}
+.row .nm small{display:block;color:var(--muted);font-size:var(--fs-xs);font-weight:400;margin-top:1px}
+.row .trk{position:relative;height:12px}
+.row .trk i{position:absolute;left:0;top:0;bottom:0;background:var(--series);border-radius:0 4px 4px 0;min-width:2px}
+.row .trk u{position:absolute;top:-3px;bottom:-3px;width:2px;margin-left:-1px;background:var(--ink-2);box-shadow:0 0 0 2px var(--surface)}
+.row .val{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
+.row.other .nm{font-weight:400;color:var(--ink-2)}
+.orow{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr) 40px 40px;gap:10px;align-items:center;font-size:var(--fs-sm);padding:2px 0}
+.orow.hd{font-size:var(--fs-xs);color:var(--muted)}
+.orow .r{text-align:right;font-variant-numeric:tabular-nums}
+.oplot{position:relative;height:14px}
+.oplot::before{content:"";position:absolute;left:0;right:0;top:50%;height:1px;background:var(--grid)}
+.oplot i{position:absolute;top:50%;height:2px;margin-top:-1px;background:var(--series);border-radius:1px}
+.oplot b{position:absolute;top:50%;width:10px;height:10px;margin:-5px 0 0 -5px;border-radius:50%;background:var(--series);box-shadow:0 0 0 2px var(--surface)}
+.tip{position:fixed;z-index:30;pointer-events:none;background:var(--raised);border:1px solid var(--line);border-radius:var(--r);box-shadow:0 6px 24px rgba(0,0,0,.14);padding:8px 10px;font-size:var(--fs-sm);line-height:1.4;max-width:270px}
+.tip .tt{font-weight:600;margin-bottom:2px}
+.tip .tr{display:flex;align-items:center;gap:7px;color:var(--ink-2)}
+.tip .tr b{color:var(--ink);font-variant-numeric:tabular-nums}
+.tip .ky{width:12px;height:2px;border-radius:1px;background:var(--series);flex:none}
+.tip .ky.ref{background:var(--ink-2)}
+.tip p{margin:4px 0 0;color:var(--ink-2)}
+
+/* drivers */
+.dbar{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;justify-content:space-between;margin-bottom:14px}
+.dbar .dcount{font-size:var(--fs-sm);color:var(--ink-2)}
+.dbar .dact{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.grp{margin-top:26px}
+.grp:first-of-type{margin-top:0}
+.grp-h{display:flex;align-items:baseline;justify-content:space-between;gap:10px;border-bottom:1px solid var(--line);padding-bottom:6px;margin-bottom:8px}
+.grp-h h3{font-family:var(--font-mono);font-size:var(--fs-xs);text-transform:uppercase;letter-spacing:.08em;color:var(--ink-2);font-weight:500}
+.drv{background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--line);border-radius:var(--r);padding:12px 14px 10px;margin-bottom:8px;scroll-margin-top:16px}
+.drv.changed{border-left-color:var(--ink)}
+.drv.supposed{border-left-color:var(--series);background:color-mix(in srgb,var(--series) 5%,var(--surface))}
+.drv.flash{outline:2px solid var(--focus);outline-offset:2px}
+.drv-top{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px 18px;align-items:start}
+.drv-l{font-weight:600;font-size:var(--fs-md);line-height:1.3;margin:0}
+.drv-q{font-size:var(--fs-sm);color:var(--ink-2);margin:3px 0 0;max-width:62ch}
+.fields{display:flex;align-items:flex-end;gap:6px}
+.fld{display:grid;gap:1px;justify-items:end}
+.fld span{font-size:10.5px;color:var(--muted);font-family:var(--font-mono);letter-spacing:.03em}
+.nf{width:58px;text-align:right;border:1px solid var(--line);border-radius:var(--r);background:var(--raised);padding:5px 7px;font-variant-numeric:tabular-nums;font-weight:600;font-size:var(--fs-md);-moz-appearance:textfield;appearance:textfield}
+.nf::-webkit-outer-spin-button,.nf::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.nf:hover{border-color:var(--faint)}
+.unit{font-size:var(--fs-xs);color:var(--muted);padding-bottom:8px;max-width:10ch;line-height:1.2}
+.drv-ctl{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 14px;align-items:center;margin-top:6px}
+.drv-btns{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.slw{position:relative;height:calc(var(--th) + 12px);display:flex;align-items:center}
+.slw .trk{position:absolute;left:calc(var(--th) / 2);right:calc(var(--th) / 2);top:50%;height:4px;margin-top:-2px;border-radius:2px;background:var(--line)}
+.slw .trk i{position:absolute;top:0;bottom:0;border-radius:2px;background:var(--ink-2)}
+.slw.rng .trk i{background:color-mix(in srgb,var(--series) 55%,var(--line))}
+.slw .trk u{position:absolute;top:-5px;bottom:-5px;width:2px;margin-left:-1px;background:var(--faint)}
+input.sl{-webkit-appearance:none;appearance:none;position:relative;width:100%;height:calc(var(--th) + 12px);margin:0;background:transparent;cursor:pointer}
+input.sl::-webkit-slider-runnable-track{height:4px;background:transparent}
+input.sl::-moz-range-track{height:4px;background:transparent}
+input.sl::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:var(--th);height:var(--th);border-radius:50%;background:var(--ink);border:2px solid var(--surface);box-shadow:0 0 0 1px var(--ink);margin-top:calc(2px - var(--th) / 2)}
+input.sl::-moz-range-thumb{width:calc(var(--th) - 4px);height:calc(var(--th) - 4px);border-radius:50%;background:var(--ink);border:2px solid var(--surface);box-shadow:0 0 0 1px var(--ink)}
+input.sl:focus-visible{outline:none}
+input.sl:focus-visible::-webkit-slider-thumb{box-shadow:0 0 0 1px var(--ink),0 0 0 4px color-mix(in srgb,var(--focus) 55%,transparent)}
+input.sl:focus-visible::-moz-range-thumb{box-shadow:0 0 0 1px var(--ink),0 0 0 4px color-mix(in srgb,var(--focus) 55%,transparent)}
+.drv-note{display:flex;flex-wrap:wrap;gap:2px 14px;font-size:var(--fs-xs);color:var(--muted);margin-top:2px;min-height:0}
+.drv-note b{color:var(--ink-2);font-weight:600}
+.drv-note button{border:0;background:transparent;padding:0;font-size:var(--fs-xs);color:var(--ink-2);text-decoration:underline;text-decoration-color:var(--faint);text-underline-offset:2px;cursor:pointer}
+.drv-note button:hover{color:var(--ink)}
+.drv-more{margin-top:10px;border-top:1px solid var(--grid);padding-top:10px;display:grid;gap:12px}
+.facts{display:grid;grid-template-columns:auto minmax(0,1fr);gap:5px 14px;margin:0;font-size:var(--fs-sm)}
+.facts dt{color:var(--muted)}
+.facts dd{margin:0;color:var(--ink-2);max-width:66ch}
+.tagb{display:inline-block;border:1px solid var(--line);border-radius:999px;padding:0 8px;font-size:var(--fs-xs);color:var(--ink-2);margin-right:6px;white-space:nowrap}
+.sevrow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 14px;align-items:center;max-width:520px}
+.sevrow label{font-size:var(--fs-sm);font-weight:600;grid-column:1/-1;display:flex;justify-content:space-between;gap:10px}
+.sevrow output{font-variant-numeric:tabular-nums}
+.sevrow .cap{grid-column:1/-1}
+.caret{display:inline-block;transition:transform .15s;margin-left:4px}
+[aria-expanded="true"] > .caret{transform:rotate(90deg)}
+
+/* links and method */
+.tbl-wrap{overflow:auto;border:1px solid var(--line);border-radius:var(--r);background:var(--surface)}
+.lk-tbl{min-width:820px}
+.lk-tbl td{color:var(--ink-2)}
+.lk-tbl .pair{color:var(--ink);font-weight:600}
+.lk-tbl .why{display:block;font-weight:400;color:var(--muted);font-size:var(--fs-xs);margin-top:2px;max-width:46ch}
+.lk-tbl .pair [data-n]::before{content:attr(data-n) ". ";color:var(--muted);font-weight:400;font-variant-numeric:tabular-nums}
+.lk-tbl .st{white-space:nowrap}
+.lk-tbl .st b{color:var(--ink);font-variant-numeric:tabular-nums}
+.method{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 36px}
+.method h3{margin:14px 0 6px}
+.method p,.method li{max-width:66ch;color:var(--ink-2);margin:0 0 8px}
+.method ul{margin:0;padding-left:1.2em}
+footer{padding-block:48px 72px;font-size:var(--fs-xs);color:var(--muted)}
+.mini{position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--ink);color:var(--surface);padding:9px 16px calc(9px + env(safe-area-inset-bottom,0px));display:flex;gap:4px 14px;align-items:baseline;flex-wrap:wrap;font-size:var(--fs-sm)}
+.mini b{font-size:var(--fs-lg)}
+.mini a{margin-left:auto;font-weight:600}
+.errbox{border-left:3px solid var(--crit);padding:12px 16px;font-size:var(--fs-sm)}
+
+@media (min-width:1100px){ .mini{display:none!important} }
+@media (max-width:1099px){
+  .lab{grid-template-columns:minmax(0,1fr)}
+  .rail,.drivers{grid-column:1;grid-row:auto}
+  .rail{position:static;max-height:none;overflow:visible}
+  .method{grid-template-columns:minmax(0,1fr)}
+}
+@media (max-width:620px){
+  .drv-top{grid-template-columns:minmax(0,1fr)}
+  .fields{justify-content:flex-start}
+  .fld{justify-items:start}
+  .drv-ctl{grid-template-columns:minmax(0,1fr)}
+  .drv-btns{justify-content:flex-start}
+  .facts{grid-template-columns:minmax(0,1fr);gap:0 0}
+  .facts dd{margin-bottom:8px}
+  .row{grid-template-columns:minmax(0,1.3fr) minmax(0,.8fr) 44px}
+}
+@media (prefers-reduced-motion:reduce){ *{transition:none!important;animation:none!important} }
+</style>
+
+<div class="wrap">
+<header class="masthead">
+  <nav class="atlases" aria-label="Chokepoint sections">
+    <span class="at-brand">Chokepoint</span>
+    <a id="nav-supply" href="#"><span class="at-t">The Chain</span><span class="at-c" id="nav-supply-c"></span></a>
+    <a id="nav-atlas" href="#"><span class="at-t">The Money</span><span class="at-c" id="nav-atlas-c"></span></a>
+    <a id="nav-odds" href="#"><span class="at-t">The Odds</span><span class="at-c" id="nav-odds-c"></span></a>
+  </nav>
+  <div class="eyebrow"><span>Probability lab</span><span id="asof"></span><span id="period"></span></div>
+  <h1>The Odds</h1>
+  <p class="dek">Put a number on everything that could stall or speed up the AI build-out, and see how much of the plan gets built. Every number here is yours to change.</p>
+  <div class="notice" id="notice"><b>Provisional</b><span id="notice-t"></span></div>
+  <nav class="toc" aria-label="Sections">
+    <a href="#results">Results</a><a href="#drivers">Your numbers</a><a href="#links">What moves together</a><a href="#method">How it works</a>
+  </nav>
+</header>
+
+<section id="lab" aria-labelledby="lab-h">
+  <div class="sec-head">
+    <h2 id="lab-h">Set your numbers</h2>
+    <p id="lab-dek"></p>
+  </div>
+  <noscript><p class="card errbox">This page needs JavaScript: it runs thousands of futures in your browser.</p></noscript>
+  <div class="card errbox" id="err" hidden></div>
+  <div class="lab" id="lab-grid">
+    <aside class="rail card" id="results" aria-label="Results">
+      <div class="rb situ" id="situ" hidden>
+        <div class="rb-h"><span class="k">Supposing</span><button type="button" class="ghost sm" id="situ-clear">Clear</button></div>
+        <div class="chips" id="situ-chips"></div>
+        <p id="situ-t"></p>
+      </div>
+      <div class="rb" id="empty" hidden><p class="empty" id="empty-t"></p></div>
+      <div class="rb hero live" id="hero">
+        <div class="k">Capacity built in 2027</div>
+        <div class="v"><span id="hero-v">–</span><small>of plan</small></div>
+        <p class="sub">The average across all the futures.</p>
+        <p class="delta" id="hero-d" hidden></p>
+        <div class="tiles">
+          <div class="tile"><span class="l">A typical future: half end above this, half below</span><span class="v" id="t-mid">–</span></div>
+          <div class="tile"><span class="l">1 time in 10 it ends at or below</span><span class="v" id="t-low">–</span></div>
+          <div class="tile"><span class="l"><label for="t-thr">Chance of ending below</label> <select id="t-thr"><option value="0.9">90%</option><option value="0.8" selected>80%</option><option value="0.7">70%</option><option value="0.6">60%</option></select> of plan</span><span class="v" id="t-below">–</span></div>
+          <div class="tile"><span class="l">What buyers want, against what can be built</span><span class="v" id="t-tight">–</span></div>
+        </div>
+      </div>
+      <div class="rb live" id="b-hist">
+        <div class="rb-h"><h3>How the futures spread</h3><div class="legend" id="hist-lg"></div></div>
+        <figure class="fig">
+          <svg id="hist" viewBox="0 0 400 176" tabindex="0" role="img" aria-label="Spread of capacity built"></svg>
+          <figcaption class="cap" id="hist-cap"></figcaption>
+        </figure>
+        <details class="numbers"><summary>The same in numbers</summary><table id="hist-tbl"></table></details>
+      </div>
+      <div class="rb live" id="b-lim">
+        <div class="rb-h"><h3>What holds it back</h3><div class="legend" id="lim-lg"></div></div>
+        <p class="cap" style="margin:-4px 0 10px">Share of futures in which each thing is the limit on what gets built, traced back to where the shortfall starts.</p>
+        <div class="rows" id="lim"></div>
+      </div>
+      <div class="rb live" id="b-mat">
+        <div class="rb-h"><h3>What matters most</h3><div class="seg" id="mat-seg" role="group" aria-label="Rank by"><button type="button" data-m="share" aria-pressed="true">Share of the uncertainty</button><button type="button" data-m="swing" aria-pressed="false">Size of the swing</button></div></div>
+        <p class="cap" id="mat-cap" style="margin:-4px 0 10px"></p>
+        <div class="rows" id="mat"></div>
+      </div>
+      <div class="rb live" id="b-out">
+        <div class="rb-h"><h3>Down the chain</h3></div>
+        <p class="cap" style="margin:-4px 0 8px">How much of the plan each stage can deliver. The line runs from the 1-in-10 low to the 1-in-10 high; the dot is the central case.</p>
+        <div id="outs"></div>
+      </div>
+    </aside>
+    <div class="drivers" id="drivers">
+      <div class="dbar">
+        <span class="dcount" id="dcount"></span>
+        <span class="dact"><span class="cap" id="dchanged" aria-live="polite"></span><button type="button" class="ghost" id="reset-all" disabled>Reset all</button></span>
+      </div>
+      <div id="dlist"></div>
+    </div>
+  </div>
+  <p class="sr" id="live" aria-live="polite"></p>
+</section>
+
+<section id="links" aria-labelledby="links-h">
+  <div class="sec-head">
+    <h2 id="links-h">What moves together</h2>
+    <p>A link says two things tend to go the same way (above zero) or opposite ways (below zero). Each one is shown as it plays out with your numbers. Changing one chance does not move the things linked to it; supposing that it happens does. This version uses the starting links as they are: changing them is the next addition to this page.</p>
+  </div>
+  <div class="tbl-wrap"><table class="lk-tbl" id="lk-tbl"></table></div>
+</section>
+
+<section id="method" aria-labelledby="method-h">
+  <div class="sec-head">
+    <h2 id="method-h">How it works</h2>
+    <p id="method-plan"></p>
+  </div>
+  <div class="method">
+    <div>
+      <h3>Thousands of futures</h3>
+      <p>Each future decides every yes-or-no question with the chance you set and draws every quantity from the range you set, letting linked ones move together. What happens is then applied to the chain, with the same weakest-link model as the worst cases in The Chain, and to buyers' orders. The page records what gets built in each future and counts.</p>
+      <p>The same 10,000 futures are reused every time, so a change in the results comes from your numbers and never from luck.</p>
+      <h3>Reading the numbers</h3>
+      <ul>
+        <li>A <b>chance</b> is how likely the answer to the question is yes, by its deadline.</li>
+        <li>For a quantity, <b>low</b> is the level undercut 1 time in 10, <b>central</b> has an even chance either side, and <b>high</b> is beaten 1 time in 10.</li>
+        <li>The headline is the <b>average</b> of all the futures, so it moves when something rare but severe becomes more likely. The <b>typical future</b> beside it barely moves in that case, which is why both are shown.</li>
+        <li><b>How bad, if it happens</b> scales an event's effect: 1 is the standard case, 0.5 half of it.</li>
+        <li><b>Suppose</b> keeps only the futures in which the thing happens. Everything linked to it shifts, and each affected row shows where it lands.</li>
+      </ul>
+    </div>
+    <div>
+      <h3>What this leaves out</h3>
+      <ul>
+        <li>Stockpiles and delivery times. A shortfall cuts what is built in the same year.</li>
+        <li>Timing detail. An event is equally likely to start on any day between now, or its earliest possible date, and its deadline.</li>
+        <li>Supply above the plan. A link that delivers more than planned is counted as delivering the plan.</li>
+        <li>Workarounds. A shortfall in a scarce input passes down the chain exactly as in The Chain's stress model.</li>
+      </ul>
+      <h3>Where the starting numbers come from</h3>
+      <p id="method-basis"></p>
+      <p>Your changes stay on this page and are gone when you reload. Saving sets of numbers is planned.</p>
+    </div>
+  </div>
+</section>
+
+<footer id="foot"></footer>
+<div class="mini" id="mini" hidden><b id="mini-v"></b><span id="mini-t"></span><a href="#results">Results ↑</a></div>
+<div class="tip" id="tip" hidden></div>
+</div>
+
+<script id="odds-engine">__ENGINE__</script>
+<script>
+const DATA = __DATA__;
+const $ = (s, r) => (r || document).querySelector(s);
+const $$ = (s, r) => [...(r || document).querySelectorAll(s)];
+const reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+function h(tag, attrs, ...kids){
+  const e = document.createElement(tag);
+  if (attrs) for (const k in attrs){
+    const v = attrs[k];
+    if (v == null || v === false) continue;
+    if (k === "class") e.className = v;
+    else if (k === "text") e.textContent = v;
+    else if (k === "style") e.setAttribute("style", v);
+    else if (k.startsWith("on")) e.addEventListener(k.slice(2), v);
+    else e.setAttribute(k, v === true ? "" : v);
+  }
+  for (const c of kids.flat()) if (c != null && c !== false) e.append(c.nodeType ? c : document.createTextNode(String(c)));
+  return e;
+}
+const SVGNS = "http://www.w3.org/2000/svg";
+function s(tag, attrs, text){
+  const e = document.createElementNS(SVGNS, tag);
+  for (const k in attrs || {}) if (attrs[k] != null) e.setAttribute(k, attrs[k]);
+  if (text != null) e.textContent = text;
+  return e;
+}
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+function fmtDate(d){ const p = d.split("-"); return (+p[2]) + " " + MONTHS[+p[1] - 1] + " " + p[0]; }
+/** A share (0 to 1) as a percentage: one decimal below 10%, none above. */
+function pct(v){
+  if (!(v === v)) return "n/a";
+  const x = v * 100;
+  if (x > 0 && x < 0.05) return "under 0.1%";
+  return (Math.abs(x) < 9.95 ? Math.round(x * 10) / 10 : Math.round(x)) + "%";
+}
+function pts(d){ const r = Math.round(Math.abs(d) * 100); return r + (r === 1 ? " point" : " points"); }
+function num(v){ return String(Math.round(v * 10) / 10); }
+const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+
+/* ---------------- the model and the state ---------------- */
+const FILE = DATA.file || {asOf: "2026-01-01", period: {label: "", from: "2027-01-01", months: 12}, statusNote: "", plan: "", groups: [], buyers: [], drivers: [], links: []};
+const MODEL = ODDS.assemble(FILE, DATA.chain);
+const BY = Object.fromEntries(MODEL.drivers.map(d => [d.id, d]));
+const N = 10000, SEED = 20270101;
+const START = {}, cur = {}, given = {};
+for (const d of MODEL.drivers){
+  START[d.id] = d.kind === "event" ? {p: d.p, sev: d.sev == null ? 1 : d.sev} : {low: d.low, mid: d.mid, high: d.high};
+  cur[d.id] = Object.assign({}, START[d.id]);
+}
+const isChanged = id => Object.keys(START[id]).some(k => Math.abs(cur[id][k] - START[id][k]) > 1e-9);
+const nChanged = () => MODEL.drivers.filter(d => isChanged(d.id)).length;
+const anyGiven = () => Object.keys(given).length > 0;
+const usesSev = d => d.kind === "event" && d.effects.some(e => e.t === "scen" || e.t === "shock" || e.t === "dem");
+/** Which drivers act on each chain link (so a limit can be traced to the numbers that move it). */
+const MOVERS = {};
+for (const d of MODEL.drivers) for (const e of d.effects){
+  const nodes = e.node ? [e.node] : e.t === "scen" ? Object.keys((MODEL.scen[e.id] || {}).h0 || {}).filter(k => (!e.only || e.only.includes(k)) && !(e.skip || []).includes(k)) : [];
+  for (const k of nodes){ (MOVERS[k] = MOVERS[k] || []); if (!MOVERS[k].includes(d.id)) MOVERS[k][e.t === "ramp" ? "unshift" : "push"](d.id); }
+}
+/** Drivers with a link to each driver. Two drivers with no link between them are independent, so supposing one
+    cannot move the other; any difference would only be sampling noise and is not shown. */
+const LINKED = {};
+for (const l of FILE.links) if (l.rho){ (LINKED[l.a] = LINKED[l.a] || new Set()).add(l.b); (LINKED[l.b] = LINKED[l.b] || new Set()).add(l.a); }
+let RES = {cur: null, ref: null, refKind: null}, R0 = null, matMode = "share";
+
+/* ---------------- the numbers behind the page: runs in a worker when it can ---------------- */
+function compute(a){
+  const O = ODDS, R = O.simulate(MODEL, {n: a.n, seed: a.seed, beliefs: a.beliefs, given: a.given});
+  const q = arr => { const v = O.quantiles(arr, [0.05, 0.1, 0.25, 0.5, 0.75, 0.9, 0.95]); return {p05: v[0], p10: v[1], p25: v[2], p50: v[3], p75: v[4], p90: v[5], p95: v[6], mean: O.mean(arr)}; };
+  const out = {n: R.n, asked: R.asked, tried: R.tried, chance: R.chance, unknown: R.unknown, corr: {changed: R.corr.changed, maxDiff: R.corr.maxDiff, worst: R.corr.worst}};
+  if (!R.n) return out;
+  out.built = q(R.out.built); out.demand = q(R.out.demand); out.tight = q(R.out.tight);
+  out.below = {}; for (const t of [0.9, 0.8, 0.7, 0.6]) out.below[t] = O.probBelow(R.out.built, t);
+  out.hist = O.histogram(R.out.built, 0, 1, 100).map(c => c / R.n);
+  out.outputs = {}; for (const o of MODEL.graph.outputs) out.outputs[o.id] = q(R.out[o.id]);
+  out.limits = O.bindingTable(R);
+  out.matters = O.whatMatters(R, "built");
+  out.drivers = {};
+  for (const d of R.drivers){
+    if (d.kind === "event") out.drivers[d.id] = {p: O.mean(R.values[d.id])};
+    else { const v = O.quantiles(R.values[d.id], [0.1, 0.5, 0.9]); out.drivers[d.id] = {low: v[0], mid: v[1], high: v[2]}; }
+  }
+  return out;
+}
+let worker = null, jobs = new Map(), jobId = 0;
+try {
+  const src = $("#odds-engine").textContent + "\nlet MODEL = null;\n" + compute.toString() +
+    "\nonmessage = e => { const m = e.data; if (m.model){ MODEL = m.model; return; } let res = null, err = null; try { res = m.args.map(compute); } catch (x) { err = String((x && x.message) || x); } postMessage({id: m.id, res, err}); };";
+  worker = new Worker(URL.createObjectURL(new Blob([src], {type: "text/javascript"})));
+  worker.onmessage = e => { const j = jobs.get(e.data.id); if (!j) return; jobs.delete(e.data.id); e.data.err ? j.no(new Error(e.data.err)) : j.ok(e.data.res); };
+  worker.onerror = () => { const w = worker; worker = null; try { w.terminate(); } catch (x) {} for (const j of jobs.values()) j.no(new Error("worker")); jobs.clear(); };
+  worker.postMessage({model: MODEL});
+} catch (x) { worker = null; }
+/** Run one or more sets of numbers; resolves with one result per set. Falls back to this thread without a worker. */
+function runAll(args){
+  const here = () => new Promise(ok => setTimeout(() => ok(args.map(compute)), 0));
+  if (!worker) return here();
+  return new Promise((ok, no) => { const id = ++jobId; jobs.set(id, {ok, no}); worker.postMessage({id, args}); }).catch(() => here());
+}
+let busy = false, pending = null, timer = null;
+function schedule(){ clearTimeout(timer); timer = setTimeout(request, 60); }
+function request(){
+  clearTimeout(timer);
+  const beliefs = {drivers: JSON.parse(JSON.stringify(cur))}, sit = anyGiven();
+  const args = [{n: N, seed: SEED, beliefs, given: Object.assign({}, given)}];
+  if (sit) args.push({n: N, seed: SEED, beliefs, given: {}});
+  pending = {args, sit, changed: nChanged() > 0};
+  pump();
+}
+function pump(){
+  if (busy || !pending) return;
+  const job = pending; pending = null; busy = true;
+  $("#results").classList.add("busy");
+  runAll(job.args).then(res => {
+    busy = false;
+    if (!job.sit && !job.changed) R0 = res[0];
+    RES = {cur: res[0], ref: job.sit ? res[1] : job.changed ? R0 : null, refKind: job.sit ? "nosit" : job.changed ? "start" : null};
+    if (!pending) $("#results").classList.remove("busy");
+    render();
+    pump();
+  }).catch(err => { busy = false; fail("The numbers could not be worked out: " + err.message); });
+}
+function fail(msg){ const e = $("#err"); e.textContent = msg; e.hidden = false; $("#lab-grid").hidden = true; }
+
+/* ---------------- tooltip ---------------- */
+const tipEl = $("#tip");
+function showTip(kids, x, y){
+  tipEl.replaceChildren(...kids); tipEl.hidden = false;
+  const r = tipEl.getBoundingClientRect(), W = window.innerWidth, H = window.innerHeight;
+  let left = x + 14, top = y + 14;
+  if (left + r.width > W - 8) left = Math.max(8, x - r.width - 14);
+  if (top + r.height > H - 8) top = Math.max(8, y - r.height - 14);
+  tipEl.style.left = left + "px"; tipEl.style.top = top + "px";
+}
+function hideTip(){ tipEl.hidden = true; }
+function tipRow(cls, label, value){ return h("div", {class: "tr"}, h("span", {class: "ky" + (cls ? " " + cls : "")}), h("span", {text: label + ":"}), h("b", {text: value})); }
+/** Attach the same tooltip to hover and keyboard focus. `make` returns the tooltip's content. */
+function withTip(el, make){
+  el.addEventListener("pointermove", e => showTip(make(), e.clientX, e.clientY));
+  el.addEventListener("pointerleave", hideTip);
+  el.addEventListener("focus", () => { const r = el.getBoundingClientRect(); showTip(make(), r.left + Math.min(r.width, 200) / 2, r.bottom - 8); });
+  el.addEventListener("blur", hideTip);
+  return el;
+}
+const refName = () => RES.refKind === "nosit" ? "your numbers without this situation" : "the starting numbers";
+const refShort = () => RES.refKind === "nosit" ? "Without the situation" : "Starting numbers";
+
+/* ---------------- drivers ---------------- */
+const drag = {};
+function driverRow(d){
+  const ev = d.kind === "event", id = d.id;
+  const fields = h("div", {class: "fields"});
+  if (ev){
+    fields.append(h("label", {class: "fld"}, h("span", {text: "chance"}), h("input", {class: "nf", type: "number", inputmode: "decimal", min: 0, max: 100, step: "0.5", "data-f": "p"})), h("span", {class: "unit", text: "%"}));
+  } else {
+    for (const [f, capt] of [["low", "low"], ["mid", "central"], ["high", "high"]])
+      fields.append(h("label", {class: "fld"}, h("span", {text: capt}), h("input", {class: "nf", type: "number", inputmode: "decimal", min: d.min, max: d.max, step: "1", "data-f": f})));
+    fields.append(h("span", {class: "unit", text: d.unit}));
+  }
+  const slider = h("input", {class: "sl", type: "range", min: ev ? 0 : d.min, max: ev ? 100 : d.max, step: ev ? "0.5" : "1",
+    "aria-label": (ev ? "Chance, in percent: " : "Central case, moves low and high with it: ") + d.label});
+  const more = h("div", {class: "drv-more", id: "m-" + id, hidden: true});
+  const about = h("button", {type: "button", class: "ghost sm", "aria-expanded": "false", "aria-controls": "m-" + id, onclick: () => {
+    const open = about.getAttribute("aria-expanded") !== "true";
+    about.setAttribute("aria-expanded", String(open)); more.hidden = !open;
+  }}, "About", h("span", {class: "caret", "aria-hidden": "true", text: "›"}));
+  const btns = h("div", {class: "drv-btns"});
+  if (ev) btns.append(h("button", {type: "button", class: "ghost sm", "data-sup": "true", "aria-pressed": "false", text: "Suppose it happens"}));
+  btns.append(about);
+  // the details
+  const facts = h("dl", {class: "facts"},
+    h("dt", {text: d.resolves ? "How we will know" : "What to watch"}), h("dd", {text: d.resolves || d.watch}),
+    ev ? [h("dt", {text: "Deadline"}), h("dd", {text: fmtDate(d.deadline)})] : null,
+    h("dt", {text: "What it does here"}), h("dd", {text: d.does}),
+    h("dt", {text: "Where the number comes from"}), h("dd", {}, h("span", {class: "tagb", text: d.basis.charAt(0).toUpperCase() + d.basis.slice(1)}), d.note));
+  more.append(facts);
+  if (usesSev(d)){
+    const sid = "sev-" + id;
+    more.append(h("div", {class: "sevrow"},
+      h("label", {for: sid}, "How bad, if it happens", h("output", {"data-o": "sev"})),
+      h("div", {class: "slw"}, h("div", {class: "trk"}, h("i", {"data-v": "sevfill"}), h("u", {"data-v": "sevstart"})), h("input", {class: "sl", id: sid, type: "range", min: 0, max: 2, step: "0.1", "data-f": "sev"})),
+      h("p", {class: "cap", text: "1 is the standard case described above. 0.5 is half as bad, 2 twice as bad."})));
+  }
+  const supMore = h("div", {class: "drv-btns", style: "justify-content:flex-start"});
+  if (ev) supMore.append(h("button", {type: "button", class: "ghost sm", "data-sup": "false", "aria-pressed": "false", text: "Suppose it does not happen"}));
+  else supMore.append(h("button", {type: "button", class: "ghost sm", "data-sup": "low", "aria-pressed": "false", text: "Suppose the low case or worse"}),
+                      h("button", {type: "button", class: "ghost sm", "data-sup": "high", "aria-pressed": "false", text: "Suppose the high case or better"}));
+  more.append(supMore);
+
+  const row = h("article", {class: "drv", id: "d-" + id, "data-id": id, "aria-labelledby": "l-" + id},
+    h("div", {class: "drv-top"},
+      h("div", {}, h("h4", {class: "drv-l", id: "l-" + id, text: d.label}), h("p", {class: "drv-q", text: d.question})),
+      fields),
+    h("div", {class: "drv-ctl"},
+      h("div", {class: "slw" + (ev ? "" : " rng")}, h("div", {class: "trk"}, h("i", {"data-v": "fill"}), h("u", {"data-v": "start"})), slider),
+      btns),
+    h("div", {class: "drv-note", "data-v": "note"}),
+    more);
+
+  // the main slider: a chance, or the central case with low and high moving along
+  slider.addEventListener("input", () => {
+    const v = +slider.value;
+    if (ev) cur[id].p = v / 100;
+    else {
+      const b = drag[id] || (drag[id] = Object.assign({}, cur[id])), dv = v - b.mid;
+      cur[id] = {low: clamp(b.low + dv, d.min, d.max), mid: clamp(v, d.min, d.max), high: clamp(b.high + dv, d.min, d.max)};
+    }
+    sync(id, {skip: slider}); updateBar(); schedule();
+  });
+  slider.addEventListener("change", () => { delete drag[id]; });
+  // typed numbers: used as typed while they make sense, tidied when the field is left
+  for (const f of $$(".nf", row)){
+    const key = f.getAttribute("data-f");
+    f.setAttribute("aria-label", (key === "p" ? "Chance in percent" : key === "mid" ? "Central case" : key === "low" ? "Low case" : "High case") + ": " + d.label);
+    const take = commit => {
+      const v = parseFloat(f.value);
+      if (!(v === v)){ if (commit) sync(id, {force: true}); return; }
+      const c = cur[id];
+      if (key === "p") c.p = clamp(v, 0, 100) / 100;
+      else if (key === "low") c.low = clamp(v, d.min, c.mid);
+      else if (key === "high") c.high = clamp(v, c.mid, d.max);
+      else { c.mid = clamp(v, d.min, d.max); if (c.mid < c.low) c.low = c.mid; if (c.mid > c.high) c.high = c.mid; }
+      sync(id, commit ? {force: true} : {skip: f}); updateBar(); schedule();
+    };
+    f.addEventListener("input", () => take(false));
+    f.addEventListener("change", () => take(true));
+  }
+  const sev = $('[data-f="sev"]', row);
+  if (sev) sev.addEventListener("input", () => { cur[id].sev = +sev.value; sync(id, {skip: sev}); updateBar(); schedule(); });
+  for (const b of $$("[data-sup]", row)) b.addEventListener("click", () => {
+    const raw = b.getAttribute("data-sup"), w = raw === "true" ? true : raw === "false" ? false : raw;
+    if (given[id] === w) delete given[id]; else given[id] = w;
+    syncAll(); request();
+  });
+  return row;
+}
+/** Write one driver's current numbers into its row. `opt.skip` is the control being used, which is left alone.
+    A number field that is being typed in is left alone too, unless `opt.force` (the entry is finished). */
+function sync(id, opt){
+  opt = opt || {};
+  const d = BY[id], c = cur[id], st = START[id], row = $("#d-" + id), ev = d.kind === "event";
+  const set = (el, v) => {
+    if (!el || el === opt.skip) return;
+    if (!opt.force && el === document.activeElement && el.classList.contains("nf")) return;
+    el.value = v;
+  };
+  const sl = $(".drv-ctl .sl", row), fill = $('[data-v="fill"]', row), start = $('[data-v="start"]', row);
+  if (ev){
+    set($('[data-f="p"]', row), num(c.p * 100)); set(sl, c.p * 100);
+    fill.style.left = "0"; fill.style.width = (c.p * 100) + "%"; start.style.left = (st.p * 100) + "%";
+    sl.setAttribute("aria-valuetext", pct(c.p));
+    const sev = $('[data-f="sev"]', row);
+    if (sev){
+      set(sev, c.sev); $('[data-o="sev"]', row).textContent = num(c.sev) + " × the standard case"; sev.setAttribute("aria-valuetext", num(c.sev) + " times the standard case");
+      const sf = $('[data-v="sevfill"]', row); sf.style.left = "0"; sf.style.width = (c.sev / 2 * 100) + "%"; $('[data-v="sevstart"]', row).style.left = (st.sev / 2 * 100) + "%";
+    }
+  } else {
+    const span = d.max - d.min, fr = v => (clamp(v, d.min, d.max) - d.min) / span * 100;
+    set($('[data-f="low"]', row), num(c.low)); set($('[data-f="mid"]', row), num(c.mid)); set($('[data-f="high"]', row), num(c.high)); set(sl, c.mid);
+    fill.style.left = fr(c.low) + "%"; fill.style.width = Math.max(0, fr(c.high) - fr(c.low)) + "%"; start.style.left = fr(st.mid) + "%";
+    sl.setAttribute("aria-valuetext", "central " + num(c.mid) + ", low " + num(c.low) + ", high " + num(c.high) + " " + d.unit);
+  }
+  const ch = isChanged(id), g = given[id];
+  row.classList.toggle("changed", ch); row.classList.toggle("supposed", g !== undefined);
+  start.hidden = !ch;
+  for (const b of $$("[data-sup]", row)){ const raw = b.getAttribute("data-sup"); b.setAttribute("aria-pressed", String(String(g) === raw)); }
+  // the line under the slider: what it was, and where it lands in a supposed situation
+  const note = $('[data-v="note"]', row), bits = [];
+  if (ch){
+    const was = ev ? pct(st.p) + (usesSev(d) && Math.abs(c.sev - st.sev) > 1e-9 ? ", " + num(st.sev) + " × as bad" : "") : num(st.low) + " · " + num(st.mid) + " · " + num(st.high);
+    bits.push(h("span", {}, "Started at ", h("b", {text: was}), " ", h("button", {type: "button", onclick: () => { cur[id] = Object.assign({}, st); sync(id, {force: true}); updateBar(); request(); }, text: "Reset"})));
+  }
+  const rs = RES.refKind === "nosit" && RES.cur && RES.cur.n ? RES.cur.drivers[id] : null;
+  if (rs && g === undefined && Object.keys(given).some(k => LINKED[id] && LINKED[id].has(k))){
+    if (ev && Math.abs(rs.p - c.p) >= 0.005) bits.push(h("span", {}, "In this situation its chance is ", h("b", {text: pct(rs.p)})));
+    if (!ev && Math.abs(rs.mid - c.mid) >= Math.max(0.5, (d.max - d.min) * 0.005)) bits.push(h("span", {}, "In this situation its central case is ", h("b", {text: num(rs.mid)})));
+  }
+  note.replaceChildren(...bits);
+}
+function syncAll(){ for (const d of MODEL.drivers) sync(d.id); updateBar(); }
+function updateBar(){
+  const n = nChanged(), g = Object.keys(given).length;
+  $("#dchanged").textContent = n ? (n === 1 ? "1 changed from its starting number" : n + " changed from their starting numbers") : "These are the starting numbers";
+  $("#reset-all").disabled = !n && !g;
+}
+function buildDrivers(){
+  const list = $("#dlist");
+  for (const g of FILE.groups){
+    const ds = MODEL.drivers.filter(d => d.group === g.id);
+    if (!ds.length) continue;
+    const ne = ds.filter(d => d.kind === "event").length, nr = ds.length - ne;
+    list.append(h("div", {class: "grp", id: "g-" + g.id},
+      h("div", {class: "grp-h"}, h("h3", {text: g.label}), h("span", {class: "cap", text: [ne ? ne + (ne === 1 ? " yes-or-no question" : " yes-or-no questions") : null, nr ? nr + (nr === 1 ? " quantity" : " quantities") : null].filter(Boolean).join(", ")})),
+      ds.map(driverRow)));
+  }
+  $("#reset-all").addEventListener("click", () => {
+    for (const d of MODEL.drivers) cur[d.id] = Object.assign({}, START[d.id]);
+    for (const k of Object.keys(given)) delete given[k];
+    for (const d of MODEL.drivers) sync(d.id, {force: true});
+    updateBar(); request();
+  });
+}
+function jumpTo(id){
+  const row = $("#d-" + id); if (!row) return;
+  row.scrollIntoView({behavior: reduceMotion ? "auto" : "smooth", block: "center"});
+  row.classList.add("flash"); setTimeout(() => row.classList.remove("flash"), 1600);
+  const f = $(".nf", row); if (f) f.focus({preventScroll: true});
+}
+
+/* ---------------- results ---------------- */
+function render(){
+  const r = RES.cur, ref = RES.ref && RES.ref.n ? RES.ref : null, sit = anyGiven();
+  // the supposed situation
+  $("#situ").hidden = !sit;
+  if (sit){
+    $("#situ-chips").replaceChildren(...Object.keys(given).map(id => {
+      const g = given[id], d = BY[id], what = g === true ? "happens" : g === false ? "does not happen" : g === "low" ? "at its low case or worse" : "at its high case or better";
+      return h("span", {class: "chipx"}, d.label + ": " + what, h("button", {type: "button", class: "xbtn", "aria-label": "Stop supposing: " + d.label, onclick: () => { delete given[id]; syncAll(); request(); }, text: "×"}));
+    }));
+    $("#situ-t").textContent = r.n ? "With your numbers this situation has a chance of " + pct(r.chance) + ". Everything linked to it has shifted; the rows on the left show where each lands." : "";
+  }
+  const none = !r.n;
+  $("#empty").hidden = !none;
+  for (const id of ["hero", "b-hist", "b-lim", "b-mat", "b-out"]) $("#" + id).hidden = none;
+  if (none){
+    $("#empty-t").replaceChildren(h("b", {text: r.tried ? "This situation is too rare to show." : "This cannot happen with your numbers."}),
+      r.tried ? "It did not come up once in " + r.tried.toLocaleString("en-US") + " tries. Raise the chances involved, or suppose fewer things at once." : "One of the things you are supposing has a chance of zero, or of 100% when you suppose it does not happen.");
+    $("#mini").hidden = true; syncAll(); return;
+  }
+  // headline
+  const b = r.built;
+  $("#hero-v").textContent = Math.round(b.mean * 100) + "%";
+  const dl = $("#hero-d");
+  if (ref){
+    const dv = Math.round(b.mean * 100) - Math.round(ref.built.mean * 100);
+    dl.textContent = (dv === 0 ? "In line with " : pts(dv / 100) + (dv > 0 ? " above " : " below ")) + refName() + " (" + Math.round(ref.built.mean * 100) + "%)." + (r.n < r.asked ? " Based on the " + r.n.toLocaleString("en-US") + " futures found that match." : "");
+  }
+  dl.hidden = !ref;
+  $("#t-mid").textContent = pct(b.p50); $("#t-low").textContent = pct(b.p10);
+  $("#t-below").textContent = pct(r.below[$("#t-thr").value]);
+  $("#t-tight").textContent = Math.round(r.tight.p50 * 100) + "%";
+  renderHist(r, ref); renderLimits(r, ref); renderMatters(r); renderOutputs(r);
+  $("#mini-v").textContent = Math.round(b.mean * 100) + "% of plan";
+  $("#mini-t").textContent = "average · 1-in-10 low " + pct(b.p10);
+  $("#live").textContent = "On average " + Math.round(b.mean * 100) + "% of plan gets built. One time in ten, " + pct(b.p10) + " or less.";
+  syncAll(); renderLinks();
+}
+
+let histState = null;
+function renderHist(r, ref){
+  const svg = $("#hist"), W = 400, H = 176, L = 2, R = 2, T = 24, B = 34, pw = W - L - R, ph = H - T - B, y0 = T + ph;
+  const lowq = Math.min(r.built.p05, ref ? ref.built.p05 : 1);
+  const lo = lowq >= 0.63 ? 60 : lowq >= 0.43 ? 40 : lowq >= 0.23 ? 20 : 0, step = lo >= 40 ? 2 : lo === 20 ? 4 : 5, nb = (100 - lo) / step, slot = pw / nb;
+  const agg = hh => { const o = new Array(nb).fill(0); for (let i = 0; i < 100; i++) o[clamp(Math.floor((i - lo) / step), 0, nb - 1)] += hh[i]; return o; };
+  const a = agg(r.hist), c = ref ? agg(ref.hist) : null, top = Math.max(...a, ...(c || [0]));
+  const ymax = [0.04, 0.06, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.8, 1].find(v => v >= top) || 1;
+  const y = v => y0 - v / ymax * ph, xv = v => L + (clamp(v * 100, lo, 100) - lo) / (100 - lo) * pw;
+  const kids = [];
+  for (const g of [ymax / 2, ymax]) kids.push(s("line", {class: "gl", x1: L, x2: W - R, y1: y(g), y2: y(g)}), s("text", {x: L + 2, y: y(g) - 3}, pct(g) + (g === ymax ? " of futures" : "")));
+  a.forEach((v, i) => {
+    if (!(v > 0)) return;
+    const x = L + i * slot + 1, w = slot - 2, yy = Math.min(y(v), y0 - 1), rr = Math.min(4, w / 2, y0 - yy);
+    kids.push(s("path", {class: "bar", "data-i": i, d: "M" + x + "," + y0 + "V" + (yy + rr) + "Q" + x + "," + yy + " " + (x + rr) + "," + yy + "H" + (x + w - rr) + "Q" + (x + w) + "," + yy + " " + (x + w) + "," + (yy + rr) + "V" + y0 + "Z"}));
+  });
+  if (c){
+    let dd = "";
+    c.forEach((v, i) => { const x = L + i * slot; dd += (i ? "V" : "M" + x + ",") + y(v) + "H" + (x + slot); });
+    kids.push(s("path", {class: "ref", d: dd}));
+  }
+  kids.push(s("line", {class: "ax", x1: L, x2: W - R, y1: y0 + 0.5, y2: y0 + 0.5}));
+  for (let t = lo; t <= 100; t += 20) kids.push(s("text", {x: L + (t - lo) / (100 - lo) * pw, y: y0 + 14, "text-anchor": t === lo ? "start" : t === 100 ? "end" : "middle"}, t + "%" + (t === lo && lo > 0 ? " or less" : "")));
+  kids.push(s("text", {x: W / 2, y: H - 3, "text-anchor": "middle"}, "capacity built, share of plan"));
+  const mx = xv(r.built.mean), right = mx > W - 96;
+  kids.push(s("line", {class: "med", x1: mx, x2: mx, y1: T - 12, y2: y0}), s("text", {class: "lab", x: mx + (right ? -5 : 5), y: T - 4, "text-anchor": right ? "end" : "start"}, "average " + Math.round(r.built.mean * 100) + "%"));
+  for (let i = 0; i < nb; i++) kids.push(s("rect", {class: "hit", "data-i": i, x: L + i * slot, y: T - 12, width: slot, height: ph + 12}));
+  svg.replaceChildren(...kids);
+  svg.setAttribute("aria-label", "Spread of capacity built across " + r.n.toLocaleString("en-US") + " futures. On average " + Math.round(r.built.mean * 100) + "% of plan; half of the futures at or above " + pct(r.built.p50) + "; 1 time in 10 at or below " + pct(r.built.p10) + ". Use the left and right arrow keys to read each bar.");
+  histState = {a, c, lo, step, nb, slot, L, y0, at: null};
+  $("#hist-cap").textContent = lo > 0 && a[0] > 0 ? "The first bar holds every future that ends below " + (lo + step) + "%." : "";
+  $("#hist-lg").replaceChildren(...(ref ? [h("span", {class: "lg"}, h("span", {class: "sw"}), sitLabel()), h("span", {class: "lg"}, h("span", {class: "sw line"}), refShort())] : []));
+  // the same in numbers
+  const rowsQ = [["p05", "5%"], ["p10", "10%"], ["p25", "25%"], ["p50", "50% (a typical future)"], ["p75", "75%"], ["p90", "90%"], ["p95", "95%"]];
+  $("#hist-tbl").replaceChildren(
+    h("thead", {}, h("tr", {}, h("th", {text: "Share of futures that end at or below"}), h("th", {class: "r", text: ref ? sitLabel() : "Capacity built"}), ref ? h("th", {class: "r", text: refShort()}) : null)),
+    h("tbody", {}, rowsQ.map(([k, lab]) => h("tr", {}, h("td", {text: lab}), h("td", {class: "r", text: pct(r.built[k])}), ref ? h("td", {class: "r", text: pct(ref.built[k])}) : null)),
+      h("tr", {}, h("td", {text: "Average of all futures"}), h("td", {class: "r", text: pct(r.built.mean)}), ref ? h("td", {class: "r", text: pct(ref.built.mean)}) : null)));
+}
+const sitLabel = () => RES.refKind === "nosit" ? "In this situation" : "Your numbers";
+function histTip(i){
+  const st = histState, a0 = st.lo + i * st.step, a1 = a0 + st.step;
+  const title = i === 0 && st.lo > 0 ? "Under " + a1 + "% of plan" : a0 + "% to " + a1 + "% of plan";
+  return [h("div", {class: "tt", text: title}), tipRow("", st.c ? sitLabel() : "Share of futures", pct(st.a[i])), st.c ? tipRow("ref", refShort(), pct(st.c[i])) : null].filter(Boolean);
+}
+function histFocus(i, x, y){
+  const svg = $("#hist"), st = histState; if (!st) return;
+  $$(".bar.on", svg).forEach(e => e.classList.remove("on"));
+  st.at = i;
+  if (i == null){ hideTip(); return; }
+  const bar = $('.bar[data-i="' + i + '"]', svg); if (bar) bar.classList.add("on");
+  if (x == null){ const hit = $('.hit[data-i="' + i + '"]', svg).getBoundingClientRect(); x = hit.left + hit.width / 2; y = hit.top + hit.height / 2; }
+  showTip(histTip(i), x, y);
+}
+(function histEvents(){
+  const svg = $("#hist");
+  svg.addEventListener("pointermove", e => { const t = e.target.closest("[data-i]"); if (t) histFocus(+t.getAttribute("data-i"), e.clientX, e.clientY); else histFocus(null); });
+  svg.addEventListener("pointerleave", () => histFocus(null));
+  svg.addEventListener("blur", () => histFocus(null));
+  svg.addEventListener("keydown", e => {
+    const st = histState; if (!st) return;
+    let i = st.at;
+    if (e.key === "ArrowRight") i = i == null ? Math.round(st.nb * 0.75) : Math.min(st.nb - 1, i + 1);
+    else if (e.key === "ArrowLeft") i = i == null ? Math.round(st.nb * 0.75) : Math.max(0, i - 1);
+    else if (e.key === "Home") i = 0; else if (e.key === "End") i = st.nb - 1;
+    else if (e.key === "Escape"){ histFocus(null); return; } else return;
+    e.preventDefault(); histFocus(i);
+  });
+})();
+
+function limitName(id, long){
+  if (id === "ok") return "Nothing: the whole plan gets built";
+  if (id === "demand") return "Demand: buyers want less than can be built";
+  const n = DATA.linkNames[id]; return n ? (long ? n[1] : n[0]) : id;
+}
+/** Limits with "on plan" and "the plan itself" merged, as {id: {share, avg}}. */
+function limitMap(res){
+  const m = {};
+  for (const x of res.limits){
+    const id = x.id === "none" || x.id === "plan" ? "ok" : x.id, e = m[id] || (m[id] = {share: 0, sum: 0});
+    e.share += x.share; e.sum += x.share * x.avgBuilt;
+  }
+  for (const k in m) m[k].avg = m[k].sum / m[k].share;
+  return m;
+}
+function renderLimits(r, ref){
+  const m = limitMap(r), mr = ref ? limitMap(ref) : null;
+  const ids = Object.keys(m).sort((a, b) => m[b].share - m[a].share), shown = ids.slice(0, 7), rest = ids.slice(7);
+  const scale = Math.max(0.3, ...shown.map(id => m[id].share), ...(mr ? shown.map(id => (mr[id] || {share: 0}).share) : [0]));
+  const rows = shown.map(id => {
+    const x = m[id], movers = (MOVERS[id] || []).map(k => BY[k].label), sub = movers.length ? "moved by " + movers.slice(0, 2).join(", ") + (movers.length > 2 ? " and " + (movers.length - 2) + " more" : "") : null;
+    const el = h(MOVERS[id] ? "button" : "div", Object.assign({class: "row"}, MOVERS[id] ? {type: "button", onclick: () => jumpTo(MOVERS[id][0])} : {tabindex: "0"}),
+      h("span", {class: "nm"}, limitName(id), sub ? h("small", {text: sub}) : null),
+      h("span", {class: "trk"}, h("i", {style: "width:" + (x.share / scale * 100) + "%"}), mr ? h("u", {style: "left:" + ((mr[id] || {share: 0}).share / scale * 100) + "%"}) : null),
+      h("span", {class: "val", text: pct(x.share)}));
+    return withTip(el, () => [h("div", {class: "tt", text: limitName(id, true)}), tipRow("", sitLabel(), pct(x.share) + " of futures"), mr ? tipRow("ref", refShort(), pct((mr[id] || {share: 0}).share)) : null,
+      h("p", {text: id === "ok" ? "Nothing in the chain falls short and buyers want at least the plan." : "When this is the limit, " + pct(x.avg) + " of the plan gets built on average." + (MOVERS[id] ? " Click to go to the number that moves it." : "")})].filter(Boolean));
+  });
+  if (rest.length){
+    const sh = rest.reduce((t, id) => t + m[id].share, 0);
+    rows.push(h("div", {class: "row other"}, h("span", {class: "nm", text: rest.length + (rest.length === 1 ? " other link" : " other links")}), h("span", {class: "trk"}, h("i", {style: "width:" + (sh / scale * 100) + "%"})), h("span", {class: "val", text: pct(sh)})));
+  }
+  $("#lim").replaceChildren(...rows);
+  $("#lim-lg").replaceChildren(...(ref ? [h("span", {class: "lg"}, h("span", {class: "sw tick"}), refShort())] : []));
+}
+function renderMatters(r){
+  const byShare = matMode === "share";
+  const list = r.matters.slice().sort((a, b) => byShare ? b.share - a.share : Math.abs(b.swing) - Math.abs(a.swing)).slice(0, 10);
+  const scale = byShare ? Math.max(0.2, ...list.map(x => x.share)) : Math.max(0.05, ...list.map(x => Math.abs(x.swing)));
+  $("#mat-cap").textContent = byShare ? "How much of the spread in what gets built goes with each number. Rare but severe things rank high." : "How far the average outcome moves: when an event happens against when it does not, or a quantity's high side against its low side.";
+  $("#mat").replaceChildren(...list.map(x => {
+    const d = BY[x.id], sw = Math.round(x.swing * 100), sign = sw > 0 ? "+" : sw < 0 ? "−" : "";
+    const swt = sign + Math.abs(sw) + (Math.abs(sw) === 1 ? " point" : " points") + (d.kind === "event" ? " if it happens" : ", high side against low");
+    const el = h("button", {type: "button", class: "row", onclick: () => jumpTo(x.id)},
+      h("span", {class: "nm"}, d.label, h("small", {text: byShare ? swt : pct(x.share) + " of the uncertainty"})),
+      h("span", {class: "trk"}, h("i", {style: "width:" + ((byShare ? x.share : Math.abs(x.swing)) / scale * 100) + "%"})),
+      h("span", {class: "val", text: byShare ? pct(x.share) : sign + Math.abs(sw)}));
+    return withTip(el, () => [h("div", {class: "tt", text: d.label}), tipRow("", "Share of the uncertainty", pct(x.share)), h("div", {class: "tr"}, h("span", {text: "Swing:"}), h("b", {text: swt})),
+      h("p", {text: "Shares overlap when numbers are linked, so they can add up to more than 100%. Click to go to this number."})]);
+  }));
+}
+function renderOutputs(r){
+  const lo = 0.4, fr = v => (clamp(v, lo, 1) - lo) / (1 - lo) * 100;
+  const rows = [h("div", {class: "orow hd"}, h("span", {text: "Stage"}), h("span", {text: "40% to 100% of plan"}), h("span", {class: "r", text: "Central"}), h("span", {class: "r", text: "Low"}))];
+  for (const o of MODEL.graph.outputs){
+    const q = r.outputs[o.id];
+    rows.push(withTip(h("div", {class: "orow", tabindex: "0"}, h("span", {text: o.label}),
+      h("span", {class: "oplot"}, h("i", {style: "left:" + fr(q.p10) + "%;width:" + Math.max(0.5, fr(q.p90) - fr(q.p10)) + "%"}), h("b", {style: "left:" + fr(q.p50) + "%"})),
+      h("span", {class: "r", text: pct(q.p50)}), h("span", {class: "r", text: pct(q.p10)})),
+      () => [h("div", {class: "tt", text: o.label}), tipRow("", "Central", pct(q.p50)), h("div", {class: "tr"}, h("span", {text: "1 time in 10 at or below:"}), h("b", {text: pct(q.p10)})), h("div", {class: "tr"}, h("span", {text: "1 time in 10 at or above:"}), h("b", {text: pct(q.p90)}))]));
+  }
+  $("#outs").replaceChildren(...rows);
+}
+$("#t-thr").addEventListener("change", () => { if (RES.cur && RES.cur.n) $("#t-below").textContent = pct(RES.cur.below[$("#t-thr").value]); });
+for (const b of $$("#mat-seg button")) b.addEventListener("click", () => {
+  matMode = b.getAttribute("data-m");
+  $$("#mat-seg button").forEach(x => x.setAttribute("aria-pressed", String(x === b)));
+  if (RES.cur && RES.cur.n) renderMatters(RES.cur);
+});
+$("#situ-clear").addEventListener("click", () => { for (const k of Object.keys(given)) delete given[k]; syncAll(); request(); });
+
+/* ---------------- links, in plain numbers, with the current chances ---------------- */
+function renderLinks(){
+  const live = id => Object.assign({}, BY[id], cur[id]);
+  const say = (a, b, rho) => {
+    const rd = ODDS.reading(a, b, rho), v = x => rd.unit === "chance" ? pct(x) : num(x);
+    return h("span", {class: "st"}, (rd.unit === "chance" ? "from a chance of " : "from a central case of "), h("b", {text: v(rd.base)}), " to ", h("b", {text: v(rd.given)}));
+  };
+  const word = r => (Math.abs(r) >= 0.5 ? "Strong" : Math.abs(r) >= 0.3 ? "Moderate" : "Weak") + (r > 0 ? ", same way" : ", opposite ways");
+  const high = d => d.kind === "range" ? h("span", {class: "why", text: "when it comes in at its high case or better"}) : null;
+  const body = FILE.links.map(l => {
+    const a = live(l.a), b = live(l.b);
+    return h("tr", {}, h("td", {class: "pair"}, h("span", {"data-n": "1", text: a.label}), h("br"), h("span", {"data-n": "2", text: b.label}), h("span", {class: "why", text: l.why})),
+      h("td", {class: "st"}, h("b", {text: (l.rho > 0 ? "+" : "−") + Math.abs(l.rho).toFixed(1)}), " " + word(l.rho)),
+      h("td", {}, b.label, h("br"), say(a, b, l.rho), high(a)),
+      h("td", {}, a.label, h("br"), say(b, a, l.rho), high(b)));
+  });
+  $("#lk-tbl").replaceChildren(h("thead", {}, h("tr", {}, h("th", {text: "These two"}), h("th", {text: "Link"}), h("th", {text: "If the first happens, the second goes"}), h("th", {text: "If the second happens, the first goes"}))), h("tbody", {}, body));
+}
+
+/* ---------------- start ---------------- */
+(function nav(){
+  const n = DATA.nav || {};
+  $("#nav-odds").setAttribute("aria-current", "page");
+  $("#nav-supply").href = DATA.supplyUrl; $("#nav-atlas").href = DATA.atlasUrl;
+  $("#nav-odds-c").textContent = n.odds || "";
+  $("#nav-supply-c").textContent = (n.supply || "") + " →"; $("#nav-atlas-c").textContent = (n.atlas || "") + " →";
+})();
+(function start(){
+  const ne = MODEL.drivers.filter(d => d.kind === "event").length, nr = MODEL.drivers.length - ne;
+  $("#asof").textContent = "Starting numbers as of " + fmtDate(FILE.asOf);
+  $("#period").textContent = "Outcome: " + FILE.period.label.toLowerCase();
+  $("#notice-t").textContent = FILE.statusNote;
+  $("#lab-dek").textContent = ne + " yes-or-no questions and " + nr + " quantities decide how much AI data-center capacity gets built in " + FILE.period.label.toLowerCase().replace("calendar ", "") + ". Set the chance of each, and the page runs " + N.toLocaleString("en-US") + " futures to show how much of the plan gets built, how wide the spread is, and what holds it back.";
+  $("#dcount").textContent = MODEL.drivers.length + " things that could change the outcome";
+  $("#method-plan").textContent = FILE.plan;
+  $("#method-basis").textContent = FILE.statusNote + " Each row's About panel says where its number comes from.";
+  $("#foot").textContent = "Starting numbers as of " + fmtDate(FILE.asOf) + ": first estimates, not yet researched one by one. Research model, not investment advice.";
+  if (!DATA.file){ fail("The model file (data/odds.json) has a problem, so there is nothing to run. The Update desk on The Chain lists what is wrong."); return; }
+  const problems = ODDS.check(MODEL);
+  if (problems.length){ fail("The model file has a problem: " + problems[0]); return; }
+  buildDrivers(); syncAll(); renderLinks(); request();
+  // on a phone the results scroll away while you change numbers: keep the headline in a bar at the bottom
+  if ("IntersectionObserver" in window){
+    let heroSeen = true;
+    const mini = $("#mini");
+    new IntersectionObserver(es => { heroSeen = es[0].isIntersecting; mini.hidden = heroSeen || !RES.cur || !RES.cur.n; }, {threshold: 0}).observe($("#hero"));
+  }
+})();
+window.ODDSLAB = {get res(){ return RES; }, get busy(){ return busy || !!pending; }, cur, given, usingWorker: () => !!worker, compute, N, SEED, MODEL};
+</script>

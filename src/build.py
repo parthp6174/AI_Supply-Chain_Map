@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build both pages from the data files.
+"""Build the three pages from the data files.
 
     python src/build.py                                  # GitHub Pages site -> site/
     python src/build.py --target artifact                # claude.ai versions -> dist/artifact/
@@ -8,7 +8,8 @@
     python src/build.py --lenient                        # CI: skip broken developments and report them instead of failing
     python src/build.py --out /tmp/site                  # write the site somewhere else (the desk tests do this)
 
-Inputs: src/supply/supply_data.py, src/atlas/data_items.py and data/developments.json.
+Inputs: src/supply/supply_data.py, src/atlas/data_items.py, data/developments.json and, for The Odds,
+data/odds.json with src/common/odds_engine.js.
 By default the build stops with a clear message if a development links to something that does not exist.
 With --lenient (used by the GitHub workflow) it drops only the broken part, keeps building so prices keep
 updating, and lists what it dropped in site/data/build.json for the Update desk to show.
@@ -25,8 +26,9 @@ import supply_data as D         # noqa: E402
 import supply_model as M        # noqa: E402
 
 # Names shown to readers. To rename, change these and search src/, README.md and docs/ for the old page names.
-NAMES = dict(brand="Chokepoint", chain="The Chain", money="The Money")
+NAMES = dict(brand="Chokepoint", chain="The Chain", money="The Money", odds="The Odds")
 MONEY_PATH = "money"            # the investment page; "investment-atlas" (its first address) redirects here
+ODDS_PATH = "odds"              # the probability lab (GitHub Pages only)
 REPO = "Parthp6174/AI_Supply-Chain_Map"
 REPO_URL = "https://github.com/" + REPO
 SITE_URL = "https://parthp6174.github.io/AI_Supply-Chain_Map/"
@@ -306,6 +308,35 @@ def box(lon0, lon1, lat0, lat1):
     return [round(float(x.min()), 1), round(float(y.min()), 1), round(float(x.max()), 1), round(float(y.max()), 1)]
 
 
+def load_odds(problems, lenient):
+    """The probability lab's model (data/odds.json), checked against the chain. tests/test_engine.mjs checks it in
+    depth; this catches a file that cannot be read or that names a link, scenario or driver that does not exist."""
+    path = os.path.join(ROOT, "data", "odds.json")
+    try:
+        with open(path, encoding="utf-8") as f:
+            o = json.load(f)
+        bad = []
+        nodes = {n["id"] for n in D.NODES}; scen = {s["id"] for s in D.SCEN}; ids = [d["id"] for d in o["drivers"]]
+        for d in o["drivers"]:
+            for e in d["effects"]:
+                if e["t"] == "scen" and e["id"] not in scen: bad.append(f"{d['id']}: unknown scenario '{e['id']}'")
+                if "node" in e and e["node"] not in nodes: bad.append(f"{d['id']}: unknown link '{e['node']}'")
+        for l in o["links"]:
+            if l["a"] not in ids or l["b"] not in ids: bad.append(f"link {l['a']} - {l['b']}: unknown driver")
+        if len(set(ids)) != len(ids): bad.append("a driver id is used twice")
+        for k in ("asOf", "period", "groups", "buyers", "statusNote", "plan"):
+            if k not in o: bad.append(f"'{k}' is missing")
+    except (OSError, ValueError, KeyError, TypeError) as e:
+        o, bad = None, [f"could not be read ({type(e).__name__}: {e})"]
+    if bad:
+        msg = "data/odds.json: " + "; ".join(bad[:6])
+        if not lenient:
+            raise BuildError(msg + "\nRun: node tests/test_engine.mjs")
+        problems.append(msg + ". The Odds shows an error until this is fixed.")
+        return None
+    return o
+
+
 def desk_config(page):
     """Settings the Update desk (src/common/desk.js) needs on the GitHub Pages site."""
     up = "" if page == "supply" else "../"
@@ -365,12 +396,14 @@ def build(target, quotes_path, lenient=False, site_dir=None):
     qmeta = merge_quotes(Q, quotes_path)
     gh = target == "github"
     rev = (os.environ.get("GITHUB_SHA") or "")[:12]   # set by GitHub Actions; lets a cached page notice a newer build
-    # one-line summaries for the switch at the top of both pages
+    odds = load_odds(problems, lenient) if gh else None
+    # one-line summaries for the switch at the top of every page
     nav = dict(supply=f"{len(nodes)} links from mine to model, {sum(1 for n in nodes if n.get('choke'))} chokepoints, {len(Q)} stocks",
-               atlas=f"The investment numbers: {money(sum(sum(b['capex']) for b in A.BUILDERS))} of capex, {len(items)} projects, the payback test")
+               atlas=f"The investment numbers: {money(sum(sum(b['capex']) for b in A.BUILDERS))} of capex, {len(items)} projects, the payback test",
+               odds=f"Set the odds on {len(odds['drivers']) if odds else 'the'} things that could change 2027 and see what gets built")
     links = dict(
-        supply=dict(companion=MONEY_PATH + "/" if gh else ARTIFACT_URLS["atlas"], quotes="data/quotes.json" if gh else None),
-        atlas=dict(companion="../" if gh else ARTIFACT_URLS["supply"], quotes="../data/quotes.json" if gh else None))
+        supply=dict(companion=MONEY_PATH + "/" if gh else ARTIFACT_URLS["atlas"], quotes="data/quotes.json" if gh else None, odds=ODDS_PATH + "/" if gh else None),
+        atlas=dict(companion="../" if gh else ARTIFACT_URLS["supply"], quotes="../data/quotes.json" if gh else None, odds="../" + ODDS_PATH + "/" if gh else None))
 
     # ---------------- supply page
     M.NODE.clear(); M.NODE.update({n["id"]: n for n in nodes})
@@ -411,7 +444,7 @@ def build(target, quotes_path, lenient=False, site_dir=None):
     tw = next(s for s in scen if s["id"] == "taiwan")
     O0 = M.outputs(M.avail(M.scenario_shocks(tw, 0))); O1 = M.outputs(M.avail(M.scenario_shocks(tw, 1)))
     for nd in nodes: nd["box"] = L["boxes"][nd["id"]]
-    sdata = dict(asOf="2026-09-30", target=target, atlasUrl=links["supply"]["companion"], quotesUrl=links["supply"]["quotes"],
+    sdata = dict(asOf="2026-09-30", target=target, atlasUrl=links["supply"]["companion"], oddsUrl=links["supply"]["odds"], quotesUrl=links["supply"]["quotes"],
                  quotesMeta=qmeta, repoUrl=REPO_URL, tiers=[dict(id=t, label=l) for t, l in D.TIERS], nodes=nodes,
                  layout=dict(w=L["w"], h=L["h"], bands=L["bands"], colw=L["colw"], top=L["top"]),
                  groupOther={a + "|" + b: v for (a, b), v in D.GROUP_OTHER.items()}, outputs=D.OUTPUTS, scen=scen, sites=sp,
@@ -454,13 +487,25 @@ def build(target, quotes_path, lenient=False, site_dir=None):
                 dict(label="Texas", box=box(-107.2, -93.3, 25.6, 36.6)), dict(label="Europe", box=box(-12, 30, 35, 70)),
                 dict(label="Gulf & India", box=box(44, 90, 8, 30)), dict(label="East Asia", box=box(110, 146, 20, 43))]
     market = [dict(k=k, n=D.C[k][0], t=D.C[k][1], q=Q[k]) for k in MARKET_KEYS if k in Q]
-    adata = dict(asOf="2026-09-30", target=target, supplyUrl=links["atlas"]["companion"], quotesUrl=links["atlas"]["quotes"],
+    adata = dict(asOf="2026-09-30", target=target, supplyUrl=links["atlas"]["companion"], oddsUrl=links["atlas"]["odds"], quotesUrl=links["atlas"]["quotes"],
                  quotesMeta=qmeta, repoUrl=REPO_URL, items=pts, sources=asources, flows=flows, builders=A.BUILDERS, labs=labs,
                  antSchedule=[list(x) for x in A.ANT_SCHEDULE], collectors=A.COLLECTORS, regions=aregions, labSigned=lab_signed,
                  market=market, devs=dev_payload(dev, "atlas"), siteUrl=SITE_URL, rev=rev, nav=nav, names=NAMES, desk=desk_config("atlas") if gh else None)
     with open(os.path.join(ROOT, "src", "atlas", "template.html")) as f:
         atpl = f.read()
     atlas_html = atpl.replace("__DATA__", dump(adata)).replace("__GEO__", dump(g))
+
+    # ---------------- the probability lab (GitHub Pages only): the engine and the model are inlined
+    odds_html = ""
+    if gh:
+        odata = dict(target=target, rev=rev, nav=nav, names=NAMES, supplyUrl="../", atlasUrl="../" + MONEY_PATH + "/", repoUrl=REPO_URL, siteUrl=SITE_URL,
+                     file=odds, chain=M.export_graph(), linkNames={n["id"]: [n.get("short") or n["name"], n["name"]] for n in nodes})
+        with open(os.path.join(ROOT, "src", "odds", "template.html"), encoding="utf-8") as f:
+            otpl = f.read()
+        with open(os.path.join(ROOT, "src", "common", "odds_engine.js"), encoding="utf-8") as f:
+            engine = f.read()
+        if "</script" in engine.lower(): raise BuildError("src/common/odds_engine.js must not contain '</script'")
+        odds_html = otpl.replace("__DATA__", dump(odata).replace("</", "<\\/")).replace("__ENGINE__", engine)
 
     if gh:
         site = site_dir or os.path.join(ROOT, "site")
@@ -469,6 +514,8 @@ def build(target, quotes_path, lenient=False, site_dir=None):
         ver = "?v=" + rev if rev else ""
         open(out1, "w").write(full_document(supply_html, f'<script src="desk.js{ver}" defer></script>'))
         open(out2, "w").write(full_document(atlas_html, f'<script src="../desk.js{ver}" defer></script>'))
+        out3 = os.path.join(site, ODDS_PATH, "index.html"); os.makedirs(os.path.dirname(out3), exist_ok=True)
+        open(out3, "w").write(full_document(odds_html))
         old = os.path.join(site, "investment-atlas"); os.makedirs(old, exist_ok=True)
         open(os.path.join(old, "index.html"), "w").write(redirect_page("../" + MONEY_PATH + "/", NAMES["money"]))
         open(os.path.join(site, ".nojekyll"), "w").write("")
@@ -481,7 +528,8 @@ def build(target, quotes_path, lenient=False, site_dir=None):
         d = os.path.join(ROOT, "dist", "artifact"); os.makedirs(d, exist_ok=True)
         out1 = os.path.join(d, "ai-supply-chain-atlas.html"); out2 = os.path.join(d, "ai-investment-atlas.html")
         open(out1, "w").write(supply_html); open(out2, "w").write(atlas_html)
-    print(f"built {target}: {os.path.relpath(out1, ROOT)} ({len(supply_html)//1024} KB), {os.path.relpath(out2, ROOT)} ({len(atlas_html)//1024} KB);"
+    print(f"built {target}: {os.path.relpath(out1, ROOT)} ({len(supply_html)//1024} KB), {os.path.relpath(out2, ROOT)} ({len(atlas_html)//1024} KB)"
+          + (f", {os.path.relpath(out3, ROOT)} ({len(odds_html)//1024} KB);" if gh else ";") +
           f" {len(dev['entries'])} developments, {len(items)} atlas items, {len(sites)} sites; live quotes: {'yes' if qmeta else 'no'}")
     for p in problems:
         print("  warning:", p)

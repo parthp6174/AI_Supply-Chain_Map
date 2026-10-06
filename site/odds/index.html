@@ -1,0 +1,1655 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta property="og:title" content="The Odds · Chokepoint">
+<meta property="og:description" content="Set the odds on everything that could stall or speed up the AI build-out in 2027, and see what gets built.">
+<style>:root{color-scheme:light}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>The Odds · Chokepoint</title>
+<meta name="description" content="Set the odds on everything that could stall or speed up the AI build-out in 2027, and see what gets built.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..700&family=Big+Shoulders+Display:wght@600..900&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: masthead → the lab (a results rail beside the list of drivers) → links → method, on one 1240px column.
+   The UI stays steel-and-ink like the other two pages. One hue marks "your numbers" in every chart; whatever you
+   are being compared with (the starting numbers, or your numbers without a supposed situation) is drawn in ink. */
+:root{
+  --bg:#eef1f4; --surface:#fcfdfd; --raised:#ffffff;
+  --ink:#0f1720; --ink-2:#44505d; --muted:#5d6977; --faint:#8793a0;
+  --line:#d3dae1; --grid:#e3e8ed; --wash:#e9edf1;
+  --series:#2a78d6;
+  --good:#0ca30c; --warn:#fab219; --serious:#ec835a; --crit:#d03b3b;
+  --good-ink:#006300; --warn-ink:#7a4f00; --crit-ink:#a12828;
+  --focus:#1c5cab;
+  --font-display:"Big Shoulders Display","Arial Narrow","Roboto Condensed",sans-serif;
+  --font-sans:"Archivo",system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",sans-serif;
+  --font-mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --fs-xs:11px; --fs-sm:12.5px; --fs-md:14.5px; --fs-lg:17px; --fs-xl:22px;
+  --r:6px; --th:16px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0b1016; --surface:#111820; --raised:#161f29;
+    --ink:#e8edf2; --ink-2:#b4c0cc; --muted:#93a0ae; --faint:#6f7c8a;
+    --line:#263241; --grid:#1c2531; --wash:#18212b;
+    --series:#3987e5;
+    --good-ink:#4cd264; --warn-ink:#f5c14a; --crit-ink:#f08080;
+    --focus:#86b6ef;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0b1016; --surface:#111820; --raised:#161f29;
+  --ink:#e8edf2; --ink-2:#b4c0cc; --muted:#93a0ae; --faint:#6f7c8a;
+  --line:#263241; --grid:#1c2531; --wash:#18212b;
+  --series:#3987e5;
+  --good-ink:#4cd264; --warn-ink:#f5c14a; --crit-ink:#f08080;
+  --focus:#86b6ef;
+  color-scheme:dark;
+}
+@media (pointer:coarse){ :root{--th:24px} .ghost,.ghost.sm{min-height:40px;padding-inline:12px} .nf{min-height:42px} .seg button{min-height:38px} .tile select{min-height:32px} .xbtn{min-width:36px;min-height:36px} }
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--font-sans);font-size:var(--fs-md);line-height:1.5;margin:0}
+.wrap{max-width:1240px;margin:0 auto;padding-inline:clamp(16px,3vw,32px);padding-block:0}
+a{color:inherit;text-decoration-color:var(--faint);text-underline-offset:2px}
+a:hover{text-decoration-color:currentColor}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--focus);outline-offset:2px;border-radius:3px}
+.mono{font-family:var(--font-mono)}
+.muted{color:var(--muted)}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+/* ---------- masthead ---------- */
+.masthead{padding-block:clamp(28px,5vw,56px) 8px}
+.atlases{display:grid;grid-template-columns:auto repeat(3,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;max-width:1080px;margin-bottom:clamp(20px,3vw,30px)}
+.atlases a{display:grid;gap:2px;align-content:start;padding:10px 14px 11px;background:var(--bg);text-decoration:none;color:var(--ink-2);min-width:0}
+.atlases a:hover{background:var(--surface);color:var(--ink)}
+.atlases a[aria-current="page"]{background:var(--surface);color:var(--ink);box-shadow:inset 0 2px 0 var(--ink)}
+.atlases a:focus-visible{outline-offset:-2px}
+.atlases .at-t{font-weight:600;font-size:var(--fs-md);line-height:1.25}
+.atlases .at-c{font-family:var(--font-mono);font-size:var(--fs-xs);letter-spacing:.02em;line-height:1.45;color:var(--muted)}
+.atlases .at-brand{display:flex;align-items:center;padding:0 18px;background:var(--ink);color:var(--surface);font-family:var(--font-display);font-weight:800;font-size:22px;letter-spacing:.05em;text-transform:uppercase}
+@media (max-width:760px){ .atlases{grid-template-columns:repeat(3,minmax(0,1fr))} .atlases .at-brand{grid-column:1/-1;padding:7px 12px;font-size:17px} .atlases .at-c{display:none} .atlases a{padding:9px 12px 10px} .atlases .at-t{font-size:var(--fs-sm)} }
+.eyebrow{font-family:var(--font-mono);font-size:var(--fs-xs);letter-spacing:.09em;text-transform:uppercase;color:var(--muted);display:flex;flex-wrap:wrap;gap:6px 14px}
+.eyebrow span+span::before{content:"";display:inline-block;width:4px;height:4px;border-radius:50%;background:var(--faint);margin-right:14px;vertical-align:middle}
+h1{font-family:var(--font-display);font-weight:800;font-size:clamp(46px,8.4vw,104px);line-height:.86;letter-spacing:.005em;text-transform:uppercase;margin:14px 0 16px;text-wrap:balance}
+.dek{font-size:clamp(16px,1.6vw,19px);line-height:1.45;max-width:62ch;color:var(--ink-2);margin:0}
+.notice{margin-top:18px;display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 12px;align-items:baseline;background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--warn);border-radius:var(--r);padding:10px 14px;font-size:var(--fs-sm);color:var(--ink-2);max-width:92ch}
+.notice b{font-family:var(--font-mono);font-size:var(--fs-xs);font-weight:500;text-transform:uppercase;letter-spacing:.08em;color:var(--ink)}
+nav.toc{display:flex;flex-wrap:wrap;gap:4px 18px;margin:22px 0 0;font-size:var(--fs-sm);align-items:center}
+nav.toc a{text-decoration:none;color:var(--ink-2);padding:4px 0;border-bottom:1px solid transparent}
+nav.toc a:hover{color:var(--ink);border-bottom-color:var(--ink)}
+
+/* ---------- sections ---------- */
+section{padding-block:clamp(40px,6vw,64px) 0}
+.sec-head{display:grid;grid-template-columns:minmax(0,1fr);gap:8px;margin-bottom:18px;border-top:2px solid var(--ink);padding-top:14px}
+h2{font-family:var(--font-display);font-weight:800;text-transform:uppercase;font-size:clamp(30px,3.8vw,44px);line-height:.95;margin:0;letter-spacing:.01em;text-wrap:balance}
+.sec-head p{margin:0;max-width:72ch;color:var(--ink-2)}
+h3{font-size:var(--fs-lg);margin:0;line-height:1.3;text-wrap:balance}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r)}
+.k{font-family:var(--font-mono);font-size:var(--fs-xs);text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:500}
+.cap{font-size:var(--fs-xs);color:var(--muted);margin:0}
+.ghost{border:1px solid var(--line);background:var(--surface);border-radius:var(--r);padding:6px 11px;font-size:var(--fs-sm);cursor:pointer;color:var(--ink-2)}
+.ghost:hover{color:var(--ink);border-color:var(--faint)}
+.ghost:disabled{opacity:.5;cursor:default}
+.ghost[aria-pressed="true"]{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+.ghost.sm{padding:4px 9px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:var(--r);background:var(--surface);overflow:hidden;max-width:100%}
+.seg button{border:0;background:transparent;padding:4px 9px;font-size:var(--fs-xs);cursor:pointer;color:var(--ink-2);white-space:nowrap}
+.seg button+button{border-left:1px solid var(--line)}
+.seg button:hover{background:var(--wash);color:var(--ink)}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--surface)}
+.xbtn{border:0;background:transparent;cursor:pointer;color:var(--muted);font-size:16px;line-height:1;padding:2px 6px;border-radius:4px}
+.xbtn:hover{color:var(--ink);background:var(--wash)}
+
+/* ---------- the lab: results rail beside the drivers ---------- */
+.lab{display:grid;grid-template-columns:minmax(0,1fr) 440px;gap:24px;align-items:start}
+.rail{grid-column:2;grid-row:1;position:sticky;top:12px;max-height:calc(100vh - 24px);overflow:auto;overscroll-behavior:contain;scroll-margin-top:12px}
+.drivers{grid-column:1;grid-row:1;min-width:0;scroll-margin-top:12px}
+.rb{padding:16px 18px;border-top:1px solid var(--line)}
+.rb:first-child{border-top:0}
+.rb-h{display:flex;justify-content:space-between;align-items:center;gap:6px 12px;flex-wrap:wrap;margin-bottom:10px}
+.rb-h h3{font-size:var(--fs-md)}
+.live{transition:opacity .15s}
+.busy .live{opacity:.5}
+.hero .v{font-size:clamp(52px,6vw,64px);font-weight:600;letter-spacing:-.02em;line-height:1;margin-top:6px}
+.hero .v small{font-size:var(--fs-lg);font-weight:500;letter-spacing:0;color:var(--ink-2);margin-left:8px}
+.hero .sub{font-size:var(--fs-sm);color:var(--ink-2);margin:8px 0 0}
+.hero .delta{font-size:var(--fs-sm);margin:4px 0 0;font-weight:600}
+.tiles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;margin-top:14px}
+.tile{background:var(--surface);padding:10px 12px;display:grid;gap:3px;align-content:space-between}
+.tile .l{font-size:var(--fs-xs);color:var(--ink-2);line-height:1.4}
+.tile .v{font-size:24px;font-weight:600;line-height:1.15}
+.tile select{border:1px solid var(--line);border-radius:4px;background:var(--surface);padding:0 2px;font-size:var(--fs-xs);font-weight:600}
+.situ{background:var(--wash)}
+.situ .chips{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0}
+.chipx{display:inline-flex;align-items:center;gap:2px;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:1px 2px 1px 10px;font-size:var(--fs-sm)}
+.situ p{margin:0;font-size:var(--fs-sm);color:var(--ink-2)}
+.empty{font-size:var(--fs-sm);color:var(--ink-2);margin:0}
+.empty b{display:block;font-size:var(--fs-md);color:var(--ink);margin-bottom:4px}
+
+/* charts */
+.fig{margin:0}
+.legend{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:var(--fs-xs);color:var(--ink-2)}
+.lg{display:inline-flex;align-items:center;gap:6px}
+.sw{width:10px;height:10px;border-radius:2px;background:var(--series);flex:none}
+.sw.line{width:16px;height:2px;border-radius:1px;background:var(--ink-2)}
+.sw.tick{width:2px;height:12px;border-radius:0;background:var(--ink-2)}
+#hist{display:block;width:100%;height:auto;overflow:visible;margin-top:6px}
+#hist .bar{fill:var(--series)}
+#hist .bar.on{fill:color-mix(in srgb,var(--series) 72%,var(--ink))}
+#hist .ref{fill:none;stroke:var(--ink-2);stroke-width:2;stroke-linejoin:round;stroke-linecap:round}
+#hist .gl{stroke:var(--grid);stroke-width:1}
+#hist .ax{stroke:var(--line);stroke-width:1}
+#hist .med{stroke:var(--ink);stroke-width:1}
+#hist text{font-family:var(--font-sans);font-size:11px;fill:var(--muted)}
+#hist text.lab{fill:var(--ink);font-weight:600}
+#hist .hit{fill:transparent}
+details.numbers{margin-top:8px;font-size:var(--fs-sm)}
+details.numbers summary{cursor:pointer;color:var(--ink-2)}
+table{border-collapse:collapse;width:100%;font-size:var(--fs-sm)}
+th,td{padding:7px 10px;text-align:left;vertical-align:top;border-bottom:1px solid var(--grid)}
+thead th{font-weight:600;font-size:var(--fs-xs);text-transform:uppercase;letter-spacing:.05em;color:var(--muted);border-bottom:1px solid var(--line)}
+td.r,th.r{text-align:right;font-variant-numeric:tabular-nums}
+details.numbers table{margin-top:6px}
+details.numbers th,details.numbers td{padding:5px 8px}
+.rows{display:grid;gap:9px}
+.row{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr) 46px;gap:10px;align-items:center;font-size:var(--fs-sm);width:100%;text-align:left;background:transparent;border:0;padding:2px 4px;margin:0 -4px;border-radius:4px}
+button.row{cursor:pointer}
+button.row:hover{background:var(--wash)}
+.row .nm{min-width:0;line-height:1.25;font-weight:600}
+.row .nm small{display:block;color:var(--muted);font-size:var(--fs-xs);font-weight:400;margin-top:1px}
+.row .trk{position:relative;height:12px}
+.row .trk i{position:absolute;left:0;top:0;bottom:0;background:var(--series);border-radius:0 4px 4px 0;min-width:2px}
+.row .trk u{position:absolute;top:-3px;bottom:-3px;width:2px;margin-left:-1px;background:var(--ink-2);box-shadow:0 0 0 2px var(--surface)}
+.row .val{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
+.row.other .nm{font-weight:400;color:var(--ink-2)}
+.orow{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr) 40px 40px;gap:10px;align-items:center;font-size:var(--fs-sm);padding:2px 0}
+.orow.hd{font-size:var(--fs-xs);color:var(--muted)}
+.orow .r{text-align:right;font-variant-numeric:tabular-nums}
+.oplot{position:relative;height:14px}
+.oplot::before{content:"";position:absolute;left:0;right:0;top:50%;height:1px;background:var(--grid)}
+.oplot i{position:absolute;top:50%;height:2px;margin-top:-1px;background:var(--series);border-radius:1px}
+.oplot b{position:absolute;top:50%;width:10px;height:10px;margin:-5px 0 0 -5px;border-radius:50%;background:var(--series);box-shadow:0 0 0 2px var(--surface)}
+.tip{position:fixed;z-index:30;pointer-events:none;background:var(--raised);border:1px solid var(--line);border-radius:var(--r);box-shadow:0 6px 24px rgba(0,0,0,.14);padding:8px 10px;font-size:var(--fs-sm);line-height:1.4;max-width:270px}
+.tip .tt{font-weight:600;margin-bottom:2px}
+.tip .tr{display:flex;align-items:center;gap:7px;color:var(--ink-2)}
+.tip .tr b{color:var(--ink);font-variant-numeric:tabular-nums}
+.tip .ky{width:12px;height:2px;border-radius:1px;background:var(--series);flex:none}
+.tip .ky.ref{background:var(--ink-2)}
+.tip p{margin:4px 0 0;color:var(--ink-2)}
+
+/* drivers */
+.dbar{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;justify-content:space-between;margin-bottom:14px}
+.dbar .dcount{font-size:var(--fs-sm);color:var(--ink-2)}
+.dbar .dact{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.grp{margin-top:26px}
+.grp:first-of-type{margin-top:0}
+.grp-h{display:flex;align-items:baseline;justify-content:space-between;gap:10px;border-bottom:1px solid var(--line);padding-bottom:6px;margin-bottom:8px}
+.grp-h h3{font-family:var(--font-mono);font-size:var(--fs-xs);text-transform:uppercase;letter-spacing:.08em;color:var(--ink-2);font-weight:500}
+.drv{background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--line);border-radius:var(--r);padding:12px 14px 10px;margin-bottom:8px;scroll-margin-top:16px}
+.drv.changed{border-left-color:var(--ink)}
+.drv.supposed{border-left-color:var(--series);background:color-mix(in srgb,var(--series) 5%,var(--surface))}
+.drv.flash{outline:2px solid var(--focus);outline-offset:2px}
+.drv-top{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px 18px;align-items:start}
+.drv-l{font-weight:600;font-size:var(--fs-md);line-height:1.3;margin:0}
+.drv-q{font-size:var(--fs-sm);color:var(--ink-2);margin:3px 0 0;max-width:62ch}
+.fields{display:flex;align-items:flex-end;gap:6px}
+.fld{display:grid;gap:1px;justify-items:end}
+.fld span{font-size:10.5px;color:var(--muted);font-family:var(--font-mono);letter-spacing:.03em}
+.nf{width:58px;text-align:right;border:1px solid var(--line);border-radius:var(--r);background:var(--raised);padding:5px 7px;font-variant-numeric:tabular-nums;font-weight:600;font-size:var(--fs-md);-moz-appearance:textfield;appearance:textfield}
+.nf::-webkit-outer-spin-button,.nf::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.nf:hover{border-color:var(--faint)}
+.unit{font-size:var(--fs-xs);color:var(--muted);padding-bottom:8px;max-width:10ch;line-height:1.2}
+.drv-ctl{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 14px;align-items:center;margin-top:6px}
+.drv-btns{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.slw{position:relative;height:calc(var(--th) + 12px);display:flex;align-items:center}
+.slw .trk{position:absolute;left:calc(var(--th) / 2);right:calc(var(--th) / 2);top:50%;height:4px;margin-top:-2px;border-radius:2px;background:var(--line)}
+.slw .trk i{position:absolute;top:0;bottom:0;border-radius:2px;background:var(--ink-2)}
+.slw.rng .trk i{background:color-mix(in srgb,var(--series) 55%,var(--line))}
+.slw .trk u{position:absolute;top:-5px;bottom:-5px;width:2px;margin-left:-1px;background:var(--faint)}
+input.sl{-webkit-appearance:none;appearance:none;position:relative;width:100%;height:calc(var(--th) + 12px);margin:0;background:transparent;cursor:pointer}
+input.sl::-webkit-slider-runnable-track{height:4px;background:transparent}
+input.sl::-moz-range-track{height:4px;background:transparent}
+input.sl::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:var(--th);height:var(--th);border-radius:50%;background:var(--ink);border:2px solid var(--surface);box-shadow:0 0 0 1px var(--ink);margin-top:calc(2px - var(--th) / 2)}
+input.sl::-moz-range-thumb{width:calc(var(--th) - 4px);height:calc(var(--th) - 4px);border-radius:50%;background:var(--ink);border:2px solid var(--surface);box-shadow:0 0 0 1px var(--ink)}
+input.sl:focus-visible{outline:none}
+input.sl:focus-visible::-webkit-slider-thumb{box-shadow:0 0 0 1px var(--ink),0 0 0 4px color-mix(in srgb,var(--focus) 55%,transparent)}
+input.sl:focus-visible::-moz-range-thumb{box-shadow:0 0 0 1px var(--ink),0 0 0 4px color-mix(in srgb,var(--focus) 55%,transparent)}
+.drv-note{display:flex;flex-wrap:wrap;gap:2px 14px;font-size:var(--fs-xs);color:var(--muted);margin-top:2px;min-height:0}
+.drv-note b{color:var(--ink-2);font-weight:600}
+.drv-note button{border:0;background:transparent;padding:0;font-size:var(--fs-xs);color:var(--ink-2);text-decoration:underline;text-decoration-color:var(--faint);text-underline-offset:2px;cursor:pointer}
+.drv-note button:hover{color:var(--ink)}
+.drv-more{margin-top:10px;border-top:1px solid var(--grid);padding-top:10px;display:grid;gap:12px}
+.facts{display:grid;grid-template-columns:auto minmax(0,1fr);gap:5px 14px;margin:0;font-size:var(--fs-sm)}
+.facts dt{color:var(--muted)}
+.facts dd{margin:0;color:var(--ink-2);max-width:66ch}
+.tagb{display:inline-block;border:1px solid var(--line);border-radius:999px;padding:0 8px;font-size:var(--fs-xs);color:var(--ink-2);margin-right:6px;white-space:nowrap}
+.sevrow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 14px;align-items:center;max-width:520px}
+.sevrow label{font-size:var(--fs-sm);font-weight:600;grid-column:1/-1;display:flex;justify-content:space-between;gap:10px}
+.sevrow output{font-variant-numeric:tabular-nums}
+.sevrow .cap{grid-column:1/-1}
+.caret{display:inline-block;transition:transform .15s;margin-left:4px}
+[aria-expanded="true"] > .caret{transform:rotate(90deg)}
+
+/* links and method */
+.tbl-wrap{overflow:auto;border:1px solid var(--line);border-radius:var(--r);background:var(--surface)}
+.lk-tbl{min-width:820px}
+.lk-tbl td{color:var(--ink-2)}
+.lk-tbl .pair{color:var(--ink);font-weight:600}
+.lk-tbl .why{display:block;font-weight:400;color:var(--muted);font-size:var(--fs-xs);margin-top:2px;max-width:46ch}
+.lk-tbl .pair [data-n]::before{content:attr(data-n) ". ";color:var(--muted);font-weight:400;font-variant-numeric:tabular-nums}
+.lk-tbl .st{white-space:nowrap}
+.lk-tbl .st b{color:var(--ink);font-variant-numeric:tabular-nums}
+.method{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 36px}
+.method h3{margin:14px 0 6px}
+.method p,.method li{max-width:66ch;color:var(--ink-2);margin:0 0 8px}
+.method ul{margin:0;padding-left:1.2em}
+footer{padding-block:48px 72px;font-size:var(--fs-xs);color:var(--muted)}
+.mini{position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--ink);color:var(--surface);padding:9px 16px calc(9px + env(safe-area-inset-bottom,0px));display:flex;gap:4px 14px;align-items:baseline;flex-wrap:wrap;font-size:var(--fs-sm)}
+.mini b{font-size:var(--fs-lg)}
+.mini a{margin-left:auto;font-weight:600}
+.errbox{border-left:3px solid var(--crit);padding:12px 16px;font-size:var(--fs-sm)}
+
+@media (min-width:1100px){ .mini{display:none!important} }
+@media (max-width:1099px){
+  .lab{grid-template-columns:minmax(0,1fr)}
+  .rail,.drivers{grid-column:1;grid-row:auto}
+  .rail{position:static;max-height:none;overflow:visible}
+  .method{grid-template-columns:minmax(0,1fr)}
+}
+@media (max-width:620px){
+  .drv-top{grid-template-columns:minmax(0,1fr)}
+  .fields{justify-content:flex-start}
+  .fld{justify-items:start}
+  .drv-ctl{grid-template-columns:minmax(0,1fr)}
+  .drv-btns{justify-content:flex-start}
+  .facts{grid-template-columns:minmax(0,1fr);gap:0 0}
+  .facts dd{margin-bottom:8px}
+  .row{grid-template-columns:minmax(0,1.3fr) minmax(0,.8fr) 44px}
+}
+@media (prefers-reduced-motion:reduce){ *{transition:none!important;animation:none!important} }
+</style>
+
+</head>
+<body>
+<div class="wrap">
+<header class="masthead">
+  <nav class="atlases" aria-label="Chokepoint sections">
+    <span class="at-brand">Chokepoint</span>
+    <a id="nav-supply" href="#"><span class="at-t">The Chain</span><span class="at-c" id="nav-supply-c"></span></a>
+    <a id="nav-atlas" href="#"><span class="at-t">The Money</span><span class="at-c" id="nav-atlas-c"></span></a>
+    <a id="nav-odds" href="#"><span class="at-t">The Odds</span><span class="at-c" id="nav-odds-c"></span></a>
+  </nav>
+  <div class="eyebrow"><span>Probability lab</span><span id="asof"></span><span id="period"></span></div>
+  <h1>The Odds</h1>
+  <p class="dek">Put a number on everything that could stall or speed up the AI build-out, and see how much of the plan gets built. Every number here is yours to change.</p>
+  <div class="notice" id="notice"><b>Provisional</b><span id="notice-t"></span></div>
+  <nav class="toc" aria-label="Sections">
+    <a href="#results">Results</a><a href="#drivers">Your numbers</a><a href="#links">What moves together</a><a href="#method">How it works</a>
+  </nav>
+</header>
+
+<section id="lab" aria-labelledby="lab-h">
+  <div class="sec-head">
+    <h2 id="lab-h">Set your numbers</h2>
+    <p id="lab-dek"></p>
+  </div>
+  <noscript><p class="card errbox">This page needs JavaScript: it runs thousands of futures in your browser.</p></noscript>
+  <div class="card errbox" id="err" hidden></div>
+  <div class="lab" id="lab-grid">
+    <aside class="rail card" id="results" aria-label="Results">
+      <div class="rb situ" id="situ" hidden>
+        <div class="rb-h"><span class="k">Supposing</span><button type="button" class="ghost sm" id="situ-clear">Clear</button></div>
+        <div class="chips" id="situ-chips"></div>
+        <p id="situ-t"></p>
+      </div>
+      <div class="rb" id="empty" hidden><p class="empty" id="empty-t"></p></div>
+      <div class="rb hero live" id="hero">
+        <div class="k">Capacity built in 2027</div>
+        <div class="v"><span id="hero-v">–</span><small>of plan</small></div>
+        <p class="sub">The average across all the futures.</p>
+        <p class="delta" id="hero-d" hidden></p>
+        <div class="tiles">
+          <div class="tile"><span class="l">A typical future: half end above this, half below</span><span class="v" id="t-mid">–</span></div>
+          <div class="tile"><span class="l">1 time in 10 it ends at or below</span><span class="v" id="t-low">–</span></div>
+          <div class="tile"><span class="l"><label for="t-thr">Chance of ending below</label> <select id="t-thr"><option value="0.9">90%</option><option value="0.8" selected>80%</option><option value="0.7">70%</option><option value="0.6">60%</option></select> of plan</span><span class="v" id="t-below">–</span></div>
+          <div class="tile"><span class="l">What buyers want, against what can be built</span><span class="v" id="t-tight">–</span></div>
+        </div>
+      </div>
+      <div class="rb live" id="b-hist">
+        <div class="rb-h"><h3>How the futures spread</h3><div class="legend" id="hist-lg"></div></div>
+        <figure class="fig">
+          <svg id="hist" viewBox="0 0 400 176" tabindex="0" role="img" aria-label="Spread of capacity built"></svg>
+          <figcaption class="cap" id="hist-cap"></figcaption>
+        </figure>
+        <details class="numbers"><summary>The same in numbers</summary><table id="hist-tbl"></table></details>
+      </div>
+      <div class="rb live" id="b-lim">
+        <div class="rb-h"><h3>What holds it back</h3><div class="legend" id="lim-lg"></div></div>
+        <p class="cap" style="margin:-4px 0 10px">Share of futures in which each thing is the limit on what gets built, traced back to where the shortfall starts.</p>
+        <div class="rows" id="lim"></div>
+      </div>
+      <div class="rb live" id="b-mat">
+        <div class="rb-h"><h3>What matters most</h3><div class="seg" id="mat-seg" role="group" aria-label="Rank by"><button type="button" data-m="share" aria-pressed="true">Share of the uncertainty</button><button type="button" data-m="swing" aria-pressed="false">Size of the swing</button></div></div>
+        <p class="cap" id="mat-cap" style="margin:-4px 0 10px"></p>
+        <div class="rows" id="mat"></div>
+      </div>
+      <div class="rb live" id="b-out">
+        <div class="rb-h"><h3>Down the chain</h3></div>
+        <p class="cap" style="margin:-4px 0 8px">How much of the plan each stage can deliver. The line runs from the 1-in-10 low to the 1-in-10 high; the dot is the central case.</p>
+        <div id="outs"></div>
+      </div>
+    </aside>
+    <div class="drivers" id="drivers">
+      <div class="dbar">
+        <span class="dcount" id="dcount"></span>
+        <span class="dact"><span class="cap" id="dchanged" aria-live="polite"></span><button type="button" class="ghost" id="reset-all" disabled>Reset all</button></span>
+      </div>
+      <div id="dlist"></div>
+    </div>
+  </div>
+  <p class="sr" id="live" aria-live="polite"></p>
+</section>
+
+<section id="links" aria-labelledby="links-h">
+  <div class="sec-head">
+    <h2 id="links-h">What moves together</h2>
+    <p>A link says two things tend to go the same way (above zero) or opposite ways (below zero). Each one is shown as it plays out with your numbers. Changing one chance does not move the things linked to it; supposing that it happens does. This version uses the starting links as they are: changing them is the next addition to this page.</p>
+  </div>
+  <div class="tbl-wrap"><table class="lk-tbl" id="lk-tbl"></table></div>
+</section>
+
+<section id="method" aria-labelledby="method-h">
+  <div class="sec-head">
+    <h2 id="method-h">How it works</h2>
+    <p id="method-plan"></p>
+  </div>
+  <div class="method">
+    <div>
+      <h3>Thousands of futures</h3>
+      <p>Each future decides every yes-or-no question with the chance you set and draws every quantity from the range you set, letting linked ones move together. What happens is then applied to the chain, with the same weakest-link model as the worst cases in The Chain, and to buyers' orders. The page records what gets built in each future and counts.</p>
+      <p>The same 10,000 futures are reused every time, so a change in the results comes from your numbers and never from luck.</p>
+      <h3>Reading the numbers</h3>
+      <ul>
+        <li>A <b>chance</b> is how likely the answer to the question is yes, by its deadline.</li>
+        <li>For a quantity, <b>low</b> is the level undercut 1 time in 10, <b>central</b> has an even chance either side, and <b>high</b> is beaten 1 time in 10.</li>
+        <li>The headline is the <b>average</b> of all the futures, so it moves when something rare but severe becomes more likely. The <b>typical future</b> beside it barely moves in that case, which is why both are shown.</li>
+        <li><b>How bad, if it happens</b> scales an event's effect: 1 is the standard case, 0.5 half of it.</li>
+        <li><b>Suppose</b> keeps only the futures in which the thing happens. Everything linked to it shifts, and each affected row shows where it lands.</li>
+      </ul>
+    </div>
+    <div>
+      <h3>What this leaves out</h3>
+      <ul>
+        <li>Stockpiles and delivery times. A shortfall cuts what is built in the same year.</li>
+        <li>Timing detail. An event is equally likely to start on any day between now, or its earliest possible date, and its deadline.</li>
+        <li>Supply above the plan. A link that delivers more than planned is counted as delivering the plan.</li>
+        <li>Workarounds. A shortfall in a scarce input passes down the chain exactly as in The Chain's stress model.</li>
+      </ul>
+      <h3>Where the starting numbers come from</h3>
+      <p id="method-basis"></p>
+      <p>Your changes stay on this page and are gone when you reload. Saving sets of numbers is planned.</p>
+    </div>
+  </div>
+</section>
+
+<footer id="foot"></footer>
+<div class="mini" id="mini" hidden><b id="mini-v"></b><span id="mini-t"></span><a href="#results">Results ↑</a></div>
+<div class="tip" id="tip" hidden></div>
+</div>
+
+<script id="odds-engine">/* Odds engine for Chokepoint's probability lab. Pure functions: no page, no storage, no network.
+   Works in the browser (window.ODDS) and in Node (require / import), so the same code is tested and shipped.
+
+   The idea in plain words
+   -----------------------
+   - A DRIVER is something uncertain. An "event" either happens or not (you give its probability). A "range" is a
+     quantity (you give a low case that is undercut 1 time in 10, a central case, and a high case beaten 1 time in 10).
+   - Drivers move together. Each driver gets a hidden bell-curve number; the hidden numbers are correlated the way
+     you say, and each driver's outcome is read off its own hidden number. This keeps every driver's own probability
+     exactly as you set it, whatever the correlations (a "Gaussian copula").
+   - "If A happens, B's chance becomes X" and a correlation are two views of the same link; cond() and rhoForCond()
+     convert between them.
+   - A set of correlations can be impossible together (A moves with B, B with C, but A against C). repairCorr()
+     finds the closest set that is possible and reports how much it had to change.
+   - Each simulated future turns the drivers into shocks on the supply chain and cuts or boosts to demand, runs the
+     chain's weakest-link model, and records what gets built. Thousands of futures give the odds.
+   - A SITUATION ("suppose the blockade happens") keeps only the futures that match it, so everything linked to it
+     shifts with it. Picking futures by their outcome ("the build-out falls 20% short") and asking what they have
+     in common works the same way, in reverse.
+
+   Two conventions to keep in mind
+   - A positive correlation means two events tend to happen together, or an event goes with the high side of a
+     range, or two ranges come in high together. Whether "high" is good or bad depends on the driver.
+   - Outcomes are shares of the plan for the period: 1 = everything planned is delivered or ordered.
+*/
+(function(root, factory){
+  if (typeof module === "object" && module.exports) module.exports = factory();
+  else root.ODDS = factory();
+})(typeof self !== "undefined" ? self : this, function(){
+"use strict";
+
+/* ---------------------------------------------------------------- random numbers */
+/** Seeded generator (mulberry32): the same seed always gives the same futures, so a change in the results is
+    caused by a change in the inputs and not by chance. Returns numbers strictly between 0 and 1. */
+function rng(seed){
+  let a = (seed >>> 0) || 1;
+  return function(){
+    a = (a + 0x6D2B79F5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return (((t ^ (t >>> 14)) >>> 0) + 0.5) / 4294967296;
+  };
+}
+
+/* ---------------------------------------------------------------- the bell curve */
+/** Chance that a standard normal number is below x (Hart's algorithm as given by West, 2005; about 15 digits). */
+function normCdf(x){
+  if (x !== x) return NaN;
+  const a = Math.abs(x);
+  let c;
+  if (a > 37) c = 0;
+  else {
+    const e = Math.exp(-a * a / 2);
+    if (a < 7.07106781186547){
+      let b = 3.52624965998911e-02 * a + 0.700383064443688;
+      b = b * a + 6.37396220353165; b = b * a + 33.912866078383; b = b * a + 112.079291497871;
+      b = b * a + 221.213596169931; b = b * a + 220.206867912376;
+      c = e * b;
+      b = 8.83883476483184e-02 * a + 1.75566716318264;
+      b = b * a + 16.064177579207; b = b * a + 86.7807322029461; b = b * a + 296.564248779674;
+      b = b * a + 637.333633378831; b = b * a + 793.826512519948; b = b * a + 440.413735824752;
+      c = c / b;
+    } else {
+      let b = a + 0.65;
+      b = a + 4 / b; b = a + 3 / b; b = a + 2 / b; b = a + 1 / b;
+      c = e / b / 2.506628274631;
+    }
+  }
+  return x > 0 ? 1 - c : c;
+}
+const A_ = [-3.969683028665376e+01, 2.209460984245205e+02, -2.759285104469687e+02, 1.383577518672690e+02, -3.066479806614716e+01, 2.506628277459239e+00];
+const B_ = [-5.447609879822406e+01, 1.615858368580409e+02, -1.556989798598866e+02, 6.680131188771972e+01, -1.328068155288572e+01];
+const C_ = [-7.784894002430293e-03, -3.223964580411365e-01, -2.400758277161838e+00, -2.549732539343734e+00, 4.374664141464968e+00, 2.938163982698783e+00];
+const D_ = [7.784695709041462e-03, 3.224671290700398e-01, 2.445134137142996e+00, 3.754408661907416e+00];
+/** The x below which a standard normal number falls with chance p (Acklam's algorithm; `refine` adds one
+    correction step for full precision; sampling skips it). */
+function normInv(p, refine){
+  if (!(p > 0)) return p === 0 ? -Infinity : NaN;
+  if (!(p < 1)) return p === 1 ? Infinity : NaN;
+  let x;
+  if (p < 0.02425){
+    const q = Math.sqrt(-2 * Math.log(p));
+    x = (((((C_[0] * q + C_[1]) * q + C_[2]) * q + C_[3]) * q + C_[4]) * q + C_[5]) / ((((D_[0] * q + D_[1]) * q + D_[2]) * q + D_[3]) * q + 1);
+  } else if (p > 1 - 0.02425){
+    const q = Math.sqrt(-2 * Math.log(1 - p));
+    x = -(((((C_[0] * q + C_[1]) * q + C_[2]) * q + C_[3]) * q + C_[4]) * q + C_[5]) / ((((D_[0] * q + D_[1]) * q + D_[2]) * q + D_[3]) * q + 1);
+  } else {
+    const q = p - 0.5, r = q * q;
+    x = (((((A_[0] * r + A_[1]) * r + A_[2]) * r + A_[3]) * r + A_[4]) * r + A_[5]) * q / (((((B_[0] * r + B_[1]) * r + B_[2]) * r + B_[3]) * r + B_[4]) * r + 1);
+  }
+  if (refine !== false){
+    const e = normCdf(x) - p, u = e * Math.sqrt(2 * Math.PI) * Math.exp(x * x / 2);
+    x = x - u / (1 + x * u / 2);
+  }
+  return x;
+}
+
+/** Chance that two standard normal numbers with correlation rho are below h and below k at the same time.
+    Uses Phi(h)Phi(k) + (1/2pi) * integral from 0 to asin(rho) of exp(-(h^2 + k^2 - 2hk sin t) / (2 cos^2 t)) dt,
+    integrated with adaptive Simpson's rule. Checked against SciPy in tests/test_engine.mjs. */
+function bvnCdf(h, k, rho){
+  if (h === -Infinity || k === -Infinity) return 0;
+  if (h === Infinity) return normCdf(k);
+  if (k === Infinity) return normCdf(h);
+  if (rho >= 1) return normCdf(Math.min(h, k));
+  if (rho <= -1) return Math.max(0, normCdf(h) + normCdf(k) - 1);
+  const base = normCdf(h) * normCdf(k);
+  if (rho === 0) return base;
+  const hh = h * h + k * k, hk2 = 2 * h * k;
+  const f = t => { const c = Math.cos(t); return Math.exp(-(hh - hk2 * Math.sin(t)) / (2 * c * c)); };
+  const b = Math.asin(rho);
+  const simpson = (lo, hi, flo, fmid, fhi, whole, tol, depth) => {
+    const mid = (lo + hi) / 2, lm = (lo + mid) / 2, rm = (mid + hi) / 2, flm = f(lm), frm = f(rm);
+    const left = (mid - lo) / 6 * (flo + 4 * flm + fmid), right = (hi - mid) / 6 * (fmid + 4 * frm + fhi);
+    const delta = left + right - whole;
+    if (depth <= 0 || Math.abs(delta) <= 15 * tol) return left + right + delta / 15;
+    return simpson(lo, mid, flo, flm, fmid, left, tol / 2, depth - 1) + simpson(mid, hi, fmid, frm, fhi, right, tol / 2, depth - 1);
+  };
+  // integrate in a few panels so a sharp drop near the end of the range is not stepped over
+  let total = 0;
+  const panels = 8;
+  for (let i = 0; i < panels; i++){
+    const lo = b * i / panels, hi = b * (i + 1) / panels, flo = f(lo), fhi = f(hi), fmid = f((lo + hi) / 2);
+    total += simpson(lo, hi, flo, fmid, fhi, (hi - lo) / 6 * (flo + 4 * fmid + fhi), 1e-12, 28);
+  }
+  return Math.min(1, Math.max(0, base + total / (2 * Math.PI)));
+}
+
+/* ---------------------------------------------------------------- links between two events */
+/** Chance that both of two events happen, given each one's chance and the correlation of their hidden numbers. */
+function both(pa, pb, rho){
+  if (pa <= 0 || pb <= 0) return 0;
+  if (pa >= 1) return pb;
+  if (pb >= 1) return pa;
+  return bvnCdf(normInv(pa), normInv(pb), rho);
+}
+/** "If A happens, the chance of B becomes ...": P(B | A). */
+function cond(pa, pb, rho){ return pa > 0 ? both(pa, pb, rho) / pa : pb; }
+/** Find the correlation at which f(rho) equals target, for an f that rises with rho. Returns
+    {rho, reached, min, max}: `reached` is what f actually gives there, which differs from target only when target
+    is outside what is possible (min..max, at correlations -0.999 and +0.999). */
+function solveRho(f, target){
+  const LIM = 0.999, lo0 = f(-LIM), hi0 = f(LIM);
+  if (!(hi0 > lo0)) return {rho: 0, reached: f(0), min: lo0, max: hi0};
+  if (target <= lo0) return {rho: -LIM, reached: lo0, min: lo0, max: hi0};
+  if (target >= hi0) return {rho: LIM, reached: hi0, min: lo0, max: hi0};
+  let lo = -LIM, hi = LIM;
+  for (let i = 0; i < 44; i++){
+    const mid = (lo + hi) / 2;
+    if (f(mid) < target) lo = mid; else hi = mid;
+  }
+  const rho = (lo + hi) / 2;
+  return {rho, reached: f(rho), min: lo0, max: hi0};
+}
+/** The correlation that makes "if A happens, the chance of B becomes target" true. See solveRho for the result. */
+function rhoForCond(pa, pb, target){ return solveRho(r => cond(pa, pb, r), target); }
+/** Middle value of B's hidden number across the futures in which A's hidden number is in its top `pa` share
+    (A "happens", for an event with chance pa). Zero when the two are unrelated. */
+function condMedian(pa, rho){
+  if (!(pa > 0 && pa < 1) || !rho) return 0;
+  const t = normInv(1 - pa), half = pa / 2;
+  let lo = -9, hi = 9;
+  for (let i = 0; i < 44; i++){
+    const x = (lo + hi) / 2;
+    if (normCdf(x) - bvnCdf(x, t, rho) < half) lo = x; else hi = x;      // chance that B is below x and A happens
+  }
+  return (lo + hi) / 2;
+}
+/** A link between two drivers in plain numbers. The condition is "A happens" (event) or "A comes in at or above
+    its high case" (range, a 1-in-10 outcome); the reading is B's chance (event) or B's central case (range).
+    Returns {when: "happens" | "high", pa, unit: "chance" | "value", base, given}: base is B on its own, given is B
+    under the condition. */
+function reading(a, b, rho){
+  const isEv = a.kind === "event", pa = isEv ? a.p : 0.1, when = isEv ? "happens" : "high";
+  if (b.kind === "event") return {when, pa, unit: "chance", base: b.p, given: cond(pa, b.p, rho)};
+  return {when, pa, unit: "value", base: rangeValue(b, 0), given: rangeValue(b, condMedian(pa, rho))};
+}
+/** The correlation that makes reading(a, b, rho).given equal to target. See solveRho for the result. */
+function rhoForReading(a, b, target){ return solveRho(r => reading(a, b, r).given, target); }
+
+/* ---------------------------------------------------------------- correlation grids */
+function identity(n){ const m = []; for (let i = 0; i < n; i++){ m.push(new Array(n).fill(0)); m[i][i] = 1; } return m; }
+function copyM(a){ return a.map(r => r.slice()); }
+/** Cholesky factor L (lower triangle, L·Lᵀ = a), or null if `a` is not a valid (positive-definite) grid. */
+function cholesky(a){
+  const n = a.length, L = identity(n);
+  for (let i = 0; i < n; i++){
+    for (let j = 0; j <= i; j++){
+      let s = a[i][j];
+      for (let k = 0; k < j; k++) s -= L[i][k] * L[j][k];
+      if (i === j){ if (!(s > 1e-10)) return null; L[i][i] = Math.sqrt(s); }
+      else L[i][j] = s / L[j][j];
+    }
+    for (let j = i + 1; j < n; j++) L[i][j] = 0;
+  }
+  return L;
+}
+/** Eigenvalues and eigenvectors of a symmetric matrix (cyclic Jacobi). Returns {values, vectors} with vectors in columns. */
+function jacobiEigen(a){
+  const n = a.length, A = copyM(a), V = identity(n);
+  for (let sweep = 0; sweep < 100; sweep++){
+    let off = 0;
+    for (let i = 0; i < n; i++) for (let j = i + 1; j < n; j++) off += A[i][j] * A[i][j];
+    if (off < 1e-22) break;
+    for (let p = 0; p < n; p++) for (let q = p + 1; q < n; q++){
+      if (Math.abs(A[p][q]) < 1e-300) continue;
+      const theta = (A[q][q] - A[p][p]) / (2 * A[p][q]);
+      const t = (theta >= 0 ? 1 : -1) / (Math.abs(theta) + Math.sqrt(theta * theta + 1));
+      const c = 1 / Math.sqrt(t * t + 1), s = t * c;
+      for (let k = 0; k < n; k++){ const akp = A[k][p], akq = A[k][q]; A[k][p] = c * akp - s * akq; A[k][q] = s * akp + c * akq; }
+      for (let k = 0; k < n; k++){ const apk = A[p][k], aqk = A[q][k]; A[p][k] = c * apk - s * aqk; A[q][k] = s * apk + c * aqk; }
+      for (let k = 0; k < n; k++){ const vkp = V[k][p], vkq = V[k][q]; V[k][p] = c * vkp - s * vkq; V[k][q] = s * vkp + c * vkq; }
+    }
+  }
+  return {values: A.map((r, i) => r[i]), vectors: V};
+}
+function projectPsd(a, floor){
+  const n = a.length, {values, vectors} = jacobiEigen(a), out = identity(n);
+  for (let i = 0; i < n; i++) for (let j = 0; j < n; j++){
+    let s = 0;
+    for (let k = 0; k < n; k++) s += vectors[i][k] * Math.max(values[k], floor) * vectors[j][k];
+    out[i][j] = s;
+  }
+  return out;
+}
+/** Closest valid correlation grid to `a` (Higham's alternating projections), with a small floor on the
+    eigenvalues so the result can always be sampled from. */
+function nearestCorr(a){
+  const n = a.length;
+  let Y = copyM(a), dS = identity(n).map(r => r.map(() => 0));
+  for (let it = 0; it < 200; it++){
+    const R = Y.map((r, i) => r.map((v, j) => v - dS[i][j]));
+    const X = projectPsd(R, 0);
+    dS = X.map((r, i) => r.map((v, j) => v - R[i][j]));
+    let move = 0;
+    const Yn = X.map((r, i) => r.map((v, j) => i === j ? 1 : v));
+    for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) move = Math.max(move, Math.abs(Yn[i][j] - Y[i][j]));
+    Y = Yn;
+    if (move < 1e-10) break;
+  }
+  // make it strictly usable: lift tiny or negative eigenvalues, then rescale back to ones on the diagonal
+  const P = projectPsd(Y, 1e-6), out = identity(n);
+  for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) out[i][j] = i === j ? 1 : (P[i][j] + P[j][i]) / 2 / Math.sqrt(P[i][i] * P[j][j]);
+  return out;
+}
+/** Build the full grid from a list of pairs and repair it if the pairs cannot all hold together.
+    Returns {matrix, L, changed, maxDiff, worst: [idA, idB] | null}. */
+function repairCorr(ids, pairs){
+  const n = ids.length, at = new Map(ids.map((d, i) => [d, i])), M = identity(n);
+  for (const [a, b, r] of pairs || []){
+    const i = at.get(a), j = at.get(b);
+    if (i == null || j == null || i === j) continue;
+    const v = Math.max(-0.999, Math.min(0.999, +r || 0));
+    M[i][j] = v; M[j][i] = v;
+  }
+  let L = cholesky(M);
+  if (L) return {matrix: M, L, changed: false, maxDiff: 0, worst: null};
+  const fixed = nearestCorr(M);
+  L = cholesky(fixed);
+  let maxDiff = 0, worst = null;
+  for (let i = 0; i < n; i++) for (let j = i + 1; j < n; j++){
+    const d = Math.abs(fixed[i][j] - M[i][j]);
+    if (d > maxDiff){ maxDiff = d; worst = [ids[i], ids[j]]; }
+  }
+  return {matrix: fixed, L, changed: true, maxDiff, worst};
+}
+
+/* ---------------------------------------------------------------- drivers */
+const Z10 = 1.2815515655446004;                      // the bell-curve value exceeded 1 time in 10
+/** Value of a range driver for a hidden number z: `mid` at z = 0, `low` at the 1-in-10 low point, `high` at the
+    1-in-10 high point, straight lines of different slope on each side (a "split normal"), clamped to min/max. */
+function rangeValue(d, z){
+  const v = d.mid + z * (z < 0 ? (d.mid - d.low) : (d.high - d.mid)) / Z10;
+  return Math.min(d.max == null ? Infinity : d.max, Math.max(d.min == null ? -Infinity : d.min, v));
+}
+/** What a range driver's value means for a link or a buyer group: 1 at `base` (default 100), moving `k` for one
+    (default 1) with the value. A value of 90 against a base of 100 gives 0.9; with k = 0.5 it gives 0.95.
+    `add` is added to the value first, so a driver written as "15% above plan" (add: 100) gives 1.15. */
+function level(v, e){ return 1 + (e.k == null ? 1 : e.k) * ((v + (e.add || 0)) / (e.base || 100) - 1); }
+/** Share of the outcome period that an effect starting `t` months from now covers. The period starts
+    `period.start` months from now and lasts `period.len` months; `dur` (optional) is how long the effect lasts. */
+function overlap(t, period, dur){
+  const a = Math.max(t, period.start), end = period.start + period.len;
+  const b = dur == null ? end : Math.min(end, t + dur);
+  return Math.max(0, b - a) / period.len;
+}
+const EDITABLE = ["p", "low", "mid", "high", "sev"];
+/** Apply the owner's numbers on top of the model's starting numbers. `beliefs` is
+    {drivers: {id: {p, low, mid, high, sev}}, corr: [[a, b, rho], ...]}; pairs in beliefs replace the model's.
+    Only those five numbers can be changed, anything that is not a number is ignored, and the result is kept
+    sensible (a chance between 0 and 1, low <= central <= high), so an old or damaged saved set cannot break a run. */
+function applyBeliefs(model, beliefs){
+  const b = beliefs || {}, over = b.drivers || {};
+  const drivers = model.drivers.map(d => {
+    const o = Object.assign({sev: 1}, d), mine = over[d.id] || {};
+    for (const k of EDITABLE){ const v = mine[k]; if (typeof v === "number" && isFinite(v)) o[k] = v; }
+    if (o.kind === "event") o.p = Math.min(1, Math.max(0, o.p));
+    else { o.low = Math.min(o.low, o.mid); o.high = Math.max(o.high, o.mid); }
+    o.sev = Math.max(0, o.sev);
+    return o;
+  });
+  const key = (x, y) => x < y ? x + "|" + y : y + "|" + x, pairs = new Map();
+  for (const [x, y, r] of model.corr || []) pairs.set(key(x, y), [x, y, r]);
+  for (const pr of Array.isArray(b.corr) ? b.corr : []) if (Array.isArray(pr) && typeof pr[2] === "number" && isFinite(pr[2])) pairs.set(key(pr[0], pr[1]), [pr[0], pr[1], pr[2]]);
+  return {drivers, corr: [...pairs.values()]};
+}
+/** Turn a condition on drivers into tests. `where` is {driverId: true | false | "low" | "high" | [from, to]}:
+    true / false = the event happens / does not; "low" / "high" = a range comes in at or below its low case / at or
+    above its high case; [from, to] = a range lands between two values.
+    Returns {tests: [[driverIndex, fn, condition]], unknown}. */
+function compileWhere(drivers, where){
+  const tests = [], unknown = [];
+  for (const id of Object.keys(where || {})){
+    const i = drivers.findIndex(d => d.id === id), w = where[id], d = drivers[i];
+    if (i < 0){ unknown.push(id); continue; }
+    if (w === true) tests.push([i, v => v > 0.5, w]);
+    else if (w === false) tests.push([i, v => v <= 0.5, w]);
+    else if (w === "low") tests.push([i, v => v <= d.low, w]);
+    else if (w === "high") tests.push([i, v => v >= d.high, w]);
+    else if (Array.isArray(w) && w.length === 2) tests.push([i, v => v >= w[0] && v <= w[1], w]);
+    else unknown.push(id);
+  }
+  return {tests, unknown};
+}
+/** List what is wrong with a model definition (empty list = fine). */
+function check(model){
+  const out = [], nodes = new Set(model.graph.nodes.map(n => n.id)), ids = new Set();
+  const segW = (model.demand || {}).segments || {}, segs = new Set(Object.keys(segW).concat(["all"]));
+  const share = v => v >= 0 && v <= 1;
+  for (const d of model.drivers){
+    if (ids.has(d.id)) out.push("driver '" + d.id + "' is listed twice");
+    ids.add(d.id);
+    if (d.kind === "event"){
+      if (!share(d.p)) out.push(d.id + ": probability must be between 0 and 1");
+      if (d.window != null && !(d.window > 0)) out.push(d.id + ": window must be a number of months above 0");
+      if (d.from != null && !(d.from >= 0 && (d.window == null || d.from < d.window))) out.push(d.id + ": 'from' must be 0 or more and before the end of the window");
+    } else if (d.kind === "range"){
+      if (!(d.low <= d.mid && d.mid <= d.high)) out.push(d.id + ": needs low <= central <= high");
+      if ((d.min != null && !(d.min <= d.low)) || (d.max != null && !(d.max >= d.high))) out.push(d.id + ": min and max must enclose the low and high cases");
+    } else out.push(d.id + ": kind must be 'event' or 'range'");
+    if (d.sev != null && !(d.sev >= 0)) out.push(d.id + ": severity cannot be negative");
+    for (const e of d.effects || []){
+      if (e.t === "scen"){ if (!model.scen || !model.scen[e.id]) out.push(d.id + ": unknown scenario '" + e.id + "'"); }
+      else if (e.t === "shock" || e.t === "ramp" || e.t === "ease"){ if (!nodes.has(e.node)) out.push(d.id + ": unknown link '" + e.node + "'"); }
+      else if (e.t === "dem" || e.t === "demlvl"){ if (!segs.has(e.seg)) out.push(d.id + ": unknown buyer group '" + e.seg + "'"); }
+      else out.push(d.id + ": unknown effect type '" + e.t + "'");
+      if ((e.t === "ramp" || e.t === "demlvl") && d.kind !== "range") out.push(d.id + ": '" + e.t + "' needs a range driver");
+      if ((e.t === "scen" || e.t === "shock" || e.t === "dem" || e.t === "ease") && d.kind !== "event") out.push(d.id + ": '" + e.t + "' needs an event driver");
+      if (e.t === "shock" && !share(e.s)) out.push(d.id + ": a shock is a lost share between 0 and 1");
+      if (e.t === "ease" && !share(e.f)) out.push(d.id + ": 'ease' needs f between 0 and 1 (the share of the shortfall that remains)");
+      if (e.t === "dem" && !(e.m >= 0)) out.push(d.id + ": 'dem' needs m of 0 or more (what the group's orders are multiplied by)");
+      if (e.timing != null && e.timing !== "window" && e.timing !== "until" && e.timing !== "full") out.push(d.id + ": timing must be 'window', 'until' or 'full'");
+      if (e.t === "scen" && model.scen && model.scen[e.id]) for (const k of (e.only || []).concat(e.skip || [])) if (!((model.scen[e.id].h0 || {})[k] != null)) out.push(d.id + ": scenario '" + e.id + "' has no shock on '" + k + "'");
+      if ((e.t === "ramp" || e.t === "demlvl") && ((e.base != null && !(e.base > 0)) || (e.k != null && !isFinite(e.k)) || (e.add != null && !isFinite(e.add)))) out.push(d.id + ": 'base' must be above 0, and 'k' and 'add' numbers");
+      if (e.on != null && e.on !== "yes" && e.on !== "no") out.push(d.id + ": 'on' must be 'yes' or 'no'");
+      if (e.dur != null && !(e.dur > 0)) out.push(d.id + ": dur must be a number of months above 0");
+    }
+  }
+  const seen = new Set();
+  for (const [a, b, r] of model.corr || []){
+    const k = a < b ? a + "|" + b : b + "|" + a;
+    if (!ids.has(a) || !ids.has(b)) out.push("link " + a + " - " + b + ": unknown driver");
+    else if (a === b) out.push("link " + a + " - " + b + ": a driver cannot be linked to itself");
+    else if (seen.has(k)) out.push("link " + a + " - " + b + ": listed twice");
+    seen.add(k);
+    if (!(r >= -1 && r <= 1)) out.push("link " + a + " - " + b + ": correlation must be between -1 and 1");
+  }
+  for (const n of model.graph.nodes) for (const inp of n.inputs) if (!nodes.has(inp[0])) out.push("link '" + n.id + "' takes input from unknown '" + inp[0] + "'");
+  const outs = (model.graph.outputs || []).map(o => o.id);
+  for (const o of model.graph.outputs || []) for (const mx of o.mix) if (!nodes.has(mx[0])) out.push("output '" + o.id + "' uses unknown link '" + mx[0] + "'");
+  if (model.supplyOutput != null && !outs.includes(model.supplyOutput)) out.push("supplyOutput '" + model.supplyOutput + "' is not one of the outputs");
+  const tot = Object.values(segW).reduce((a, v) => a + v, 0);
+  if (Object.keys(segW).length && Math.abs(tot - 1) > 1e-6) out.push("buyer groups must add up to 1 (they add up to " + tot + ")");
+  if (model.period && !(model.period.len > 0 && model.period.start >= 0)) out.push("period needs start of 0 or more and len above 0 (months)");
+  return out;
+}
+
+/** Turn the model file (data/odds.json, written with dates and readable fields) and the chain
+    (supply_model.export_graph()) into the model that simulate() takes. Deadlines and start dates become months
+    counted from the file's `asOf` date; an effect with "base": "mid" is measured against the driver's starting
+    central case; everything else on a driver (label, question, note ...) is carried along. */
+function assemble(file, chain){
+  const MONTH = 86400000 * 365.25 / 12, months = (a, b) => (Date.parse(b) - Date.parse(a)) / MONTH;
+  const drivers = file.drivers.map(d => {
+    const o = Object.assign({}, d);
+    if (d.kind === "event"){
+      if (d.window == null && d.deadline) o.window = Math.max(0.1, months(file.asOf, d.deadline));
+      if (d.from == null && d.starts) o.from = Math.max(0, months(file.asOf, d.starts));
+    }
+    // "base": "mid" ties an effect to the driver's starting central case, which is what the plan assumes
+    o.effects = (d.effects || []).map(e => e.base === "mid" ? Object.assign({}, e, {base: d.mid}) : e);
+    return o;
+  });
+  return {graph: chain.graph, scen: chain.scen, drivers, corr: (file.links || []).map(l => [l.a, l.b, l.rho]),
+          demand: {segments: Object.fromEntries((file.buyers || []).map(b => [b.id, b.share]))},
+          period: {start: Math.max(0, months(file.asOf, file.period.from)), len: file.period.months},
+          supplyOutput: file.supplyOutput || "campus"};
+}
+
+/* ---------------------------------------------------------------- the supply chain (weakest link) */
+/** Prepare the chain for fast repeated runs. Mirrors src/supply/supply_model.py: a link delivers the lesser of
+    its own availability and, for each group of inputs, the weighted share those inputs deliver. */
+function compileGraph(graph){
+  const ids = graph.nodes.map(n => n.id), at = new Map(ids.map((d, i) => [d, i])), byId = new Map(graph.nodes.map(n => [n.id, n]));
+  const order = [], seen = new Set();
+  const visit = id => { if (seen.has(id)) return; seen.add(id); for (const inp of byId.get(id).inputs) visit(inp[0]); order.push(at.get(id)); };
+  ids.forEach(visit);
+  const groups = graph.nodes.map(n => {
+    const g = new Map();
+    for (const [src, grp, w, p] of n.inputs){
+      if (w === 0) continue;
+      const key = grp || "_" + src;
+      if (!g.has(key)) g.set(key, {items: [], other: (graph.other || {})[n.id + "|" + key] || 0, tw: 0});
+      g.get(key).items.push({s: at.get(src), w, p});
+    }
+    const list = [...g.values()];
+    for (const x of list) x.tw = x.items.reduce((a, it) => a + it.w, 0) + x.other;
+    return list;
+  });
+  const outputs = (graph.outputs || []).map(o => ({id: o.id, label: o.label, mix: o.mix.map(([id, w]) => [at.get(id), w])}));
+  return {ids, at, order, groups, outputs, n: ids.length};
+}
+/** Delivered share for every link, given each link's own availability (1 = unharmed). `A` and `lim` are filled:
+    lim[i] is the input that limits link i, or -1 when the link's own availability (or nothing) is the limit. */
+function runChain(G, own, A, lim){
+  for (const i of G.order){
+    let m = 1, who = -1;
+    for (const g of G.groups[i]){
+      let sum = g.other, worst = -1, worstLoss = 0;
+      for (const it of g.items){
+        const loss = it.p * (1 - A[it.s]);
+        sum += it.w * (1 - loss);
+        if (it.w * loss > worstLoss){ worstLoss = it.w * loss; worst = it.s; }
+      }
+      const val = sum / g.tw;
+      if (val < m){ m = val; who = worst; }
+    }
+    if (own[i] <= m){ A[i] = own[i]; if (lim) lim[i] = -1; }
+    else { A[i] = m; if (lim) lim[i] = who; }
+  }
+  return A;
+}
+/** Follow the limiting inputs from link `i` back to the link whose own shortfall is the cause. */
+function rootCause(lim, i){ let k = i, guard = 0; while (lim[k] >= 0 && guard++ < 1000) k = lim[k]; return k; }
+/** One-off run for a plain set of shocks ({linkId: lost share}); returns {links: {id: delivered}, outputs: {id: delivered}}. */
+function chainOnce(graph, shocks){
+  const G = compileGraph(graph), own = new Float64Array(G.n).fill(1), A = new Float64Array(G.n);
+  for (const k in shocks || {}) if (G.at.has(k)) own[G.at.get(k)] = 1 - shocks[k];
+  runChain(G, own, A, null);
+  const links = {}, outputs = {};
+  G.ids.forEach((d, i) => { links[d] = A[i]; });
+  for (const o of G.outputs) outputs[o.id] = o.mix.reduce((a, [i, w]) => a + A[i] * w, 0);
+  return {links, outputs};
+}
+
+/* ---------------------------------------------------------------- simulation */
+/* The model simulate() takes (assemble() builds it from data/odds.json and the chain):
+     {graph, scen, drivers, corr: [[idA, idB, rho]], demand: {segments: {id: share}}, period: {start, len}, supplyOutput}
+   Months are counted from today. A driver is
+     {id, kind: "event", p, sev?, from?, window?, effects}   from..window = when it can start (default: now to the end of the period)
+     {id, kind: "range", low, mid, high, min?, max?, effects}
+   and each effect is one of
+     {t: "scen", id, only?, skip?}   event: the scenario's first-12-month shocks times severity (all of them, only some, or all but some)
+     {t: "shock", node, s}            event: the link loses share s times severity
+     {t: "ease", node, f}             event: the link's shortfall is multiplied by f
+     {t: "dem", seg, m}               event: the buyer group's orders are multiplied by m (seg "all" = every group)
+     {t: "ramp", node, base?, k?, add?}     range: the link delivers level(value), at most 1
+     {t: "demlvl", seg, base?, k?, add?}    range: the buyer group's orders are multiplied by level(value)
+   Event effects also take
+     on: "no"            apply when the event does not happen
+     timing: "full"      the whole period (default)
+             "window"    from a random start between `from` and `window` to the end of the period (or for `dur` months)
+             "until"     already running, ending at a random point between `from` and `window`
+*/
+/** Run `n` futures. Options: {n = 10000, seed, beliefs, given, maxTries}.
+    `given` keeps only the futures that match a situation, for example {tw_blockade: true} (see compileWhere for
+    the form). The drivers linked to that situation shift the way the correlations say. Futures that do not match
+    are thrown away before the chain is run, so a rare situation costs time, not accuracy; after `maxTries` draws
+    (default 500 per future asked for) the run stops with fewer futures.
+    Returns typed arrays per future plus the pieces needed to summarise them:
+    {n (futures kept), asked, tried (draws made), chance (how likely the situation is under these numbers; 1
+     without one), drivers, values: {driverId: Float32Array},
+     out: {outputId | demand | built | tight: Float32Array}, binding: Int16Array, linkIds,
+     corr: {changed, maxDiff, worst, matrix}, unknown (entries in `given` that could not be used)}.
+    binding: -1 on plan, -2 demand is the limit, -3 the chain delivers its full plan but buyers want more than
+    plan, otherwise the index (into linkIds) of the link whose own shortfall limits supply.
+    "built" is the capacity actually added: the lesser of what the chain can supply (output `model.supplyOutput`,
+    default "campus") and what buyers order. "tight" is demand divided by supply (above 1 = shortage). */
+function simulate(model, opts){
+  opts = opts || {};
+  const n = opts.n || 10000, seed = opts.seed == null ? 20270101 : opts.seed;
+  const {drivers, corr} = applyBeliefs(model, opts.beliefs);
+  const m = drivers.length, ids = drivers.map(d => d.id);
+  const rc = repairCorr(ids, corr), L = rc.L || identity(m);
+  const G = compileGraph(model.graph), period = model.period || {start: 0, len: 12};
+  const segNames = Object.keys((model.demand || {}).segments || {}), segW = segNames.map(s => model.demand.segments[s]);
+  const segAt = new Map(segNames.map((s, i) => [s, i]));
+  const supplyOut = G.outputs.find(o => o.id === (model.supplyOutput || "campus")) || G.outputs[G.outputs.length - 1];
+  // thresholds and pre-resolved effects
+  const isEvent = drivers.map(d => d.kind === "event");
+  const thr = drivers.map(d => d.kind === "event" ? (d.p <= 0 ? Infinity : d.p >= 1 ? -Infinity : normInv(1 - d.p)) : 0);
+  const fx = drivers.map(d => (d.effects || []).map(e => {
+    const o = Object.assign({}, e);
+    if (e.t === "scen") o.list = Object.entries(((model.scen || {})[e.id] || {}).h0 || {})
+      .filter(([k]) => G.at.has(k) && (!e.only || e.only.includes(k)) && !(e.skip || []).includes(k)).map(([k, s]) => [G.at.get(k), s]);
+    if (e.node != null) o.i = G.at.get(e.node);
+    if (e.seg != null) o.g = e.seg === "all" ? -1 : segAt.get(e.seg);
+    return o;
+  }));
+  const where = compileWhere(drivers, opts.given), tests = where.tests;
+  // a situation that the owner's own numbers rule out: say so at once instead of drawing futures that cannot match
+  const never = tests.some(([i, f]) => isEvent[i] && ((drivers[i].p <= 0 && !f(0)) || (drivers[i].p >= 1 && !f(1))));
+  const maxTries = never ? 0 : (opts.maxTries || n * 500);
+  // The drivers a situation is about are drawn first, so a future that does not match is dropped after a few
+  // numbers instead of a full draw. If the situation includes events, the rarest of them is not left to luck at
+  // all: its hidden number is drawn straight from the part of the bell curve where the condition holds.
+  // Without a situation the order is the model's own, and a given seed always gives the same futures whatever
+  // the beliefs (so two belief sets can be compared future by future).
+  const condP = t => t[2] === true ? drivers[t[0]].p : 1 - drivers[t[0]].p;
+  const evTests = tests.filter(t => isEvent[t[0]] && typeof t[2] === "boolean").sort((x, y) => condP(x) - condP(y));
+  const first = [...new Set((evTests.length ? [evTests[0][0]] : []).concat(tests.map(t => t[0])))];
+  let order = first.concat(ids.map((d, i) => i).filter(i => !first.includes(i))), lead = first.length, Lp = L;
+  let direct = false, dYes = false, dP = 1;
+  if (lead){
+    Lp = cholesky(order.map(i => order.map(j => rc.matrix[i][j])));
+    if (!Lp){ order = ids.map((d, i) => i); lead = m; Lp = L; }      // not expected; fall back to the plain order
+    else if (evTests.length && !never){ direct = true; dYes = evTests[0][2]; dP = condP(evTests[0]); }
+  }
+  const testsAt = order.map((i, a) => direct && a === 0 ? [] : tests.filter(t => t[0] === i).map(t => t[1]));
+  let values = {}, out = {};
+  drivers.forEach(d => { values[d.id] = new Float32Array(n); });
+  for (const o of G.outputs) out[o.id] = new Float32Array(n);
+  out.demand = new Float32Array(n); out.built = new Float32Array(n); out.tight = new Float32Array(n);
+  let binding = new Int16Array(n);
+  const u1 = rng(seed), u2 = rng(seed ^ 0x9E3779B9);
+  const eps = new Float64Array(m), vals = new Float64Array(m);
+  const own = new Float64Array(G.n), ease = new Float64Array(G.n);
+  const A = new Float64Array(G.n), lim = new Int32Array(G.n), seg = new Float64Array(segNames.length);
+  const draw = a => {                                             // hidden number and outcome of the a-th driver in `order`
+    const i = order[a];
+    if (a === 0 && direct){                                       // the lower tail of chance dP, mirrored for "happens"
+      const e = normInv(u1() * dP, false);
+      eps[0] = dYes ? -e : e; vals[i] = dYes ? 1 : 0;
+      return;
+    }
+    eps[a] = normInv(u1(), false);
+    let s = 0; const La = Lp[a]; for (let b = 0; b <= a; b++) s += La[b] * eps[b];
+    vals[i] = isEvent[i] ? (s > thr[i] ? 1 : 0) : rangeValue(drivers[i], s);
+  };
+  let r = 0, tried = 0;
+  while (r < n && tried < maxTries){
+    tried++;
+    let a = 0, match = true;
+    for (; a < lead && match; a++){
+      draw(a);
+      const fns = testsAt[a], v = vals[order[a]];
+      for (let t = 0; t < fns.length; t++) if (!fns[t](v)){ match = false; break; }
+    }
+    if (!match) continue;
+    for (; a < m; a++) draw(a);
+    own.fill(1); ease.fill(1); seg.fill(1);
+    for (let i = 0; i < m; i++){
+      const d = drivers[i], start = u2(), v = vals[i], yes = isEvent[i] && v === 1;   // one timing draw per driver per future, used or not
+      values[d.id][r] = v;
+      for (const e of fx[i]){
+        if (e.t === "ramp"){ own[e.i] *= Math.min(1, Math.max(0, level(v, e))); continue; }
+        if (e.t === "demlvl"){ const k = Math.max(0, level(v, e)); if (e.g < 0) for (let g = 0; g < seg.length; g++) seg[g] *= k; else seg[e.g] *= k; continue; }
+        if ((e.on === "no") === yes) continue;                    // effect fires on "yes" unless marked on: "no"
+        let frac = 1;
+        if (e.timing === "window" || e.timing === "until"){
+          const w0 = d.from || 0, w1 = d.window == null ? period.start + period.len : d.window, at = w0 + start * Math.max(0, w1 - w0);
+          frac = e.timing === "window" ? overlap(at, period, e.dur) : overlap(0, period, at);
+        }
+        if (e.t === "scen"){ for (const [k, s] of e.list) own[k] *= 1 - Math.min(1, s * d.sev * frac); }
+        else if (e.t === "shock") own[e.i] *= 1 - Math.min(1, e.s * d.sev * frac);
+        else if (e.t === "ease") ease[e.i] *= 1 - (1 - e.f) * frac;
+        else if (e.t === "dem"){ const k = Math.max(0, 1 - (1 - e.m) * d.sev * frac); if (e.g < 0) for (let g = 0; g < seg.length; g++) seg[g] *= k; else seg[e.g] *= k; }
+      }
+    }
+    for (let i = 0; i < G.n; i++) if (ease[i] !== 1) own[i] = 1 - (1 - own[i]) * ease[i];
+    runChain(G, own, A, lim);
+    for (const o of G.outputs){ let s = 0; for (const [i, w] of o.mix) s += A[i] * w; out[o.id][r] = s; }
+    let dem = segNames.length ? 0 : 1;
+    for (let g = 0; g < seg.length; g++) dem += segW[g] * seg[g];
+    const sup = supplyOut ? out[supplyOut.id][r] : 1;
+    out.demand[r] = dem; out.built[r] = Math.min(sup, dem); out.tight[r] = dem / Math.max(sup, 0.01);
+    let b;
+    if (sup < dem - 1e-9){
+      if (sup >= 1 - 1e-9) b = -3;
+      else {                                                       // blame the link that takes most off the supply output
+        let node = -1, worst = 0;
+        for (const [i, w] of supplyOut.mix){ const loss = w * (1 - A[i]); if (loss > worst){ worst = loss; node = i; } }
+        b = node < 0 ? -1 : rootCause(lim, node);
+      }
+    } else b = dem < 1 - 1e-9 ? -2 : -1;
+    binding[r] = b;
+    r++;
+  }
+  if (r < n){
+    for (const k in values) values[k] = values[k].subarray(0, r);
+    for (const k in out) out[k] = out[k].subarray(0, r);
+    binding = binding.subarray(0, r);
+  }
+  return {n: r, asked: n, tried, chance: tests.length ? (tried ? dP * r / tried : 0) : 1, drivers, values, out, binding,
+          linkIds: G.ids, unknown: where.unknown,
+          corr: {changed: rc.changed, maxDiff: rc.maxDiff, worst: rc.worst, matrix: rc.matrix}};
+}
+/** Only the futures of a finished run that match `where`: either a condition on drivers (see compileWhere) or a
+    function of the future's number, for example r => res.out.built[r] < 0.8. Returns a result of the same shape
+    (so every function below works on it), with `of` = how many futures it was picked from. */
+function subset(res, where){
+  let test, unknown = [];
+  if (typeof where === "function") test = where;
+  else {
+    const c = compileWhere(res.drivers, where), cols = c.tests.map(([i, f]) => [res.values[res.drivers[i].id], f]);
+    unknown = c.unknown;
+    test = r => { for (let t = 0; t < cols.length; t++) if (!cols[t][1](cols[t][0][r])) return false; return true; };
+  }
+  const keep = [];
+  for (let r = 0; r < res.n; r++) if (test(r)) keep.push(r);
+  const pick = a => { const o = new a.constructor(keep.length); for (let i = 0; i < keep.length; i++) o[i] = a[keep[i]]; return o; };
+  const values = {}, out = {};
+  for (const k in res.values) values[k] = pick(res.values[k]);
+  for (const k in res.out) out[k] = pick(res.out[k]);
+  return {n: keep.length, of: res.of || res.n, asked: res.asked, tried: res.tried, chance: res.chance, drivers: res.drivers,
+          values, out, binding: pick(res.binding), linkIds: res.linkIds, unknown, corr: res.corr};
+}
+
+/* ---------------------------------------------------------------- reading the results */
+function mean(a){ let s = 0; for (let i = 0; i < a.length; i++) s += a[i]; return s / a.length; }
+/** Values below which the given shares of futures fall, e.g. quantiles(arr, [0.1, 0.5, 0.9]). */
+function quantiles(a, qs){
+  if (!a.length) return qs.map(() => NaN);
+  const s = Float64Array.from(a).sort();
+  return qs.map(q => { const x = q * (s.length - 1), i = Math.floor(x), f = x - i; return i + 1 < s.length ? s[i] * (1 - f) + s[i + 1] * f : s[i]; });
+}
+/** Share of futures in which the value is below x. */
+function probBelow(a, x){ let c = 0; for (let i = 0; i < a.length; i++) if (a[i] < x) c++; return c / a.length; }
+/** Counts in equal bins between lo and hi (values outside go to the end bins). */
+function histogram(a, lo, hi, bins){
+  const h = new Array(bins).fill(0), w = (hi - lo) / bins;
+  for (let i = 0; i < a.length; i++) h[Math.max(0, Math.min(bins - 1, Math.floor((a[i] - lo) / w)))]++;
+  return h;
+}
+function summary(a){
+  const q = quantiles(a, [0.05, 0.1, 0.5, 0.9, 0.95]);
+  return {mean: mean(a), p05: q[0], p10: q[1], p50: q[2], p90: q[3], p95: q[4]};
+}
+/** How often each thing is the limit on what gets built: [{id, share, avgBuilt}], most frequent first.
+    id is a link id, "demand" (buyers order less than the chain can supply), "plan" (the chain delivers its full
+    plan but buyers want more) or "none" (on plan). */
+function bindingTable(res){
+  const acc = new Map();
+  for (let r = 0; r < res.n; r++){
+    const b = res.binding[r], id = b === -1 ? "none" : b === -2 ? "demand" : b === -3 ? "plan" : res.linkIds[b];
+    const e = acc.get(id) || {id, count: 0, sum: 0};
+    e.count++; e.sum += res.out.built[r]; acc.set(id, e);
+  }
+  return [...acc.values()].map(e => ({id: e.id, share: e.count / res.n, avgBuilt: e.sum / e.count})).sort((a, b) => b.share - a.share);
+}
+/** What matters most for an outcome: for each driver, how much of the spread in the outcome goes with it
+    (`share`, 0 to 1; shares overlap when drivers are correlated) and the `swing`: for an event, the average outcome
+    when it happens minus when it does not; for a range, the average outcome in the top fifth of the driver minus
+    the bottom fifth. Sorted by share. */
+function whatMatters(res, key){
+  const y = res.out[key], n = res.n, my = mean(y);
+  let vy = 0; for (let i = 0; i < n; i++) vy += (y[i] - my) * (y[i] - my);
+  const rows = [];
+  for (const d of res.drivers){
+    const x = res.values[d.id];
+    if (d.kind === "event"){
+      let n1 = 0, s1 = 0, s0 = 0;
+      for (let i = 0; i < n; i++){ if (x[i] > 0.5){ n1++; s1 += y[i]; } else s0 += y[i]; }
+      const n0 = n - n1;
+      if (!n1 || !n0 || !(vy > 0)){ rows.push({id: d.id, kind: d.kind, share: 0, swing: 0, pYes: n1 / n}); continue; }
+      const m1 = s1 / n1, m0 = s0 / n0;
+      rows.push({id: d.id, kind: d.kind, share: (n1 * (m1 - my) * (m1 - my) + n0 * (m0 - my) * (m0 - my)) / vy, swing: m1 - m0, pYes: n1 / n});
+    } else {
+      const mx = mean(x); let sxy = 0, sxx = 0;
+      for (let i = 0; i < n; i++){ sxy += (x[i] - mx) * (y[i] - my); sxx += (x[i] - mx) * (x[i] - mx); }
+      const [q20, q80] = quantiles(x, [0.2, 0.8]);
+      let nl = 0, sl = 0, nh = 0, sh = 0;
+      for (let i = 0; i < n; i++){ if (x[i] <= q20){ nl++; sl += y[i]; } if (x[i] >= q80){ nh++; sh += y[i]; } }
+      rows.push({id: d.id, kind: d.kind, share: sxx > 0 && vy > 0 ? (sxy * sxy) / (sxx * vy) : 0, swing: nl && nh ? sh / nh - sl / nl : 0, pYes: null});
+    }
+  }
+  return rows.sort((a, b) => b.share - a.share);
+}
+/** What a group of futures has in common. `sub` is a pick from `all` (see subset), for example the futures where
+    the build-out falls short. For each driver: `all` and `picked` are how often it happens (event) or its average
+    (range) in all futures and in the picked ones; `lift` is picked divided by all; `score` is the difference in
+    units of the driver's usual spread. Sorted by the size of the score, so the most telling drivers come first. */
+function profile(sub, all){
+  const rows = [];
+  for (const d of all.drivers){
+    const a = all.values[d.id], ma = mean(a), mp = sub.n ? mean(sub.values[d.id]) : NaN;
+    let va = 0; for (let i = 0; i < a.length; i++) va += (a[i] - ma) * (a[i] - ma);
+    const sd = Math.sqrt(va / a.length);
+    rows.push({id: d.id, kind: d.kind, all: ma, picked: mp, lift: ma > 0 ? mp / ma : null, score: sd > 0 && sub.n ? (mp - ma) / sd : 0});
+  }
+  return rows.sort((x, y) => Math.abs(y.score) - Math.abs(x.score));
+}
+
+return {rng, normCdf, normInv, bvnCdf, both, cond, rhoForCond, condMedian, reading, rhoForReading,
+        cholesky, jacobiEigen, nearestCorr, repairCorr, rangeValue, level, overlap, applyBeliefs, compileWhere, check, assemble,
+        compileGraph, runChain, rootCause, chainOnce, simulate, subset,
+        mean, quantiles, probBelow, histogram, summary, bindingTable, whatMatters, profile, Z10};
+});
+</script>
+<script>
+const DATA = {"target":"github","rev":"","nav":{"supply":"64 links from mine to model, 31 chokepoints, 92 stocks","atlas":"The investment numbers: $1.71T of capex, 85 projects, the payback test","odds":"Set the odds on 27 things that could change 2027 and see what gets built"},"names":{"brand":"Chokepoint","chain":"The Chain","money":"The Money","odds":"The Odds"},"supplyUrl":"../","atlasUrl":"../money/","repoUrl":"https://github.com/Parthp6174/AI_Supply-Chain_Map","siteUrl":"https://parthp6174.github.io/AI_Supply-Chain_Map/","file":{"version":1,"asOf":"2026-10-06","status":"provisional","statusNote":"These starting numbers are first estimates: facts already on this site plus judgement. None has been researched on its own yet. Change any of them to match your own view.","period":{"label":"Calendar 2027","from":"2027-01-01","months":12},"supplyOutput":"campus","plan":"100 is the AI data-center capacity that today's plans would add in 2027: what buyers have budgeted and suppliers have scheduled, with the shortages already known. Each supply number is the share of that plan one link delivers. Buyers want more than the plan (see Unmet demand), so a fall in orders only cuts what gets built once it is bigger than that cushion. Supply above plan is not counted: outcomes stop at 100.","buyers":[{"id":"hyper","label":"Hyperscalers","share":0.7,"who":"Amazon, Alphabet, Microsoft, Meta and Oracle"},{"id":"neo","label":"Neoclouds","share":0.2,"who":"CoreWeave, Nebius, Lambda, Crusoe and others, building largely for the labs"},{"id":"sov","label":"Sovereign and Gulf","share":0.1,"who":"State-backed projects such as Stargate UAE and HUMAIN"}],"bases":{"judgement":"A first estimate by judgement, anchored on facts already on this site. Not yet researched.","sourced":"Taken from a named source.","market":"Implied by a market price or a forecasting market."},"groups":[{"id":"geo","label":"Geopolitics and trade rules"},{"id":"chips","label":"Chip supply"},{"id":"power","label":"Power"},{"id":"demand","label":"Demand and money"}],"drivers":[{"id":"tw_blockade","group":"geo","kind":"event","label":"Taiwan blockade","question":"Will China blockade or quarantine Taiwan, stopping most commercial shipping for 30 days or more, starting before 31 Dec 2027?","resolves":"Yes if major news agencies report that most commercial shipping to and from Taiwan was stopped for 30 days or more.","deadline":"2027-12-31","p":0.03,"sev":1,"basis":"judgement","note":"The Chain rates this a tail risk. The PLA exercise Justice Mission 2025 (30 Dec 2025) rehearsed a blockade.","does":"Applies The Chain's Taiwan blockade scenario from the day it starts: leading-edge wafers, CoWoS packaging and part of substrates, memory and rack assembly stop leaving the island.","effects":[{"t":"scen","id":"taiwan","timing":"window"}]},{"id":"gulf_persist","group":"geo","kind":"event","label":"Gulf war drags on","question":"Will oil flows through the Strait of Hormuz still be below 75% of their pre-war level (about 20M barrels a day) on 30 Jun 2027?","resolves":"The June 2027 monthly average from the EIA or IEA: yes if it is below 15M barrels a day.","deadline":"2027-06-30","p":0.45,"sev":1,"basis":"judgement","note":"Flows were about 7.4M barrels a day in September 2026. The war began on 28 Feb 2026 and two ceasefires have broken down.","does":"If yes, sovereign buyers order 20% less than the plan through 2027. If no, they order 15% more, as insurers and investors return to the Gulf.","effects":[{"t":"dem","seg":"sov","m":0.8},{"t":"dem","seg":"sov","m":1.15,"on":"no"}]},{"id":"helium_cut","group":"geo","kind":"event","label":"Helium shortage cuts chip output","question":"Will a leading chipmaker (TSMC, Samsung, SK hynix or Micron) say that a helium shortage has cut its output, before 30 Jun 2027?","resolves":"Company statements, earnings calls or regulatory filings.","deadline":"2027-06-30","p":0.08,"sev":1,"basis":"judgement","note":"A third of world helium went offline when Ras Laffan was hit in March 2026. Fabs are running on priority allocations, and South Korean fabs' six-month stock window closed in July.","does":"From that day chip fabs lose about 3% of output (the helium part of The Chain's Gulf scenario).","effects":[{"t":"scen","id":"gulf","only":["helium"],"timing":"window"}]},{"id":"gulf_dc_hit","group":"geo","kind":"event","label":"Strike on a Gulf data center","question":"Will a military strike damage or shut down an AI data-center campus in a Gulf state between now and 31 Dec 2027?","resolves":"An operator statement or a major news agency report of damage or a shutdown caused by a strike.","deadline":"2027-12-31","p":0.2,"sev":1,"basis":"judgement","note":"Drones knocked out two of three AWS zones in the UAE on 1 Mar 2026 and the IRGC threatened Stargate UAE on 3 Apr. War-risk insurance for Gulf data centers is up about 1,900%.","does":"From that day sovereign buyers order 40% less, and less compute reaches the labs from Gulf sites.","effects":[{"t":"dem","seg":"sov","m":0.6,"timing":"window"},{"t":"shock","node":"sovereign","s":0.3,"timing":"window"}]},{"id":"cn_minerals","group":"geo","kind":"event","label":"China's mineral controls return","question":"Will China's export controls on gallium, germanium, antimony or rare earths be back in force for US buyers at any point before 31 Mar 2027?","resolves":"MOFCOM announcements. The suspensions end on 10 Nov and 27 Nov 2026 unless they are extended.","starts":"2026-11-10","deadline":"2027-03-31","p":0.3,"sev":0.3,"basis":"judgement","note":"Both suspensions lapse in November 2026 unless extended. Severity starts at 0.3 of The Chain's worst case: the ban on gallium, germanium and antimony was in force from December 2024 until it was suspended in November 2025, and supply kept moving through third countries at higher prices.","does":"Applies The Chain's minerals scenario from the day controls return: gallium, rare earths, tungsten and indium go back behind licences. The hit lands hardest on lasers, through indium.","effects":[{"t":"scen","id":"minerals","timing":"window"}]},{"id":"us_chip_rules","group":"geo","kind":"event","label":"Tighter US chip export rules","question":"Will the US impose new limits that cut AI chip sales to Gulf or other non-allied buyers (a new rule, or licences halted) before 31 Dec 2027?","resolves":"A Commerce Department (BIS) rule, or company filings reporting halted licences.","deadline":"2027-12-31","p":0.25,"sev":1,"basis":"judgement","note":"No specific rule is tracked on this site yet. Gulf buyers are the most exposed.","does":"From that day sovereign buyers order 35% less.","effects":[{"t":"dem","seg":"sov","m":0.65,"timing":"window"}]},{"id":"chip_tariff","group":"geo","kind":"event","label":"Chip tariff exemptions end","question":"Will the US end or narrow the Section 232 exemptions so that the 25% tariff applies to most imported AI chips or servers before 30 Jun 2027?","resolves":"A Federal Register notice or presidential proclamation.","deadline":"2027-06-30","p":0.15,"sev":1,"basis":"judgement","note":"A 25% tariff has applied since 15 Jan 2026, with exemptions.","does":"From that day all buyers order 5% less capacity, because the same budget buys fewer servers.","effects":[{"t":"dem","seg":"all","m":0.95,"timing":"window"}]},{"id":"jp_quake","group":"geo","kind":"event","label":"Earthquake hits Japan's materials makers","question":"Will an earthquake stop production for a month or more at a major Japanese maker of ABF film, T-glass, substrates, photoresist or wafers before 31 Dec 2027?","resolves":"Company disclosures from Ajinomoto, Nittobo, Ibiden, Shinko, JSR, TOK, Shin-Etsu or SUMCO.","deadline":"2027-12-31","p":0.04,"sev":0.5,"basis":"judgement","note":"The 2011 Tohoku quake stalled chip materials for months. Severity starts at 0.5 because The Chain's scenario assumes several makers are hit at once.","does":"Applies The Chain's Japan earthquake scenario from that day: ABF film, T-glass, substrates, resist, wafers and test equipment.","effects":[{"t":"scen","id":"japan","timing":"window"}]},{"id":"euv_halt","group":"geo","kind":"event","label":"EUV supply stops","question":"Will ASML's EUV shipments or servicing to leading chipmakers stop for 60 days or more before 31 Dec 2027?","resolves":"ASML statements, or export-licence changes by the Dutch or US governments.","deadline":"2027-12-31","p":0.01,"sev":1,"basis":"judgement","note":"The Chain calls this unlikely, not impossible. ASML is the only supplier and is delivering.","does":"Applies The Chain's EUV scenario from that day: installed tools keep running but new capacity stops arriving.","effects":[{"t":"scen","id":"euv","timing":"window"}]},{"id":"foundry_ramp","group":"chips","kind":"range","label":"Leading-edge wafers","question":"What share of the leading-edge wafers (3nm and 2nm) that 2027 plans count on will foundries deliver?","watch":"TSMC's wafers a month at 3nm and 2nm, against the demand its customers report.","unit":"% of plan","low":98,"mid":105,"high":110,"min":50,"max":120,"basis":"judgement","note":"The Chain rates this step tight, not short: 3nm is heading from 180k to 210k wafers a month, and 2nm from 90k to 110k by mid-2027. Plans are sized to scarcer links, so the central case leaves some slack.","does":"Below 100, every AI accelerator is short by that share.","effects":[{"t":"ramp","node":"foundry"}]},{"id":"cowos_ramp","group":"chips","kind":"range","label":"CoWoS packaging","question":"What share of the CoWoS packaging that 2027 plans count on will be delivered?","watch":"TSMC's CoWoS wafers a month and allocation comments from Nvidia, Broadcom and AMD.","unit":"% of plan","low":92,"mid":100,"high":105,"min":50,"max":120,"basis":"judgement","note":"The narrowest point of the chip chain per The Chain: about 130k wafers a month by end-2026 and about 260k by end-2028. Plans are sized to that ramp, so any slip cuts output directly.","does":"Below 100, GPUs and custom accelerators are short by that share.","effects":[{"t":"ramp","node":"cowos"}]},{"id":"hbm_ramp","group":"chips","kind":"range","label":"HBM memory","question":"What share of the HBM memory that 2027 plans count on will the three makers deliver?","watch":"HBM bit shipments and allocation comments from SK hynix, Samsung and Micron.","unit":"% of plan","low":94,"mid":103,"high":108,"min":50,"max":120,"basis":"judgement","note":"Three suppliers, sold out, prices rising. The Chain rates it serious, one step below the scarcest links, so the central case leaves a little slack. The risk is HBM4 yields or qualification slipping.","does":"Below 100, fewer accelerators can be packaged, by that share.","effects":[{"t":"ramp","node":"hbm"}]},{"id":"substrate_ramp","group":"chips","kind":"range","label":"Package substrates","question":"What share of the ABF package substrates that 2027 plans count on will be delivered?","watch":"Capacity and lead-time comments from Ibiden, Shinko, Unimicron and AT&S.","unit":"% of plan","low":95,"mid":103,"high":108,"min":50,"max":120,"basis":"judgement","note":"Short now, rated serious by The Chain. Ibiden is spending ¥500B through FY2028 for 2.5 times the capacity, so the central case leaves a little slack; new lines take two to three years.","does":"Below 100, chip packaging is short by that share.","effects":[{"t":"ramp","node":"substrate"}]},{"id":"tglass_ramp","group":"chips","kind":"range","label":"T-glass cloth","question":"What share of the low-expansion glass cloth (T-glass) that 2027 plans count on will be delivered?","watch":"Nittobo's capacity additions and substrate makers' comments on glass cloth supply.","unit":"% of plan","low":90,"mid":99,"high":104,"min":50,"max":120,"basis":"judgement","note":"One maker, Nittobo, has about 90% of T-glass, and relief is not expected before mid-2027. A late ramp would leave the first half of 2027 short.","does":"Below 100, substrates are short by that share and high-speed boards by most of it.","effects":[{"t":"ramp","node":"glasscloth"}]},{"id":"inp_ramp","group":"chips","kind":"range","label":"InP wafers for lasers","question":"What share of the indium phosphide (InP) wafers that 2027 plans count on will be delivered?","watch":"Capacity announcements from AXT, Sumitomo Electric and JX, and laser allocation comments from Lumentum and Coherent.","unit":"% of plan","low":88,"mid":99,"high":105,"min":40,"max":120,"basis":"judgement","note":"The scarcest input in AI networking per The Chain. Six-inch capacity is meant to double by end-2027 and the shortage is expected to outlast 2027, so this has the widest downside of the chip links.","does":"Below 100, lasers, optical links and cluster networks are short by that share.","effects":[{"t":"ramp","node":"inp"}]},{"id":"cpo_volume","group":"chips","kind":"event","label":"Co-packaged optics in volume","question":"Will co-packaged optics account for 10% or more of the new AI cluster switch ports shipped in 2027?","resolves":"Shipment estimates from LightCounting or Dell'Oro, or Nvidia and Broadcom disclosures.","deadline":"2027-12-31","p":0.2,"sev":1,"basis":"judgement","note":"The Chain notes that the laser shortage is speeding up adoption.","does":"Cuts any InP shortfall by a quarter, because each link needs fewer lasers.","effects":[{"t":"ease","node":"inp","f":0.75}]},{"id":"turbine_ramp","group":"power","kind":"range","label":"Gas turbines","question":"What share of the gas turbines that 2027 plans count on will be delivered?","watch":"Deliveries and backlog at GE Vernova, Siemens Energy and Mitsubishi Heavy.","unit":"% of plan","low":93,"mid":100,"high":104,"min":30,"max":120,"basis":"judgement","note":"Makers can build about 60 to 70 GW a year against about 110 GW of orders, and slots are sold into 2030-31. Units for 2027 are already scheduled, so the risk is factory slips, not allocation.","does":"Below 100, gas-fired power on the grid and on site is short. Other sources cover part of the gap.","effects":[{"t":"ramp","node":"turbines"}]},{"id":"xfmr_ramp","group":"power","kind":"range","label":"Large transformers","question":"What share of the large transformers that 2027 plans count on will be delivered?","watch":"Lead-time surveys and deliveries at Hitachi Energy, Siemens Energy and HD Hyundai Electric.","unit":"% of plan","low":91,"mid":100,"high":105,"min":30,"max":120,"basis":"judgement","note":"Lead times run up to four years and prices are up about 80%. The Chain calls this the slowest item to order for any new campus.","does":"Below 100, grid connections are short by that share.","effects":[{"t":"ramp","node":"transformers"}]},{"id":"grid_ramp","group":"power","kind":"range","label":"Grid connections","question":"What share of the grid connections that 2027 plans count on will utilities deliver in time?","watch":"Interconnection data from PJM, ERCOT and other grid operators, and campus energisation dates.","unit":"% of plan","low":89,"mid":99,"high":104,"min":30,"max":120,"basis":"judgement","note":"PJM's July 2026 capacity auction missed its supply target. Queues decide where campuses can go, and connection dates slip more often than they are beaten.","does":"Below 100, the grid-fed part of new campuses (about two thirds of their power) is short by that share.","effects":[{"t":"ramp","node":"grid"}]},{"id":"nuclear_restart","group":"power","kind":"event","label":"Three Mile Island restart delivers","question":"Will the Crane Clean Energy Center (the 835 MW Three Mile Island restart for Microsoft) be delivering power by 31 Dec 2027?","resolves":"Constellation statements or the reactor's NRC operating status.","deadline":"2027-12-31","p":0.5,"sev":1,"basis":"judgement","note":"The restart is under way (The Money). It is small against the gigawatts needed in 2027 and matters more as a signal for 2028 to 2030.","does":"Cuts any grid shortfall by 5% from the day it delivers.","effects":[{"t":"ease","node":"grid","f":0.95,"timing":"window"}]},{"id":"unmet_demand","group":"demand","kind":"range","label":"Unmet demand","question":"How much more AI capacity would buyers take in 2027 than today's plans deliver, if suppliers could build it?","watch":"Cloud backlogs at Microsoft, Oracle and CoreWeave, GPU rental prices, Nvidia lead times, and statements such as AWS saying capacity stays short of demand through 2027.","unit":"% above plan","low":3,"mid":15,"high":30,"min":0,"max":60,"basis":"judgement","note":"Every critical link in The Chain is sold out and AWS says capacity stays short of demand through 2027, which points to a real cushion. Its size is a judgement, and sceptics argue that part of it is double ordering.","does":"Lifts what all buyers want above the plan. A fall in orders only cuts what gets built once it is bigger than this cushion.","effects":[{"t":"demlvl","seg":"all","add":100}]},{"id":"capex_2027","group":"demand","kind":"range","label":"Hyperscaler spending plans for 2027","question":"What will Amazon, Alphabet, Microsoft, Meta and Oracle plan to spend on capital projects in 2027, as a percentage of their 2026 plans (about $840B together)?","resolves":"Their 2027 guidance as it stands at mid-2027 (second-quarter results), midpoints added up.","unit":"% of 2026 plans","low":115,"mid":130,"high":150,"min":60,"max":220,"basis":"judgement","note":"2026 plans: Amazon $220B, Alphabet $200B, Microsoft $190B, Meta $137.5B, Oracle $92.5B. Alphabet says 2027 will 'significantly increase' and AWS says capacity stays short of demand through 2027.","does":"Hyperscalers place 70% of orders. Their orders move one for one with this number, measured against its starting central case.","effects":[{"t":"demlvl","seg":"hyper","base":"mid"}]},{"id":"lab_revenue","group":"demand","kind":"range","label":"Lab revenue growth","question":"Where will the combined annualised revenue of OpenAI and Anthropic stand at the end of 2027, taking today's level (about $135B) as 100?","resolves":"Company statements and filings on annualised revenue at the end of 2027.","unit":"index, today = 100","low":120,"mid":165,"high":230,"min":60,"max":400,"basis":"judgement","note":"The two labs have signed about $1.14T of compute commitments against about $135B of revenue. In The Money, OpenAI needs about 34% growth a year just to break even on its commitments.","does":"Weak revenue cuts what the labs can commit to. Neocloud orders move 0.3 for one with this number and hyperscaler orders 0.1 for one, measured against its starting central case.","effects":[{"t":"demlvl","seg":"neo","base":"mid","k":0.3},{"t":"demlvl","seg":"hyper","base":"mid","k":0.1}]},{"id":"sov_follow","group":"demand","kind":"range","label":"Sovereign projects that go ahead","question":"What share of the Gulf and other sovereign AI capacity announced for 2027 will actually be ordered?","resolves":"Project announcements and operator statements at the end of 2027.","unit":"% of announced","low":50,"mid":75,"high":95,"min":0,"max":110,"basis":"judgement","note":"Gulf projects sit inside the war's strike zone and insurers have pulled back. This is the follow-through apart from the war, strikes and export rules, which have their own entries.","does":"Sovereign buyers place 10% of orders. Their orders move one for one with this number, measured against its starting central case.","effects":[{"t":"demlvl","seg":"sov","base":"mid"}]},{"id":"digestion","group":"demand","kind":"event","label":"A pause in orders","question":"Will Nvidia report a quarter-on-quarter fall in data-center revenue for any fiscal quarter ending in calendar 2027?","resolves":"Nvidia's quarterly results.","starts":"2027-01-01","deadline":"2027-12-31","p":0.12,"sev":1,"basis":"judgement","note":"Nvidia's Q2 FY2027 call pointed to about 70% growth in FY2028, which makes a pause unlikely but not impossible.","does":"All buyers order 12% less from that quarter on.","effects":[{"t":"dem","seg":"all","m":0.88,"timing":"window"}]},{"id":"openai_funding","group":"demand","kind":"event","label":"OpenAI raises $30B or more","question":"Will OpenAI close new equity or debt funding of $30B or more between now and 30 Jun 2027?","resolves":"A company announcement or filings.","deadline":"2027-06-30","p":0.7,"sev":1,"basis":"judgement","note":"OpenAI's compute commitments run far ahead of its revenue (The Money), so it depends on raising outside money.","does":"If it does not, neoclouds order 15% less and hyperscalers 2% less through 2027, and less capital reaches the labs.","effects":[{"t":"dem","seg":"neo","m":0.85,"on":"no"},{"t":"dem","seg":"hyper","m":0.98,"on":"no"},{"t":"shock","node":"capital","s":0.1,"on":"no"}]},{"id":"credit_squeeze","group":"demand","kind":"event","label":"Credit squeeze on AI builders","question":"Will S&P or Moody's cut Oracle to junk, or a large neocloud default on or restructure its debt, before 31 Dec 2027?","resolves":"Rating agency actions and company filings.","deadline":"2027-12-31","p":0.2,"sev":1,"basis":"judgement","note":"S&P has Oracle at BBB-, one notch above junk, with $117B of bonds outstanding. CoreWeave carries $35B of debt with $6.2B of principal due in 2027.","does":"From that day neoclouds order 45% less and hyperscalers 5% less (Oracle), and less capital reaches neoclouds, sovereign projects and labs.","effects":[{"t":"dem","seg":"neo","m":0.55,"timing":"window"},{"t":"dem","seg":"hyper","m":0.95,"timing":"window"},{"t":"shock","node":"capital","s":0.4,"timing":"window"}]}],"links":[{"a":"tw_blockade","b":"cn_minerals","rho":0.5,"why":"A confrontation over Taiwan would bring China's export levers with it."},{"a":"tw_blockade","b":"us_chip_rules","rho":0.4,"why":"A Taiwan crisis would come with tighter US technology controls."},{"a":"cn_minerals","b":"us_chip_rules","rho":0.4,"why":"Tit for tat: each side's controls have answered the other's."},{"a":"cn_minerals","b":"chip_tariff","rho":0.3,"why":"Both are moves in the same trade dispute."},{"a":"us_chip_rules","b":"chip_tariff","rho":0.2,"why":"A harder US line on chips tends to show up in both."},{"a":"gulf_persist","b":"helium_cut","rho":0.5,"why":"Helium stays short for as long as Ras Laffan is offline."},{"a":"gulf_persist","b":"gulf_dc_hit","rho":0.5,"why":"A longer war gives more time and reason for strikes on Gulf sites."},{"a":"gulf_persist","b":"credit_squeeze","rho":0.2,"why":"A long war keeps energy prices and borrowing costs high."},{"a":"tw_blockade","b":"credit_squeeze","rho":0.4,"why":"A blockade would be a financial shock as well as a supply shock."},{"a":"tw_blockade","b":"capex_2027","rho":-0.3,"why":"Buyers would cut spending plans if chips could not be had and markets fell."},{"a":"foundry_ramp","b":"cowos_ramp","rho":0.5,"why":"Both depend on TSMC's execution, tools and people."},{"a":"cowos_ramp","b":"hbm_ramp","rho":0.3,"why":"The same accelerator generations pace both ramps."},{"a":"cowos_ramp","b":"substrate_ramp","rho":0.3,"why":"Packaging lines and substrate lines are planned against the same forecasts."},{"a":"substrate_ramp","b":"tglass_ramp","rho":0.5,"why":"Substrate makers cannot ramp without glass cloth, and both sit in Japan."},{"a":"turbine_ramp","b":"xfmr_ramp","rho":0.4,"why":"Both are heavy electrical equipment with the same steel, copper and labour limits."},{"a":"xfmr_ramp","b":"grid_ramp","rho":0.5,"why":"Transformers are the slowest part of a new grid connection."},{"a":"turbine_ramp","b":"grid_ramp","rho":0.3,"why":"New gas plants add the supply that lets utilities connect large loads."},{"a":"nuclear_restart","b":"grid_ramp","rho":0.2,"why":"Both move with how fast regulators and utilities act."},{"a":"cpo_volume","b":"inp_ramp","rho":-0.2,"why":"The worse the laser shortage, the faster buyers move to co-packaged optics."},{"a":"unmet_demand","b":"capex_2027","rho":0.5,"why":"Buyers who cannot get enough capacity raise their spending plans."},{"a":"unmet_demand","b":"lab_revenue","rho":0.4,"why":"Fast lab growth is what keeps demand ahead of supply."},{"a":"unmet_demand","b":"digestion","rho":-0.5,"why":"A pause in orders is what a vanished cushion looks like."},{"a":"unmet_demand","b":"credit_squeeze","rho":-0.3,"why":"A credit squeeze removes the weakest buyers from the queue."},{"a":"capex_2027","b":"digestion","rho":-0.5,"why":"A pause in orders and lower spending plans come together."},{"a":"capex_2027","b":"lab_revenue","rho":0.5,"why":"Hyperscalers spend more when their biggest AI customers are growing."},{"a":"capex_2027","b":"credit_squeeze","rho":-0.4,"why":"Tight credit and lower spending plans come together."},{"a":"capex_2027","b":"openai_funding","rho":0.3,"why":"A funded OpenAI keeps its cloud commitments."},{"a":"capex_2027","b":"sov_follow","rho":0.3,"why":"Both rise and fall with confidence in AI demand."},{"a":"lab_revenue","b":"openai_funding","rho":0.6,"why":"Investors fund growth; slow revenue makes a large round harder."},{"a":"lab_revenue","b":"credit_squeeze","rho":-0.5,"why":"Weak lab revenue is what would put neocloud and Oracle debt at risk."},{"a":"lab_revenue","b":"digestion","rho":-0.4,"why":"Slow revenue is the likeliest cause of a pause in orders."},{"a":"openai_funding","b":"credit_squeeze","rho":-0.5,"why":"A failed round would hit the lenders and landlords who built for OpenAI."},{"a":"digestion","b":"credit_squeeze","rho":0.4,"why":"A pause in orders cuts the revenue that leveraged builders need."},{"a":"digestion","b":"openai_funding","rho":-0.3,"why":"Both reflect how much confidence there is in AI demand."}]},"chain":{"graph":{"nodes":[{"id":"quartz","inputs":[]},{"id":"gallium","inputs":[]},{"id":"indium","inputs":[]},{"id":"ree","inputs":[]},{"id":"tungsten","inputs":[]},{"id":"helium","inputs":[]},{"id":"copper","inputs":[]},{"id":"natgas","inputs":[]},{"id":"uranium","inputs":[]},{"id":"poly","inputs":[]},{"id":"resist","inputs":[]},{"id":"gases","inputs":[["helium",null,1.0,0.5],["tungsten",null,1.0,0.4]]},{"id":"chems","inputs":[["ree",null,0.0,0.0]]},{"id":"abf","inputs":[]},{"id":"glasscloth","inputs":[]},{"id":"goes","inputs":[]},{"id":"enrich","inputs":[["uranium",null,1.0,1.0]]},{"id":"wafers","inputs":[["poly",null,1.0,1.0],["quartz",null,1.0,0.5]]},{"id":"inp","inputs":[["indium",null,1.0,0.8]]},{"id":"substrate","inputs":[["abf",null,1.0,1.0],["glasscloth",null,1.0,1.0],["copper",null,1.0,0.3]]},{"id":"pcb","inputs":[["glasscloth",null,1.0,0.8],["copper",null,1.0,0.3]]},{"id":"litho","inputs":[]},{"id":"depetch","inputs":[["ree",null,0.0,0.0]]},{"id":"metrology","inputs":[]},{"id":"eda","inputs":[]},{"id":"bonders","inputs":[]},{"id":"testeq","inputs":[]},{"id":"dicing","inputs":[]},{"id":"turbines","inputs":[]},{"id":"transformers","inputs":[["goes",null,1.0,0.8],["copper",null,1.0,0.5]]},{"id":"foundry","inputs":[["wafers",null,1.0,1.0],["resist",null,1.0,1.0],["gases",null,1.0,0.2],["chems",null,1.0,0.5],["litho",null,1.0,0.25],["depetch",null,1.0,0.25],["metrology",null,1.0,0.25]]},{"id":"dram","inputs":[["wafers",null,1.0,1.0],["resist",null,1.0,1.0],["gases",null,1.0,0.2],["chems",null,1.0,0.5],["litho",null,1.0,0.25],["depetch",null,1.0,0.25],["metrology",null,1.0,0.25]]},{"id":"nand","inputs":[["wafers",null,1.0,1.0],["resist",null,1.0,1.0],["gases",null,1.0,0.2],["chems",null,1.0,0.5],["litho",null,1.0,0.15],["depetch",null,1.0,0.25]]},{"id":"china_fab","inputs":[["wafers",null,1.0,1.0],["resist",null,1.0,1.0],["gases",null,1.0,0.2],["chems",null,1.0,0.5],["litho",null,1.0,0.25],["depetch",null,1.0,0.25]]},{"id":"gaspower","inputs":[["turbines",null,1.0,1.0],["natgas",null,1.0,1.0]]},{"id":"nuclear","inputs":[["enrich",null,1.0,0.5]]},{"id":"hbm","inputs":[["dram",null,1.0,1.0],["bonders",null,1.0,0.5],["testeq",null,1.0,0.3],["dicing",null,1.0,0.3]]},{"id":"cowos","inputs":[["foundry",null,1.0,1.0],["hbm",null,1.0,1.0],["substrate",null,1.0,1.0],["testeq",null,1.0,0.3],["dicing",null,1.0,0.3]]},{"id":"osat","inputs":[["foundry",null,1.0,1.0],["substrate",null,1.0,1.0],["testeq",null,1.0,0.3]]},{"id":"grid","inputs":[["transformers",null,1.0,1.0],["gaspower","gen",0.4,1.0],["nuclear","gen",0.2,1.0]]},{"id":"onsite","inputs":[["natgas",null,1.0,1.0],["turbines","equip",0.5,1.0]]},{"id":"gpu","inputs":[["cowos",null,1.0,1.0],["eda",null,1.0,0.3]]},{"id":"asic","inputs":[["cowos",null,1.0,1.0],["eda",null,1.0,0.3]]},{"id":"cpu","inputs":[["osat",null,1.0,1.0],["eda",null,1.0,0.3]]},{"id":"netsi","inputs":[["osat",null,1.0,1.0],["eda",null,1.0,0.3]]},{"id":"bmc","inputs":[["osat",null,1.0,1.0]]},{"id":"lasers","inputs":[["inp",null,1.0,1.0],["gallium",null,1.0,0.4]]},{"id":"optics","inputs":[["lasers",null,1.0,1.0],["netsi",null,1.0,0.5],["pcb",null,1.0,0.5]]},{"id":"fiber","inputs":[["gallium",null,1.0,0.3],["copper",null,1.0,0.3]]},{"id":"china_chips","inputs":[["china_fab",null,1.0,1.0]]},{"id":"electrical","inputs":[["copper",null,1.0,0.3]]},{"id":"cooling","inputs":[["copper",null,1.0,0.2],["ree",null,0.0,0.0]]},{"id":"servers","inputs":[["gpu","accel",0.72,1.0],["asic","accel",0.28,1.0],["cpu",null,1.0,1.0],["dram",null,1.0,0.7],["pcb",null,1.0,1.0],["bmc",null,1.0,1.0],["netsi",null,1.0,0.8]]},{"id":"netsys","inputs":[["netsi",null,1.0,1.0],["optics",null,1.0,1.0],["fiber",null,1.0,1.0],["pcb",null,1.0,0.5]]},{"id":"storage","inputs":[["nand","flash",0.7,1.0]]},{"id":"build","inputs":[]},{"id":"campus","inputs":[["servers",null,1.0,1.0],["netsys",null,1.0,1.0],["storage",null,1.0,0.3],["build",null,1.0,1.0],["electrical",null,1.0,1.0],["cooling",null,1.0,1.0],["grid","power",0.65,1.0],["onsite","power",0.35,1.0]]},{"id":"capital","inputs":[]},{"id":"hyper","inputs":[["campus",null,1.0,1.0]]},{"id":"neo","inputs":[["campus",null,1.0,1.0],["capital",null,1.0,0.8]]},{"id":"sovereign","inputs":[["campus",null,1.0,1.0],["capital",null,1.0,0.5]]},{"id":"china_cloud","inputs":[["china_chips",null,1.0,1.0]]},{"id":"labs","inputs":[["hyper","compute",0.7,1.0],["neo","compute",0.2,1.0],["sovereign","compute",0.1,1.0],["capital",null,1.0,0.6]]},{"id":"users","inputs":[["labs","ai",0.6,1.0],["hyper","ai",0.4,1.0]]}],"other":{"grid|gen":0.4,"onsite|equip":0.5,"storage|flash":0.3},"outputs":[{"id":"accel","label":"AI accelerators","mix":[["gpu",0.72],["asic",0.28]]},{"id":"hbm","label":"HBM memory","mix":[["hbm",1.0]]},{"id":"optics","label":"Optical links","mix":[["optics",1.0]]},{"id":"servers","label":"AI servers and racks","mix":[["servers",1.0]]},{"id":"campus","label":"New campus capacity","mix":[["campus",1.0]]},{"id":"labs","label":"Compute reaching labs","mix":[["labs",1.0]]}]},"scen":{"taiwan":{"kind":"supply","h0":{"foundry":0.85,"cowos":0.9,"osat":0.4,"substrate":0.2,"wafers":0.1,"dram":0.15,"hbm":0.05,"bmc":0.3,"servers":0.3,"pcb":0.25},"h1":{"foundry":0.7,"cowos":0.65,"osat":0.2,"substrate":0.1,"wafers":0.05,"dram":0.1,"hbm":0.0,"bmc":0.1,"servers":0.1,"pcb":0.1}},"gulf":{"kind":"supply","h0":{"helium":0.33,"sovereign":0.5,"natgas":0.03,"capital":0.05},"h1":{"helium":0.25,"sovereign":0.35,"natgas":0.03,"capital":0.03}},"minerals":{"kind":"supply","h0":{"gallium":0.6,"ree":0.5,"tungsten":0.4,"indium":0.4},"h1":{"gallium":0.3,"ree":0.3,"tungsten":0.2,"indium":0.2}},"power":{"kind":"supply","h0":{"turbines":0.35,"transformers":0.3,"grid":0.2,"electrical":0.1},"h1":{"turbines":0.25,"transformers":0.2,"grid":0.2,"electrical":0.05}},"inp":{"kind":"supply","h0":{"inp":0.25,"lasers":0.05},"h1":{"inp":0.08,"lasers":0.0}},"hbm":{"kind":"supply","h0":{"hbm":0.25,"dram":0.05,"bonders":0.1},"h1":{"hbm":0.08,"dram":0.0,"bonders":0.0}},"japan":{"kind":"supply","h0":{"abf":0.4,"glasscloth":0.5,"substrate":0.3,"resist":0.3,"wafers":0.2,"testeq":0.3,"dicing":0.3,"metrology":0.2},"h1":{"abf":0.1,"glasscloth":0.15,"substrate":0.1,"resist":0.05,"wafers":0.05,"testeq":0.05,"dicing":0.05,"metrology":0.05}},"euv":{"kind":"supply","h0":{"litho":0.9},"h1":{"litho":1.0,"foundry":0.35,"dram":0.3}},"finance":{"kind":"demand","h0":{},"h1":{},"cut":[0.25,0.4]},"compound":{"kind":"compound","h0":{"foundry":0.85,"cowos":0.9,"osat":0.4,"substrate":0.2,"wafers":0.1,"dram":0.15,"hbm":0.05,"bmc":0.3,"servers":0.3,"pcb":0.25,"helium":0.33,"sovereign":0.5,"natgas":0.03,"capital":0.5,"gallium":0.6,"ree":0.5,"tungsten":0.4,"indium":0.4,"turbines":0.35,"transformers":0.3,"grid":0.2,"electrical":0.1},"h1":{"foundry":0.7,"cowos":0.65,"osat":0.2,"substrate":0.1,"wafers":0.05,"dram":0.1,"hbm":0,"bmc":0.1,"servers":0.1,"pcb":0.1,"helium":0.25,"sovereign":0.35,"natgas":0.03,"capital":0.4,"gallium":0.3,"ree":0.3,"tungsten":0.2,"indium":0.2,"turbines":0.25,"transformers":0.2,"grid":0.2,"electrical":0.05},"cut":[0.4,0.5]}}},"linkNames":{"quartz":["High-purity quartz","High-purity quartz"],"gallium":["Gallium & germanium","Gallium and germanium"],"indium":["Indium","Indium"],"ree":["Rare earths","Medium and heavy rare earths"],"tungsten":["Tungsten & moly","Tungsten and molybdenum"],"helium":["Helium","Helium"],"copper":["Copper","Copper"],"natgas":["Natural gas","Natural gas"],"uranium":["Uranium","Uranium ore"],"poly":["Polysilicon","Semiconductor-grade polysilicon"],"resist":["Photoresists","Photoresists"],"gases":["Specialty gases","Bulk and specialty gases"],"chems":["Process chemicals","Process chemicals, slurries and filters"],"abf":["ABF film","ABF build-up film"],"glasscloth":["Glass-fiber cloth","Low-expansion glass-fiber cloth (T-glass)"],"goes":["Electrical steel","Grain-oriented electrical steel (GOES)"],"enrich":["Uranium enrichment","Uranium enrichment"],"wafers":["300mm wafers","300mm silicon wafers"],"inp":["InP wafers","Indium phosphide (InP) wafers"],"substrate":["ABF substrates","FC-BGA (ABF) package substrates"],"pcb":["Boards & laminates","High-speed boards and laminates"],"litho":["EUV lithography","Lithography (EUV and DUV)"],"depetch":["Deposition & etch","Deposition, etch and clean tools"],"metrology":["Inspection","Inspection and metrology"],"eda":["Design software & IP","Chip-design software (EDA) and IP"],"bonders":["HBM bonders","HBM stacking bonders"],"testeq":["Test equipment","Automated test equipment (ATE)"],"dicing":["Dicing & grinding","Dicing and grinding"],"turbines":["Gas turbines","Heavy-duty gas turbines"],"transformers":["Transformers","Large power transformers"],"foundry":["Leading-edge foundry","Leading-edge logic foundry (3nm, 2nm)"],"dram":["DRAM fabs","DRAM fabs"],"nand":["NAND flash","NAND flash fabs"],"china_fab":["China's fabs","China's domestic fabs (SMIC, CXMT)"],"gaspower":["Gas-fired plants","Gas-fired power plants"],"nuclear":["Nuclear power","Nuclear power"],"hbm":["HBM stacks","High-bandwidth memory (HBM)"],"cowos":["CoWoS packaging","CoWoS advanced packaging"],"osat":["Assembly & test","Outsourced assembly and test (OSAT)"],"grid":["Grid & interconnection","Grid capacity and interconnection"],"onsite":["On-site power","On-site generation"],"gpu":["Merchant GPUs","Merchant AI accelerators (GPUs)"],"asic":["Custom AI chips","Custom AI accelerators (ASICs)"],"cpu":["CPUs","Server CPUs"],"netsi":["Network silicon","Network silicon"],"bmc":["Server control chips","Baseboard management controllers (BMCs)"],"lasers":["Lasers","Lasers and photodetectors"],"optics":["Optical modules","Optical transceivers"],"fiber":["Fiber & cabling","Fiber, connectors and cables"],"china_chips":["China's AI chips","China's AI chips"],"electrical":["Switchgear & UPS","Switchgear, UPS and backup power"],"cooling":["Liquid cooling","Liquid cooling and thermal"],"servers":["AI servers & racks","AI servers and racks"],"netsys":["Cluster networks","Cluster networks"],"storage":["Storage","Storage systems"],"build":["Build & shells","Construction, electrical contracting and shells"],"campus":["AI campuses","AI data-center campuses"],"capital":["Capital & financing","Capital: equity, debt and vendor financing"],"hyper":["Hyperscalers","Hyperscale clouds"],"neo":["Neoclouds","Neoclouds"],"sovereign":["Gulf & sovereign AI","Gulf and sovereign AI"],"china_cloud":["China's AI clouds","China's AI clouds"],"labs":["Frontier labs","Frontier AI labs"],"users":["Users & businesses","End demand: people and businesses paying for AI"]}};
+const $ = (s, r) => (r || document).querySelector(s);
+const $$ = (s, r) => [...(r || document).querySelectorAll(s)];
+const reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+function h(tag, attrs, ...kids){
+  const e = document.createElement(tag);
+  if (attrs) for (const k in attrs){
+    const v = attrs[k];
+    if (v == null || v === false) continue;
+    if (k === "class") e.className = v;
+    else if (k === "text") e.textContent = v;
+    else if (k === "style") e.setAttribute("style", v);
+    else if (k.startsWith("on")) e.addEventListener(k.slice(2), v);
+    else e.setAttribute(k, v === true ? "" : v);
+  }
+  for (const c of kids.flat()) if (c != null && c !== false) e.append(c.nodeType ? c : document.createTextNode(String(c)));
+  return e;
+}
+const SVGNS = "http://www.w3.org/2000/svg";
+function s(tag, attrs, text){
+  const e = document.createElementNS(SVGNS, tag);
+  for (const k in attrs || {}) if (attrs[k] != null) e.setAttribute(k, attrs[k]);
+  if (text != null) e.textContent = text;
+  return e;
+}
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+function fmtDate(d){ const p = d.split("-"); return (+p[2]) + " " + MONTHS[+p[1] - 1] + " " + p[0]; }
+/** A share (0 to 1) as a percentage: one decimal below 10%, none above. */
+function pct(v){
+  if (!(v === v)) return "n/a";
+  const x = v * 100;
+  if (x > 0 && x < 0.05) return "under 0.1%";
+  return (Math.abs(x) < 9.95 ? Math.round(x * 10) / 10 : Math.round(x)) + "%";
+}
+function pts(d){ const r = Math.round(Math.abs(d) * 100); return r + (r === 1 ? " point" : " points"); }
+function num(v){ return String(Math.round(v * 10) / 10); }
+const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+
+/* ---------------- the model and the state ---------------- */
+const FILE = DATA.file || {asOf: "2026-01-01", period: {label: "", from: "2027-01-01", months: 12}, statusNote: "", plan: "", groups: [], buyers: [], drivers: [], links: []};
+const MODEL = ODDS.assemble(FILE, DATA.chain);
+const BY = Object.fromEntries(MODEL.drivers.map(d => [d.id, d]));
+const N = 10000, SEED = 20270101;
+const START = {}, cur = {}, given = {};
+for (const d of MODEL.drivers){
+  START[d.id] = d.kind === "event" ? {p: d.p, sev: d.sev == null ? 1 : d.sev} : {low: d.low, mid: d.mid, high: d.high};
+  cur[d.id] = Object.assign({}, START[d.id]);
+}
+const isChanged = id => Object.keys(START[id]).some(k => Math.abs(cur[id][k] - START[id][k]) > 1e-9);
+const nChanged = () => MODEL.drivers.filter(d => isChanged(d.id)).length;
+const anyGiven = () => Object.keys(given).length > 0;
+const usesSev = d => d.kind === "event" && d.effects.some(e => e.t === "scen" || e.t === "shock" || e.t === "dem");
+/** Which drivers act on each chain link (so a limit can be traced to the numbers that move it). */
+const MOVERS = {};
+for (const d of MODEL.drivers) for (const e of d.effects){
+  const nodes = e.node ? [e.node] : e.t === "scen" ? Object.keys((MODEL.scen[e.id] || {}).h0 || {}).filter(k => (!e.only || e.only.includes(k)) && !(e.skip || []).includes(k)) : [];
+  for (const k of nodes){ (MOVERS[k] = MOVERS[k] || []); if (!MOVERS[k].includes(d.id)) MOVERS[k][e.t === "ramp" ? "unshift" : "push"](d.id); }
+}
+/** Drivers with a link to each driver. Two drivers with no link between them are independent, so supposing one
+    cannot move the other; any difference would only be sampling noise and is not shown. */
+const LINKED = {};
+for (const l of FILE.links) if (l.rho){ (LINKED[l.a] = LINKED[l.a] || new Set()).add(l.b); (LINKED[l.b] = LINKED[l.b] || new Set()).add(l.a); }
+let RES = {cur: null, ref: null, refKind: null}, R0 = null, matMode = "share";
+
+/* ---------------- the numbers behind the page: runs in a worker when it can ---------------- */
+function compute(a){
+  const O = ODDS, R = O.simulate(MODEL, {n: a.n, seed: a.seed, beliefs: a.beliefs, given: a.given});
+  const q = arr => { const v = O.quantiles(arr, [0.05, 0.1, 0.25, 0.5, 0.75, 0.9, 0.95]); return {p05: v[0], p10: v[1], p25: v[2], p50: v[3], p75: v[4], p90: v[5], p95: v[6], mean: O.mean(arr)}; };
+  const out = {n: R.n, asked: R.asked, tried: R.tried, chance: R.chance, unknown: R.unknown, corr: {changed: R.corr.changed, maxDiff: R.corr.maxDiff, worst: R.corr.worst}};
+  if (!R.n) return out;
+  out.built = q(R.out.built); out.demand = q(R.out.demand); out.tight = q(R.out.tight);
+  out.below = {}; for (const t of [0.9, 0.8, 0.7, 0.6]) out.below[t] = O.probBelow(R.out.built, t);
+  out.hist = O.histogram(R.out.built, 0, 1, 100).map(c => c / R.n);
+  out.outputs = {}; for (const o of MODEL.graph.outputs) out.outputs[o.id] = q(R.out[o.id]);
+  out.limits = O.bindingTable(R);
+  out.matters = O.whatMatters(R, "built");
+  out.drivers = {};
+  for (const d of R.drivers){
+    if (d.kind === "event") out.drivers[d.id] = {p: O.mean(R.values[d.id])};
+    else { const v = O.quantiles(R.values[d.id], [0.1, 0.5, 0.9]); out.drivers[d.id] = {low: v[0], mid: v[1], high: v[2]}; }
+  }
+  return out;
+}
+let worker = null, jobs = new Map(), jobId = 0;
+try {
+  const src = $("#odds-engine").textContent + "\nlet MODEL = null;\n" + compute.toString() +
+    "\nonmessage = e => { const m = e.data; if (m.model){ MODEL = m.model; return; } let res = null, err = null; try { res = m.args.map(compute); } catch (x) { err = String((x && x.message) || x); } postMessage({id: m.id, res, err}); };";
+  worker = new Worker(URL.createObjectURL(new Blob([src], {type: "text/javascript"})));
+  worker.onmessage = e => { const j = jobs.get(e.data.id); if (!j) return; jobs.delete(e.data.id); e.data.err ? j.no(new Error(e.data.err)) : j.ok(e.data.res); };
+  worker.onerror = () => { const w = worker; worker = null; try { w.terminate(); } catch (x) {} for (const j of jobs.values()) j.no(new Error("worker")); jobs.clear(); };
+  worker.postMessage({model: MODEL});
+} catch (x) { worker = null; }
+/** Run one or more sets of numbers; resolves with one result per set. Falls back to this thread without a worker. */
+function runAll(args){
+  const here = () => new Promise(ok => setTimeout(() => ok(args.map(compute)), 0));
+  if (!worker) return here();
+  return new Promise((ok, no) => { const id = ++jobId; jobs.set(id, {ok, no}); worker.postMessage({id, args}); }).catch(() => here());
+}
+let busy = false, pending = null, timer = null;
+function schedule(){ clearTimeout(timer); timer = setTimeout(request, 60); }
+function request(){
+  clearTimeout(timer);
+  const beliefs = {drivers: JSON.parse(JSON.stringify(cur))}, sit = anyGiven();
+  const args = [{n: N, seed: SEED, beliefs, given: Object.assign({}, given)}];
+  if (sit) args.push({n: N, seed: SEED, beliefs, given: {}});
+  pending = {args, sit, changed: nChanged() > 0};
+  pump();
+}
+function pump(){
+  if (busy || !pending) return;
+  const job = pending; pending = null; busy = true;
+  $("#results").classList.add("busy");
+  runAll(job.args).then(res => {
+    busy = false;
+    if (!job.sit && !job.changed) R0 = res[0];
+    RES = {cur: res[0], ref: job.sit ? res[1] : job.changed ? R0 : null, refKind: job.sit ? "nosit" : job.changed ? "start" : null};
+    if (!pending) $("#results").classList.remove("busy");
+    render();
+    pump();
+  }).catch(err => { busy = false; fail("The numbers could not be worked out: " + err.message); });
+}
+function fail(msg){ const e = $("#err"); e.textContent = msg; e.hidden = false; $("#lab-grid").hidden = true; }
+
+/* ---------------- tooltip ---------------- */
+const tipEl = $("#tip");
+function showTip(kids, x, y){
+  tipEl.replaceChildren(...kids); tipEl.hidden = false;
+  const r = tipEl.getBoundingClientRect(), W = window.innerWidth, H = window.innerHeight;
+  let left = x + 14, top = y + 14;
+  if (left + r.width > W - 8) left = Math.max(8, x - r.width - 14);
+  if (top + r.height > H - 8) top = Math.max(8, y - r.height - 14);
+  tipEl.style.left = left + "px"; tipEl.style.top = top + "px";
+}
+function hideTip(){ tipEl.hidden = true; }
+function tipRow(cls, label, value){ return h("div", {class: "tr"}, h("span", {class: "ky" + (cls ? " " + cls : "")}), h("span", {text: label + ":"}), h("b", {text: value})); }
+/** Attach the same tooltip to hover and keyboard focus. `make` returns the tooltip's content. */
+function withTip(el, make){
+  el.addEventListener("pointermove", e => showTip(make(), e.clientX, e.clientY));
+  el.addEventListener("pointerleave", hideTip);
+  el.addEventListener("focus", () => { const r = el.getBoundingClientRect(); showTip(make(), r.left + Math.min(r.width, 200) / 2, r.bottom - 8); });
+  el.addEventListener("blur", hideTip);
+  return el;
+}
+const refName = () => RES.refKind === "nosit" ? "your numbers without this situation" : "the starting numbers";
+const refShort = () => RES.refKind === "nosit" ? "Without the situation" : "Starting numbers";
+
+/* ---------------- drivers ---------------- */
+const drag = {};
+function driverRow(d){
+  const ev = d.kind === "event", id = d.id;
+  const fields = h("div", {class: "fields"});
+  if (ev){
+    fields.append(h("label", {class: "fld"}, h("span", {text: "chance"}), h("input", {class: "nf", type: "number", inputmode: "decimal", min: 0, max: 100, step: "0.5", "data-f": "p"})), h("span", {class: "unit", text: "%"}));
+  } else {
+    for (const [f, capt] of [["low", "low"], ["mid", "central"], ["high", "high"]])
+      fields.append(h("label", {class: "fld"}, h("span", {text: capt}), h("input", {class: "nf", type: "number", inputmode: "decimal", min: d.min, max: d.max, step: "1", "data-f": f})));
+    fields.append(h("span", {class: "unit", text: d.unit}));
+  }
+  const slider = h("input", {class: "sl", type: "range", min: ev ? 0 : d.min, max: ev ? 100 : d.max, step: ev ? "0.5" : "1",
+    "aria-label": (ev ? "Chance, in percent: " : "Central case, moves low and high with it: ") + d.label});
+  const more = h("div", {class: "drv-more", id: "m-" + id, hidden: true});
+  const about = h("button", {type: "button", class: "ghost sm", "aria-expanded": "false", "aria-controls": "m-" + id, onclick: () => {
+    const open = about.getAttribute("aria-expanded") !== "true";
+    about.setAttribute("aria-expanded", String(open)); more.hidden = !open;
+  }}, "About", h("span", {class: "caret", "aria-hidden": "true", text: "›"}));
+  const btns = h("div", {class: "drv-btns"});
+  if (ev) btns.append(h("button", {type: "button", class: "ghost sm", "data-sup": "true", "aria-pressed": "false", text: "Suppose it happens"}));
+  btns.append(about);
+  // the details
+  const facts = h("dl", {class: "facts"},
+    h("dt", {text: d.resolves ? "How we will know" : "What to watch"}), h("dd", {text: d.resolves || d.watch}),
+    ev ? [h("dt", {text: "Deadline"}), h("dd", {text: fmtDate(d.deadline)})] : null,
+    h("dt", {text: "What it does here"}), h("dd", {text: d.does}),
+    h("dt", {text: "Where the number comes from"}), h("dd", {}, h("span", {class: "tagb", text: d.basis.charAt(0).toUpperCase() + d.basis.slice(1)}), d.note));
+  more.append(facts);
+  if (usesSev(d)){
+    const sid = "sev-" + id;
+    more.append(h("div", {class: "sevrow"},
+      h("label", {for: sid}, "How bad, if it happens", h("output", {"data-o": "sev"})),
+      h("div", {class: "slw"}, h("div", {class: "trk"}, h("i", {"data-v": "sevfill"}), h("u", {"data-v": "sevstart"})), h("input", {class: "sl", id: sid, type: "range", min: 0, max: 2, step: "0.1", "data-f": "sev"})),
+      h("p", {class: "cap", text: "1 is the standard case described above. 0.5 is half as bad, 2 twice as bad."})));
+  }
+  const supMore = h("div", {class: "drv-btns", style: "justify-content:flex-start"});
+  if (ev) supMore.append(h("button", {type: "button", class: "ghost sm", "data-sup": "false", "aria-pressed": "false", text: "Suppose it does not happen"}));
+  else supMore.append(h("button", {type: "button", class: "ghost sm", "data-sup": "low", "aria-pressed": "false", text: "Suppose the low case or worse"}),
+                      h("button", {type: "button", class: "ghost sm", "data-sup": "high", "aria-pressed": "false", text: "Suppose the high case or better"}));
+  more.append(supMore);
+
+  const row = h("article", {class: "drv", id: "d-" + id, "data-id": id, "aria-labelledby": "l-" + id},
+    h("div", {class: "drv-top"},
+      h("div", {}, h("h4", {class: "drv-l", id: "l-" + id, text: d.label}), h("p", {class: "drv-q", text: d.question})),
+      fields),
+    h("div", {class: "drv-ctl"},
+      h("div", {class: "slw" + (ev ? "" : " rng")}, h("div", {class: "trk"}, h("i", {"data-v": "fill"}), h("u", {"data-v": "start"})), slider),
+      btns),
+    h("div", {class: "drv-note", "data-v": "note"}),
+    more);
+
+  // the main slider: a chance, or the central case with low and high moving along
+  slider.addEventListener("input", () => {
+    const v = +slider.value;
+    if (ev) cur[id].p = v / 100;
+    else {
+      const b = drag[id] || (drag[id] = Object.assign({}, cur[id])), dv = v - b.mid;
+      cur[id] = {low: clamp(b.low + dv, d.min, d.max), mid: clamp(v, d.min, d.max), high: clamp(b.high + dv, d.min, d.max)};
+    }
+    sync(id, {skip: slider}); updateBar(); schedule();
+  });
+  slider.addEventListener("change", () => { delete drag[id]; });
+  // typed numbers: used as typed while they make sense, tidied when the field is left
+  for (const f of $$(".nf", row)){
+    const key = f.getAttribute("data-f");
+    f.setAttribute("aria-label", (key === "p" ? "Chance in percent" : key === "mid" ? "Central case" : key === "low" ? "Low case" : "High case") + ": " + d.label);
+    const take = commit => {
+      const v = parseFloat(f.value);
+      if (!(v === v)){ if (commit) sync(id, {force: true}); return; }
+      const c = cur[id];
+      if (key === "p") c.p = clamp(v, 0, 100) / 100;
+      else if (key === "low") c.low = clamp(v, d.min, c.mid);
+      else if (key === "high") c.high = clamp(v, c.mid, d.max);
+      else { c.mid = clamp(v, d.min, d.max); if (c.mid < c.low) c.low = c.mid; if (c.mid > c.high) c.high = c.mid; }
+      sync(id, commit ? {force: true} : {skip: f}); updateBar(); schedule();
+    };
+    f.addEventListener("input", () => take(false));
+    f.addEventListener("change", () => take(true));
+  }
+  const sev = $('[data-f="sev"]', row);
+  if (sev) sev.addEventListener("input", () => { cur[id].sev = +sev.value; sync(id, {skip: sev}); updateBar(); schedule(); });
+  for (const b of $$("[data-sup]", row)) b.addEventListener("click", () => {
+    const raw = b.getAttribute("data-sup"), w = raw === "true" ? true : raw === "false" ? false : raw;
+    if (given[id] === w) delete given[id]; else given[id] = w;
+    syncAll(); request();
+  });
+  return row;
+}
+/** Write one driver's current numbers into its row. `opt.skip` is the control being used, which is left alone.
+    A number field that is being typed in is left alone too, unless `opt.force` (the entry is finished). */
+function sync(id, opt){
+  opt = opt || {};
+  const d = BY[id], c = cur[id], st = START[id], row = $("#d-" + id), ev = d.kind === "event";
+  const set = (el, v) => {
+    if (!el || el === opt.skip) return;
+    if (!opt.force && el === document.activeElement && el.classList.contains("nf")) return;
+    el.value = v;
+  };
+  const sl = $(".drv-ctl .sl", row), fill = $('[data-v="fill"]', row), start = $('[data-v="start"]', row);
+  if (ev){
+    set($('[data-f="p"]', row), num(c.p * 100)); set(sl, c.p * 100);
+    fill.style.left = "0"; fill.style.width = (c.p * 100) + "%"; start.style.left = (st.p * 100) + "%";
+    sl.setAttribute("aria-valuetext", pct(c.p));
+    const sev = $('[data-f="sev"]', row);
+    if (sev){
+      set(sev, c.sev); $('[data-o="sev"]', row).textContent = num(c.sev) + " × the standard case"; sev.setAttribute("aria-valuetext", num(c.sev) + " times the standard case");
+      const sf = $('[data-v="sevfill"]', row); sf.style.left = "0"; sf.style.width = (c.sev / 2 * 100) + "%"; $('[data-v="sevstart"]', row).style.left = (st.sev / 2 * 100) + "%";
+    }
+  } else {
+    const span = d.max - d.min, fr = v => (clamp(v, d.min, d.max) - d.min) / span * 100;
+    set($('[data-f="low"]', row), num(c.low)); set($('[data-f="mid"]', row), num(c.mid)); set($('[data-f="high"]', row), num(c.high)); set(sl, c.mid);
+    fill.style.left = fr(c.low) + "%"; fill.style.width = Math.max(0, fr(c.high) - fr(c.low)) + "%"; start.style.left = fr(st.mid) + "%";
+    sl.setAttribute("aria-valuetext", "central " + num(c.mid) + ", low " + num(c.low) + ", high " + num(c.high) + " " + d.unit);
+  }
+  const ch = isChanged(id), g = given[id];
+  row.classList.toggle("changed", ch); row.classList.toggle("supposed", g !== undefined);
+  start.hidden = !ch;
+  for (const b of $$("[data-sup]", row)){ const raw = b.getAttribute("data-sup"); b.setAttribute("aria-pressed", String(String(g) === raw)); }
+  // the line under the slider: what it was, and where it lands in a supposed situation
+  const note = $('[data-v="note"]', row), bits = [];
+  if (ch){
+    const was = ev ? pct(st.p) + (usesSev(d) && Math.abs(c.sev - st.sev) > 1e-9 ? ", " + num(st.sev) + " × as bad" : "") : num(st.low) + " · " + num(st.mid) + " · " + num(st.high);
+    bits.push(h("span", {}, "Started at ", h("b", {text: was}), " ", h("button", {type: "button", onclick: () => { cur[id] = Object.assign({}, st); sync(id, {force: true}); updateBar(); request(); }, text: "Reset"})));
+  }
+  const rs = RES.refKind === "nosit" && RES.cur && RES.cur.n ? RES.cur.drivers[id] : null;
+  if (rs && g === undefined && Object.keys(given).some(k => LINKED[id] && LINKED[id].has(k))){
+    if (ev && Math.abs(rs.p - c.p) >= 0.005) bits.push(h("span", {}, "In this situation its chance is ", h("b", {text: pct(rs.p)})));
+    if (!ev && Math.abs(rs.mid - c.mid) >= Math.max(0.5, (d.max - d.min) * 0.005)) bits.push(h("span", {}, "In this situation its central case is ", h("b", {text: num(rs.mid)})));
+  }
+  note.replaceChildren(...bits);
+}
+function syncAll(){ for (const d of MODEL.drivers) sync(d.id); updateBar(); }
+function updateBar(){
+  const n = nChanged(), g = Object.keys(given).length;
+  $("#dchanged").textContent = n ? (n === 1 ? "1 changed from its starting number" : n + " changed from their starting numbers") : "These are the starting numbers";
+  $("#reset-all").disabled = !n && !g;
+}
+function buildDrivers(){
+  const list = $("#dlist");
+  for (const g of FILE.groups){
+    const ds = MODEL.drivers.filter(d => d.group === g.id);
+    if (!ds.length) continue;
+    const ne = ds.filter(d => d.kind === "event").length, nr = ds.length - ne;
+    list.append(h("div", {class: "grp", id: "g-" + g.id},
+      h("div", {class: "grp-h"}, h("h3", {text: g.label}), h("span", {class: "cap", text: [ne ? ne + (ne === 1 ? " yes-or-no question" : " yes-or-no questions") : null, nr ? nr + (nr === 1 ? " quantity" : " quantities") : null].filter(Boolean).join(", ")})),
+      ds.map(driverRow)));
+  }
+  $("#reset-all").addEventListener("click", () => {
+    for (const d of MODEL.drivers) cur[d.id] = Object.assign({}, START[d.id]);
+    for (const k of Object.keys(given)) delete given[k];
+    for (const d of MODEL.drivers) sync(d.id, {force: true});
+    updateBar(); request();
+  });
+}
+function jumpTo(id){
+  const row = $("#d-" + id); if (!row) return;
+  row.scrollIntoView({behavior: reduceMotion ? "auto" : "smooth", block: "center"});
+  row.classList.add("flash"); setTimeout(() => row.classList.remove("flash"), 1600);
+  const f = $(".nf", row); if (f) f.focus({preventScroll: true});
+}
+
+/* ---------------- results ---------------- */
+function render(){
+  const r = RES.cur, ref = RES.ref && RES.ref.n ? RES.ref : null, sit = anyGiven();
+  // the supposed situation
+  $("#situ").hidden = !sit;
+  if (sit){
+    $("#situ-chips").replaceChildren(...Object.keys(given).map(id => {
+      const g = given[id], d = BY[id], what = g === true ? "happens" : g === false ? "does not happen" : g === "low" ? "at its low case or worse" : "at its high case or better";
+      return h("span", {class: "chipx"}, d.label + ": " + what, h("button", {type: "button", class: "xbtn", "aria-label": "Stop supposing: " + d.label, onclick: () => { delete given[id]; syncAll(); request(); }, text: "×"}));
+    }));
+    $("#situ-t").textContent = r.n ? "With your numbers this situation has a chance of " + pct(r.chance) + ". Everything linked to it has shifted; the rows on the left show where each lands." : "";
+  }
+  const none = !r.n;
+  $("#empty").hidden = !none;
+  for (const id of ["hero", "b-hist", "b-lim", "b-mat", "b-out"]) $("#" + id).hidden = none;
+  if (none){
+    $("#empty-t").replaceChildren(h("b", {text: r.tried ? "This situation is too rare to show." : "This cannot happen with your numbers."}),
+      r.tried ? "It did not come up once in " + r.tried.toLocaleString("en-US") + " tries. Raise the chances involved, or suppose fewer things at once." : "One of the things you are supposing has a chance of zero, or of 100% when you suppose it does not happen.");
+    $("#mini").hidden = true; syncAll(); return;
+  }
+  // headline
+  const b = r.built;
+  $("#hero-v").textContent = Math.round(b.mean * 100) + "%";
+  const dl = $("#hero-d");
+  if (ref){
+    const dv = Math.round(b.mean * 100) - Math.round(ref.built.mean * 100);
+    dl.textContent = (dv === 0 ? "In line with " : pts(dv / 100) + (dv > 0 ? " above " : " below ")) + refName() + " (" + Math.round(ref.built.mean * 100) + "%)." + (r.n < r.asked ? " Based on the " + r.n.toLocaleString("en-US") + " futures found that match." : "");
+  }
+  dl.hidden = !ref;
+  $("#t-mid").textContent = pct(b.p50); $("#t-low").textContent = pct(b.p10);
+  $("#t-below").textContent = pct(r.below[$("#t-thr").value]);
+  $("#t-tight").textContent = Math.round(r.tight.p50 * 100) + "%";
+  renderHist(r, ref); renderLimits(r, ref); renderMatters(r); renderOutputs(r);
+  $("#mini-v").textContent = Math.round(b.mean * 100) + "% of plan";
+  $("#mini-t").textContent = "average · 1-in-10 low " + pct(b.p10);
+  $("#live").textContent = "On average " + Math.round(b.mean * 100) + "% of plan gets built. One time in ten, " + pct(b.p10) + " or less.";
+  syncAll(); renderLinks();
+}
+
+let histState = null;
+function renderHist(r, ref){
+  const svg = $("#hist"), W = 400, H = 176, L = 2, R = 2, T = 24, B = 34, pw = W - L - R, ph = H - T - B, y0 = T + ph;
+  const lowq = Math.min(r.built.p05, ref ? ref.built.p05 : 1);
+  const lo = lowq >= 0.63 ? 60 : lowq >= 0.43 ? 40 : lowq >= 0.23 ? 20 : 0, step = lo >= 40 ? 2 : lo === 20 ? 4 : 5, nb = (100 - lo) / step, slot = pw / nb;
+  const agg = hh => { const o = new Array(nb).fill(0); for (let i = 0; i < 100; i++) o[clamp(Math.floor((i - lo) / step), 0, nb - 1)] += hh[i]; return o; };
+  const a = agg(r.hist), c = ref ? agg(ref.hist) : null, top = Math.max(...a, ...(c || [0]));
+  const ymax = [0.04, 0.06, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.8, 1].find(v => v >= top) || 1;
+  const y = v => y0 - v / ymax * ph, xv = v => L + (clamp(v * 100, lo, 100) - lo) / (100 - lo) * pw;
+  const kids = [];
+  for (const g of [ymax / 2, ymax]) kids.push(s("line", {class: "gl", x1: L, x2: W - R, y1: y(g), y2: y(g)}), s("text", {x: L + 2, y: y(g) - 3}, pct(g) + (g === ymax ? " of futures" : "")));
+  a.forEach((v, i) => {
+    if (!(v > 0)) return;
+    const x = L + i * slot + 1, w = slot - 2, yy = Math.min(y(v), y0 - 1), rr = Math.min(4, w / 2, y0 - yy);
+    kids.push(s("path", {class: "bar", "data-i": i, d: "M" + x + "," + y0 + "V" + (yy + rr) + "Q" + x + "," + yy + " " + (x + rr) + "," + yy + "H" + (x + w - rr) + "Q" + (x + w) + "," + yy + " " + (x + w) + "," + (yy + rr) + "V" + y0 + "Z"}));
+  });
+  if (c){
+    let dd = "";
+    c.forEach((v, i) => { const x = L + i * slot; dd += (i ? "V" : "M" + x + ",") + y(v) + "H" + (x + slot); });
+    kids.push(s("path", {class: "ref", d: dd}));
+  }
+  kids.push(s("line", {class: "ax", x1: L, x2: W - R, y1: y0 + 0.5, y2: y0 + 0.5}));
+  for (let t = lo; t <= 100; t += 20) kids.push(s("text", {x: L + (t - lo) / (100 - lo) * pw, y: y0 + 14, "text-anchor": t === lo ? "start" : t === 100 ? "end" : "middle"}, t + "%" + (t === lo && lo > 0 ? " or less" : "")));
+  kids.push(s("text", {x: W / 2, y: H - 3, "text-anchor": "middle"}, "capacity built, share of plan"));
+  const mx = xv(r.built.mean), right = mx > W - 96;
+  kids.push(s("line", {class: "med", x1: mx, x2: mx, y1: T - 12, y2: y0}), s("text", {class: "lab", x: mx + (right ? -5 : 5), y: T - 4, "text-anchor": right ? "end" : "start"}, "average " + Math.round(r.built.mean * 100) + "%"));
+  for (let i = 0; i < nb; i++) kids.push(s("rect", {class: "hit", "data-i": i, x: L + i * slot, y: T - 12, width: slot, height: ph + 12}));
+  svg.replaceChildren(...kids);
+  svg.setAttribute("aria-label", "Spread of capacity built across " + r.n.toLocaleString("en-US") + " futures. On average " + Math.round(r.built.mean * 100) + "% of plan; half of the futures at or above " + pct(r.built.p50) + "; 1 time in 10 at or below " + pct(r.built.p10) + ". Use the left and right arrow keys to read each bar.");
+  histState = {a, c, lo, step, nb, slot, L, y0, at: null};
+  $("#hist-cap").textContent = lo > 0 && a[0] > 0 ? "The first bar holds every future that ends below " + (lo + step) + "%." : "";
+  $("#hist-lg").replaceChildren(...(ref ? [h("span", {class: "lg"}, h("span", {class: "sw"}), sitLabel()), h("span", {class: "lg"}, h("span", {class: "sw line"}), refShort())] : []));
+  // the same in numbers
+  const rowsQ = [["p05", "5%"], ["p10", "10%"], ["p25", "25%"], ["p50", "50% (a typical future)"], ["p75", "75%"], ["p90", "90%"], ["p95", "95%"]];
+  $("#hist-tbl").replaceChildren(
+    h("thead", {}, h("tr", {}, h("th", {text: "Share of futures that end at or below"}), h("th", {class: "r", text: ref ? sitLabel() : "Capacity built"}), ref ? h("th", {class: "r", text: refShort()}) : null)),
+    h("tbody", {}, rowsQ.map(([k, lab]) => h("tr", {}, h("td", {text: lab}), h("td", {class: "r", text: pct(r.built[k])}), ref ? h("td", {class: "r", text: pct(ref.built[k])}) : null)),
+      h("tr", {}, h("td", {text: "Average of all futures"}), h("td", {class: "r", text: pct(r.built.mean)}), ref ? h("td", {class: "r", text: pct(ref.built.mean)}) : null)));
+}
+const sitLabel = () => RES.refKind === "nosit" ? "In this situation" : "Your numbers";
+function histTip(i){
+  const st = histState, a0 = st.lo + i * st.step, a1 = a0 + st.step;
+  const title = i === 0 && st.lo > 0 ? "Under " + a1 + "% of plan" : a0 + "% to " + a1 + "% of plan";
+  return [h("div", {class: "tt", text: title}), tipRow("", st.c ? sitLabel() : "Share of futures", pct(st.a[i])), st.c ? tipRow("ref", refShort(), pct(st.c[i])) : null].filter(Boolean);
+}
+function histFocus(i, x, y){
+  const svg = $("#hist"), st = histState; if (!st) return;
+  $$(".bar.on", svg).forEach(e => e.classList.remove("on"));
+  st.at = i;
+  if (i == null){ hideTip(); return; }
+  const bar = $('.bar[data-i="' + i + '"]', svg); if (bar) bar.classList.add("on");
+  if (x == null){ const hit = $('.hit[data-i="' + i + '"]', svg).getBoundingClientRect(); x = hit.left + hit.width / 2; y = hit.top + hit.height / 2; }
+  showTip(histTip(i), x, y);
+}
+(function histEvents(){
+  const svg = $("#hist");
+  svg.addEventListener("pointermove", e => { const t = e.target.closest("[data-i]"); if (t) histFocus(+t.getAttribute("data-i"), e.clientX, e.clientY); else histFocus(null); });
+  svg.addEventListener("pointerleave", () => histFocus(null));
+  svg.addEventListener("blur", () => histFocus(null));
+  svg.addEventListener("keydown", e => {
+    const st = histState; if (!st) return;
+    let i = st.at;
+    if (e.key === "ArrowRight") i = i == null ? Math.round(st.nb * 0.75) : Math.min(st.nb - 1, i + 1);
+    else if (e.key === "ArrowLeft") i = i == null ? Math.round(st.nb * 0.75) : Math.max(0, i - 1);
+    else if (e.key === "Home") i = 0; else if (e.key === "End") i = st.nb - 1;
+    else if (e.key === "Escape"){ histFocus(null); return; } else return;
+    e.preventDefault(); histFocus(i);
+  });
+})();
+
+function limitName(id, long){
+  if (id === "ok") return "Nothing: the whole plan gets built";
+  if (id === "demand") return "Demand: buyers want less than can be built";
+  const n = DATA.linkNames[id]; return n ? (long ? n[1] : n[0]) : id;
+}
+/** Limits with "on plan" and "the plan itself" merged, as {id: {share, avg}}. */
+function limitMap(res){
+  const m = {};
+  for (const x of res.limits){
+    const id = x.id === "none" || x.id === "plan" ? "ok" : x.id, e = m[id] || (m[id] = {share: 0, sum: 0});
+    e.share += x.share; e.sum += x.share * x.avgBuilt;
+  }
+  for (const k in m) m[k].avg = m[k].sum / m[k].share;
+  return m;
+}
+function renderLimits(r, ref){
+  const m = limitMap(r), mr = ref ? limitMap(ref) : null;
+  const ids = Object.keys(m).sort((a, b) => m[b].share - m[a].share), shown = ids.slice(0, 7), rest = ids.slice(7);
+  const scale = Math.max(0.3, ...shown.map(id => m[id].share), ...(mr ? shown.map(id => (mr[id] || {share: 0}).share) : [0]));
+  const rows = shown.map(id => {
+    const x = m[id], movers = (MOVERS[id] || []).map(k => BY[k].label), sub = movers.length ? "moved by " + movers.slice(0, 2).join(", ") + (movers.length > 2 ? " and " + (movers.length - 2) + " more" : "") : null;
+    const el = h(MOVERS[id] ? "button" : "div", Object.assign({class: "row"}, MOVERS[id] ? {type: "button", onclick: () => jumpTo(MOVERS[id][0])} : {tabindex: "0"}),
+      h("span", {class: "nm"}, limitName(id), sub ? h("small", {text: sub}) : null),
+      h("span", {class: "trk"}, h("i", {style: "width:" + (x.share / scale * 100) + "%"}), mr ? h("u", {style: "left:" + ((mr[id] || {share: 0}).share / scale * 100) + "%"}) : null),
+      h("span", {class: "val", text: pct(x.share)}));
+    return withTip(el, () => [h("div", {class: "tt", text: limitName(id, true)}), tipRow("", sitLabel(), pct(x.share) + " of futures"), mr ? tipRow("ref", refShort(), pct((mr[id] || {share: 0}).share)) : null,
+      h("p", {text: id === "ok" ? "Nothing in the chain falls short and buyers want at least the plan." : "When this is the limit, " + pct(x.avg) + " of the plan gets built on average." + (MOVERS[id] ? " Click to go to the number that moves it." : "")})].filter(Boolean));
+  });
+  if (rest.length){
+    const sh = rest.reduce((t, id) => t + m[id].share, 0);
+    rows.push(h("div", {class: "row other"}, h("span", {class: "nm", text: rest.length + (rest.length === 1 ? " other link" : " other links")}), h("span", {class: "trk"}, h("i", {style: "width:" + (sh / scale * 100) + "%"})), h("span", {class: "val", text: pct(sh)})));
+  }
+  $("#lim").replaceChildren(...rows);
+  $("#lim-lg").replaceChildren(...(ref ? [h("span", {class: "lg"}, h("span", {class: "sw tick"}), refShort())] : []));
+}
+function renderMatters(r){
+  const byShare = matMode === "share";
+  const list = r.matters.slice().sort((a, b) => byShare ? b.share - a.share : Math.abs(b.swing) - Math.abs(a.swing)).slice(0, 10);
+  const scale = byShare ? Math.max(0.2, ...list.map(x => x.share)) : Math.max(0.05, ...list.map(x => Math.abs(x.swing)));
+  $("#mat-cap").textContent = byShare ? "How much of the spread in what gets built goes with each number. Rare but severe things rank high." : "How far the average outcome moves: when an event happens against when it does not, or a quantity's high side against its low side.";
+  $("#mat").replaceChildren(...list.map(x => {
+    const d = BY[x.id], sw = Math.round(x.swing * 100), sign = sw > 0 ? "+" : sw < 0 ? "−" : "";
+    const swt = sign + Math.abs(sw) + (Math.abs(sw) === 1 ? " point" : " points") + (d.kind === "event" ? " if it happens" : ", high side against low");
+    const el = h("button", {type: "button", class: "row", onclick: () => jumpTo(x.id)},
+      h("span", {class: "nm"}, d.label, h("small", {text: byShare ? swt : pct(x.share) + " of the uncertainty"})),
+      h("span", {class: "trk"}, h("i", {style: "width:" + ((byShare ? x.share : Math.abs(x.swing)) / scale * 100) + "%"})),
+      h("span", {class: "val", text: byShare ? pct(x.share) : sign + Math.abs(sw)}));
+    return withTip(el, () => [h("div", {class: "tt", text: d.label}), tipRow("", "Share of the uncertainty", pct(x.share)), h("div", {class: "tr"}, h("span", {text: "Swing:"}), h("b", {text: swt})),
+      h("p", {text: "Shares overlap when numbers are linked, so they can add up to more than 100%. Click to go to this number."})]);
+  }));
+}
+function renderOutputs(r){
+  const lo = 0.4, fr = v => (clamp(v, lo, 1) - lo) / (1 - lo) * 100;
+  const rows = [h("div", {class: "orow hd"}, h("span", {text: "Stage"}), h("span", {text: "40% to 100% of plan"}), h("span", {class: "r", text: "Central"}), h("span", {class: "r", text: "Low"}))];
+  for (const o of MODEL.graph.outputs){
+    const q = r.outputs[o.id];
+    rows.push(withTip(h("div", {class: "orow", tabindex: "0"}, h("span", {text: o.label}),
+      h("span", {class: "oplot"}, h("i", {style: "left:" + fr(q.p10) + "%;width:" + Math.max(0.5, fr(q.p90) - fr(q.p10)) + "%"}), h("b", {style: "left:" + fr(q.p50) + "%"})),
+      h("span", {class: "r", text: pct(q.p50)}), h("span", {class: "r", text: pct(q.p10)})),
+      () => [h("div", {class: "tt", text: o.label}), tipRow("", "Central", pct(q.p50)), h("div", {class: "tr"}, h("span", {text: "1 time in 10 at or below:"}), h("b", {text: pct(q.p10)})), h("div", {class: "tr"}, h("span", {text: "1 time in 10 at or above:"}), h("b", {text: pct(q.p90)}))]));
+  }
+  $("#outs").replaceChildren(...rows);
+}
+$("#t-thr").addEventListener("change", () => { if (RES.cur && RES.cur.n) $("#t-below").textContent = pct(RES.cur.below[$("#t-thr").value]); });
+for (const b of $$("#mat-seg button")) b.addEventListener("click", () => {
+  matMode = b.getAttribute("data-m");
+  $$("#mat-seg button").forEach(x => x.setAttribute("aria-pressed", String(x === b)));
+  if (RES.cur && RES.cur.n) renderMatters(RES.cur);
+});
+$("#situ-clear").addEventListener("click", () => { for (const k of Object.keys(given)) delete given[k]; syncAll(); request(); });
+
+/* ---------------- links, in plain numbers, with the current chances ---------------- */
+function renderLinks(){
+  const live = id => Object.assign({}, BY[id], cur[id]);
+  const say = (a, b, rho) => {
+    const rd = ODDS.reading(a, b, rho), v = x => rd.unit === "chance" ? pct(x) : num(x);
+    return h("span", {class: "st"}, (rd.unit === "chance" ? "from a chance of " : "from a central case of "), h("b", {text: v(rd.base)}), " to ", h("b", {text: v(rd.given)}));
+  };
+  const word = r => (Math.abs(r) >= 0.5 ? "Strong" : Math.abs(r) >= 0.3 ? "Moderate" : "Weak") + (r > 0 ? ", same way" : ", opposite ways");
+  const high = d => d.kind === "range" ? h("span", {class: "why", text: "when it comes in at its high case or better"}) : null;
+  const body = FILE.links.map(l => {
+    const a = live(l.a), b = live(l.b);
+    return h("tr", {}, h("td", {class: "pair"}, h("span", {"data-n": "1", text: a.label}), h("br"), h("span", {"data-n": "2", text: b.label}), h("span", {class: "why", text: l.why})),
+      h("td", {class: "st"}, h("b", {text: (l.rho > 0 ? "+" : "−") + Math.abs(l.rho).toFixed(1)}), " " + word(l.rho)),
+      h("td", {}, b.label, h("br"), say(a, b, l.rho), high(a)),
+      h("td", {}, a.label, h("br"), say(b, a, l.rho), high(b)));
+  });
+  $("#lk-tbl").replaceChildren(h("thead", {}, h("tr", {}, h("th", {text: "These two"}), h("th", {text: "Link"}), h("th", {text: "If the first happens, the second goes"}), h("th", {text: "If the second happens, the first goes"}))), h("tbody", {}, body));
+}
+
+/* ---------------- start ---------------- */
+(function nav(){
+  const n = DATA.nav || {};
+  $("#nav-odds").setAttribute("aria-current", "page");
+  $("#nav-supply").href = DATA.supplyUrl; $("#nav-atlas").href = DATA.atlasUrl;
+  $("#nav-odds-c").textContent = n.odds || "";
+  $("#nav-supply-c").textContent = (n.supply || "") + " →"; $("#nav-atlas-c").textContent = (n.atlas || "") + " →";
+})();
+(function start(){
+  const ne = MODEL.drivers.filter(d => d.kind === "event").length, nr = MODEL.drivers.length - ne;
+  $("#asof").textContent = "Starting numbers as of " + fmtDate(FILE.asOf);
+  $("#period").textContent = "Outcome: " + FILE.period.label.toLowerCase();
+  $("#notice-t").textContent = FILE.statusNote;
+  $("#lab-dek").textContent = ne + " yes-or-no questions and " + nr + " quantities decide how much AI data-center capacity gets built in " + FILE.period.label.toLowerCase().replace("calendar ", "") + ". Set the chance of each, and the page runs " + N.toLocaleString("en-US") + " futures to show how much of the plan gets built, how wide the spread is, and what holds it back.";
+  $("#dcount").textContent = MODEL.drivers.length + " things that could change the outcome";
+  $("#method-plan").textContent = FILE.plan;
+  $("#method-basis").textContent = FILE.statusNote + " Each row's About panel says where its number comes from.";
+  $("#foot").textContent = "Starting numbers as of " + fmtDate(FILE.asOf) + ": first estimates, not yet researched one by one. Research model, not investment advice.";
+  if (!DATA.file){ fail("The model file (data/odds.json) has a problem, so there is nothing to run. The Update desk on The Chain lists what is wrong."); return; }
+  const problems = ODDS.check(MODEL);
+  if (problems.length){ fail("The model file has a problem: " + problems[0]); return; }
+  buildDrivers(); syncAll(); renderLinks(); request();
+  // on a phone the results scroll away while you change numbers: keep the headline in a bar at the bottom
+  if ("IntersectionObserver" in window){
+    let heroSeen = true;
+    const mini = $("#mini");
+    new IntersectionObserver(es => { heroSeen = es[0].isIntersecting; mini.hidden = heroSeen || !RES.cur || !RES.cur.n; }, {threshold: 0}).observe($("#hero"));
+  }
+})();
+window.ODDSLAB = {get res(){ return RES; }, get busy(){ return busy || !!pending; }, cur, given, usingWorker: () => !!worker, compute, N, SEED, MODEL};
+</script>
+
+
+</body>
+</html>

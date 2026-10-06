@@ -11,8 +11,8 @@ headlines come from fixtures made from the repo's own data. Exit code 1 if any c
 Covers: what visitors see; the news radar (grouping, hide, new, unsafe text and links); suggesting on GitHub;
 connecting and disconnecting a key; turning the schedule on; Refresh now; publishing, editing and deleting an
 entry with page changes (including a conflicting write); a paused workflow; build warnings; missing
-permissions; an expired key; a cached page catching up with a newer build; the switch between the two pages;
-The Money bar; phones.
+permissions; an expired key; a cached page catching up with a newer build; the switch between the pages;
+The Money bar; phones. The third page, The Odds, has its own tests in tests/test_odds.py.
 """
 import argparse, base64, datetime as dt, functools, hashlib, http.server, json, os, re, subprocess, sys, tempfile, threading, time, urllib.parse
 
@@ -268,9 +268,10 @@ def run_checks(browser):
     check("visitor: bar shows Reload", "Reload" in page.inner_text("#desk-bar"), page.inner_text("#desk-bar"))
     check("visitor: toc link added", page.locator("nav.toc a[data-desk]").count() == 1)
     tabs = page.locator(".atlases a")
-    check("switch: both pages offered, this one marked", tabs.count() == 2 and tabs.nth(0).get_attribute("aria-current") == "page" and tabs.nth(1).get_attribute("aria-current") is None)
+    check("switch: all three pages offered, this one marked", tabs.count() == 3 and tabs.nth(0).get_attribute("aria-current") == "page" and tabs.nth(1).get_attribute("aria-current") is None and tabs.nth(2).get_attribute("aria-current") is None)
     check("switch: sits above the page title", page.evaluate("document.querySelector('.atlases').getBoundingClientRect().bottom <= document.querySelector('h1').getBoundingClientRect().top"))
     check("switch: The Money tab points to its page", page.evaluate("document.querySelector('#nav-atlas').href") == BASE + "money/")
+    check("switch: The Odds tab points to its page", page.evaluate("document.querySelector('#nav-odds').href") == BASE + "odds/" and "odds" in page.inner_text("#nav-odds-c"))
     check("visitor: radar lists stories", page.locator(".dk-ni").count() >= 15, page.locator(".dk-ni").count())
     check("visitor: unsafe headline shown as text", page.evaluate("window.__xss") is None and page.locator(".dk-nt", has_text="Bad headline").count() == 1)
     check("visitor: javascript: link not rendered", page.locator('a[href^="javascript"]').count() == 0)

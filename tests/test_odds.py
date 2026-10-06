@@ -1,0 +1,322 @@
+#!/usr/bin/env python3
+"""Browser tests for The Odds, the probability lab (src/odds/template.html with src/common/odds_engine.js).
+
+    pip install playwright && playwright install chromium
+    python tests/test_odds.py                 # builds the site into a temp folder, serves it, runs every check
+    python tests/test_odds.py --shots shots   # also saves screenshots (desktop, a supposed situation, phone) into shots/
+
+Nothing is published and nothing outside this machine is contacted. Exit code 1 if any check fails.
+
+Covers: the third tab on all three pages; every driver's row; the starting results against the engine run on the
+page itself; changing a chance, a range and a severity; typing decimals; resetting; supposing an event, a range
+case and something impossible; the links table; chart tooltips by mouse and keyboard; a browser without workers;
+phones in light and dark. The maths is tested separately in tests/test_engine.mjs.
+"""
+import argparse, functools, http.server, json, os, re, subprocess, sys, tempfile, threading
+
+from playwright.sync_api import sync_playwright
+
+ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+FILE = json.load(open(os.path.join(ROOT, "data", "odds.json"), encoding="utf-8"))
+DRIVERS = {d["id"]: d for d in FILE["drivers"]}
+N_EVENTS = sum(1 for d in FILE["drivers"] if d["kind"] == "event")
+N_RANGES = len(FILE["drivers"]) - N_EVENTS
+BASE = OUT = None
+RESULTS = []
+IDLE = "window.ODDSLAB && ODDSLAB.res.cur && !ODDSLAB.busy"
+
+
+class QuietHandler(http.server.SimpleHTTPRequestHandler):
+    def log_message(self, *args):
+        pass
+
+
+def check(name, cond, detail=""):
+    RESULTS.append((name, bool(cond), detail))
+    print(("PASS " if cond else "FAIL ") + name + ("" if cond else "  -- " + str(detail)[:300]))
+
+
+def shot(target, name):
+    if OUT:
+        target.screenshot(path=os.path.join(OUT, name))
+
+
+def new_page(browser, scheme="light", width=1280, height=900, init=None, touch=False):
+    ctx = browser.new_context(viewport={"width": width, "height": height}, color_scheme=scheme, has_touch=touch, is_mobile=touch)
+    if init:
+        ctx.add_init_script(init)
+    ctx.route("https://fonts.googleapis.com/**", lambda r, q: r.fulfill(status=200, body="", headers={"Content-Type": "text/css"}))
+    page = ctx.new_page()
+    errors = []
+    page.on("pageerror", lambda e: errors.append(str(e)))
+    page.on("console", lambda m: errors.append("console:" + m.text) if m.type == "error" and not m.text.startswith("Failed to load resource") else None)
+    page.on("dialog", lambda d: (errors.append("dialog:" + d.message), d.dismiss()))
+    return ctx, page, errors
+
+
+def settle(page):
+    """Wait until the page has finished working out the numbers for the latest change."""
+    page.wait_for_timeout(130)
+    page.wait_for_function(IDLE, timeout=20000)
+    page.wait_for_timeout(60)
+
+
+def hero(page):
+    return int(page.inner_text("#hero-v").strip().rstrip("%"))
+
+
+def typed(page, selector, value):
+    """Type a number into a field and leave the field."""
+    page.fill(selector, str(value)); page.locator(selector).blur(); settle(page)
+
+
+def slide(page, selector, value):
+    page.evaluate("([s, v]) => { const e = document.querySelector(s); e.value = v; e.dispatchEvent(new Event('input', {bubbles: true})); e.dispatchEvent(new Event('change', {bubbles: true})); }", [selector, value])
+    settle(page)
+
+
+def clean_text(page, label):
+    text = page.inner_text("body")
+    bad = [w for w in ("null", "undefined", "NaN", "[object", "n/a") if w in text]
+    check(f"{label}: no stray null, undefined or NaN on the page", not bad, bad)
+
+
+# ---------------------------------------------------------------- the checks
+def run_checks(browser):
+    ctx, page, errors = new_page(browser)
+    page.goto(BASE + "odds/"); settle(page)
+
+    # 1. the page and the switch
+    check("page: title and heading", page.title() == "The Odds · Chokepoint" and page.inner_text("h1").strip().lower() == "the odds", page.title())
+    tabs = page.locator(".atlases a")
+    check("switch: three pages offered, The Odds marked", tabs.count() == 3 and page.get_attribute("#nav-odds", "aria-current") == "page" and page.get_attribute("#nav-supply", "aria-current") is None)
+    check("switch: the other tabs point to their pages", page.evaluate("[document.querySelector('#nav-supply').href, document.querySelector('#nav-atlas').href]") == [BASE, BASE + "money/"])
+    check("switch: each tab has its one-line summary", all(len(page.inner_text(f"#nav-{k}-c").strip()) > 20 for k in ("supply", "atlas", "odds")))
+    check("notice: starting numbers are marked provisional", "Provisional" in page.inner_text("#notice") or "PROVISIONAL" in page.inner_text("#notice"), page.inner_text("#notice"))
+    check("notice: says the numbers are first estimates", FILE["statusNote"][:40] in page.inner_text("#notice-t"))
+
+    # 2. the drivers
+    rows = page.locator(".drv")
+    check(f"drivers: one row for each of the {len(DRIVERS)}", rows.count() == len(DRIVERS), rows.count())
+    check("drivers: grouped under the four headings", page.locator(".grp").count() == len(FILE["groups"]) and [t.strip().lower() for t in page.locator(".grp-h h3").all_inner_texts()] == [g["label"].lower() for g in FILE["groups"]])
+    check("drivers: one field per chance and three per quantity", page.locator(".nf").count() == N_EVENTS + 3 * N_RANGES, page.locator(".nf").count())
+    check("drivers: every row shows its question", page.evaluate("[...document.querySelectorAll('.drv-q')].every(e => e.textContent.trim().endsWith('?'))"))
+    shown = page.evaluate("Object.fromEntries([...document.querySelectorAll('.drv')].map(r => [r.dataset.id, [...r.querySelectorAll('.drv-top .nf')].map(f => +f.value)]))")
+    want = {k: ([round(d["p"] * 100, 1)] if d["kind"] == "event" else [d["low"], d["mid"], d["high"]]) for k, d in DRIVERS.items()}
+    check("drivers: fields show the starting numbers from the model file", shown == want, [k for k in want if shown.get(k) != want[k]][:4])
+    check("drivers: every control has a spoken name", page.evaluate("[...document.querySelectorAll('.drv input')].every(e => (e.getAttribute('aria-label') || '').length > 8 || e.id)"))
+    check("drivers: nothing changed yet, Reset all is off", page.inner_text("#dchanged") == "These are the starting numbers" and page.is_disabled("#reset-all"))
+
+    # 3. the starting results, against the engine run on the page's own thread
+    base = page.evaluate("ODDSLAB.compute({n: ODDSLAB.N, seed: ODDSLAB.SEED, beliefs: {drivers: {}}, given: {}})")
+    h0 = hero(page)
+    check("results: worked out in a background worker", page.evaluate("ODDSLAB.usingWorker()") is True)
+    check(f"results: the headline is the engine's average ({h0}% of plan)", h0 == round(base["built"]["mean"] * 100) and 78 <= h0 <= 97, (h0, base["built"]["mean"]))
+    check("results: typical, low and tightness tiles filled in", [page.inner_text(s) for s in ("#t-mid", "#t-low", "#t-tight")] == [page.evaluate("pct(%r)" % base["built"]["p50"]), page.evaluate("pct(%r)" % base["built"]["p10"]), "%d%%" % round(base["tight"]["p50"] * 100)])
+    below80 = page.inner_text("#t-below")
+    page.select_option("#t-thr", "0.9")
+    check("results: the threshold can be changed", page.inner_text("#t-below") == page.evaluate("pct(%r)" % base["below"]["0.9"]) and page.inner_text("#t-below") != below80, (below80, page.inner_text("#t-below")))
+    page.select_option("#t-thr", "0.8")
+    check("results: no comparison shown while nothing is changed", page.is_hidden("#hero-d") and page.locator("#hist-lg .lg").count() == 0 and page.is_hidden("#situ"))
+    check("chart: bars drawn and described for screen readers", page.locator("#hist path.bar").count() >= 10 and "On average %d%% of plan" % h0 in page.get_attribute("#hist", "aria-label") and "average %d%%" % h0 in page.text_content("#hist text.lab"))
+    page.click("#b-hist details summary")
+    check("chart: the same numbers as a table", page.locator("#hist-tbl tbody tr").count() == 8 and page.locator("#hist-tbl tbody tr").nth(3).inner_text().split()[-1] == page.inner_text("#t-mid") and page.locator("#hist-tbl tbody tr").nth(7).inner_text().split()[-1] == page.evaluate("pct(%r)" % base["built"]["mean"]), page.locator("#hist-tbl tbody tr").nth(7).inner_text())
+    lim = page.evaluate("[...document.querySelectorAll('#lim .row')].map(r => [r.querySelector('.nm').firstChild.textContent, parseFloat(r.querySelector('.val').textContent)])")
+    check("limits: shares add up to about 100%", 7 <= len(lim) <= 8 and abs(sum(v for _, v in lim) - 100) < 1.5, lim)
+    check("limits: named in plain words, not by id", all((re.search(r"[A-Z]", n) or n.endswith("other links")) and "_" not in n for n, _ in lim) and any(n.startswith("Demand") for n, _ in lim), [n for n, _ in lim])
+    check("limits: each link says which numbers move it", page.locator("#lim button.row small").count() >= 4 and page.locator("#lim button.row small").first.inner_text().startswith("moved by "))
+    mat = page.locator("#mat .row .nm")
+    check("what matters: ten rows, the Taiwan blockade first", mat.count() == 10 and mat.first.inner_text().startswith("Taiwan blockade"), mat.first.inner_text())
+    page.click('#mat-seg [data-m="swing"]')
+    first_swing = page.locator("#mat .row .val").first.inner_text()
+    check("what matters: can be ranked by the size of the swing", page.get_attribute('#mat-seg [data-m="swing"]', "aria-pressed") == "true" and re.fullmatch(r"[+−]\d+", first_swing.strip()) is not None, first_swing)
+    page.click('#mat-seg [data-m="share"]')
+    check("down the chain: six stages with a central and a low value", page.locator("#outs .orow").count() == 7 and re.fullmatch(r"\d+(\.\d)?%", page.locator("#outs .orow").nth(1).locator(".r").first.inner_text()) is not None)
+    clean_text(page, "start")
+    shot(page, "odds_desktop.png")
+
+    # 4. tooltips: mouse and keyboard
+    page.evaluate("document.querySelector('#hist').scrollIntoView({block: 'center'})")
+    box = page.locator("#hist .hit").nth(12).bounding_box()
+    page.mouse.move(box["x"] + box["width"] / 2, box["y"] + box["height"] / 2)
+    check("chart: hovering a bar shows its share of futures", page.is_visible("#tip") and "of plan" in page.inner_text("#tip .tt") and "%" in page.inner_text("#tip .tr b"), page.inner_text("#tip"))
+    page.mouse.move(5, 5)
+    check("chart: the tooltip goes away", page.is_hidden("#tip"))
+    page.focus("#hist"); page.keyboard.press("ArrowRight"); page.keyboard.press("ArrowRight")
+    tip1 = page.inner_text("#tip .tt") if page.is_visible("#tip") else ""
+    page.keyboard.press("ArrowLeft")
+    check("chart: arrow keys read the bars one by one", "of plan" in tip1 and page.is_visible("#tip") and page.inner_text("#tip .tt") != tip1 and page.locator("#hist .bar.on").count() <= 1, tip1)
+    page.keyboard.press("Escape")
+    check("chart: Escape closes the tooltip", page.is_hidden("#tip"))
+    page.locator("#lim .row").first.focus()
+    check("limits: focusing a row explains it", page.is_visible("#tip") and "of futures" in page.inner_text("#tip"), page.inner_text("#tip") if page.is_visible("#tip") else "")
+    page.locator("#lim .row").first.blur()
+
+    # 5. change a chance
+    typed(page, '#d-tw_blockade [data-f="p"]', 30)
+    h1 = hero(page)
+    check(f"change: a 30% chance of a blockade lowers the headline ({h0}% to {h1}%)", h1 <= h0 - 4, (h0, h1))
+    check("change: the row is marked and shows where it started", "changed" in page.get_attribute("#d-tw_blockade", "class") and "Started at 3%" in page.inner_text("#d-tw_blockade .drv-note"), page.inner_text("#d-tw_blockade .drv-note"))
+    check("change: counted above the list, Reset all is on", page.inner_text("#dchanged") == "1 changed from its starting number" and page.is_enabled("#reset-all"))
+    check("change: compared with the starting numbers", page.is_visible("#hero-d") and "below the starting numbers (%d%%)" % h0 in page.inner_text("#hero-d") and [t.strip() for t in page.locator("#hist-lg .lg").all_inner_texts()] == ["Your numbers", "Starting numbers"] and page.locator("#hist path.ref").count() == 1 and page.locator("#lim .trk u").count() >= 5, page.inner_text("#hero-d"))
+    check("change: the slider follows the typed number", page.input_value("#d-tw_blockade .drv-ctl .sl") == "30" and page.get_attribute("#d-tw_blockade .drv-ctl .sl", "aria-valuetext") == "30%")
+    page.click("#d-tw_blockade .drv-note button")
+    settle(page)
+    check("reset one: back to the starting number and the starting results", hero(page) == h0 and page.input_value('#d-tw_blockade [data-f="p"]') == "3" and page.is_hidden("#hero-d") and page.inner_text("#dchanged") == "These are the starting numbers")
+    slide(page, "#d-gulf_persist .drv-ctl .sl", 80)
+    check("slider: moving it sets the chance", page.input_value('#d-gulf_persist [data-f="p"]') == "80" and page.evaluate("ODDSLAB.cur.gulf_persist.p") == 0.8)
+    # decimals survive while the page re-renders around the field
+    page.click('#d-tw_blockade [data-f="p"]'); page.fill('#d-tw_blockade [data-f="p"]', ""); page.keyboard.type("2.", delay=40); settle(page)
+    mid_typing = page.input_value('#d-tw_blockade [data-f="p"]')
+    page.keyboard.type("5", delay=40); settle(page)
+    check("typing: a decimal is not overwritten while it is being typed", page.input_value('#d-tw_blockade [data-f="p"]') == "2.5" and page.evaluate("ODDSLAB.cur.tw_blockade.p") == 0.025, (mid_typing, page.input_value('#d-tw_blockade [data-f="p"]')))
+    typed(page, '#d-tw_blockade [data-f="p"]', 250)
+    check("typing: a chance above 100 is brought back to 100", page.input_value('#d-tw_blockade [data-f="p"]') == "100" and page.evaluate("ODDSLAB.cur.tw_blockade.p") == 1)
+    page.fill('#d-tw_blockade [data-f="p"]', ""); page.locator('#d-tw_blockade [data-f="p"]').blur(); settle(page)
+    check("typing: an empty field goes back to the last number", page.input_value('#d-tw_blockade [data-f="p"]') == "100")
+
+    # 6. a quantity: low, central, high
+    d = DRIVERS["inp_ramp"]
+    typed(page, '#d-inp_ramp [data-f="mid"]', d["low"] - 8)
+    vals = lambda: [float(page.input_value(f'#d-inp_ramp [data-f="{f}"]')) for f in ("low", "mid", "high")]
+    check("range: a central case below the low case takes the low case with it", vals() == [d["low"] - 8, d["low"] - 8, d["high"]], vals())
+    typed(page, '#d-inp_ramp [data-f="high"]', d["low"] - 30)
+    check("range: the high case cannot go below the central case", vals() == [d["low"] - 8, d["low"] - 8, d["low"] - 8], vals())
+    typed(page, '#d-inp_ramp [data-f="high"]', d["high"])
+    slide(page, "#d-inp_ramp .drv-ctl .sl", d["low"] + 2)
+    check("range: the slider moves low, central and high together", vals() == [d["low"] + 2, d["low"] + 2, min(d["max"], d["high"] + 10)], vals())
+    check("range: the band on the slider follows", page.evaluate("(() => { const i = document.querySelector('#d-inp_ramp .slw .trk i'); return parseFloat(i.style.width) > 5 && parseFloat(i.style.left) > 30; })()"))
+
+    # 7. severity, in the About panel
+    page.click("#reset-all"); settle(page)
+    check("reset all: everything back, results back", hero(page) == h0 and page.is_disabled("#reset-all") and page.evaluate("JSON.stringify(ODDSLAB.cur.inp_ramp)") == json.dumps({"low": d["low"], "mid": d["mid"], "high": d["high"]}, separators=(",", ":")), page.evaluate("JSON.stringify(ODDSLAB.cur.inp_ramp)"))
+    check("about: closed to begin with", page.is_hidden("#m-cn_minerals"))
+    page.click('#d-cn_minerals button[aria-controls="m-cn_minerals"]')
+    panel = page.inner_text("#m-cn_minerals")
+    check("about: shows how we will know, the deadline, what it does and where the number comes from", all(t in panel for t in ("How we will know", "Deadline", "31 Mar 2027", "What it does here", "Where the number comes from", "Judgement")) and DRIVERS["cn_minerals"]["note"][:50] in panel, panel[:200])
+    check("about: only events that have a size get a severity slider", page.locator("#m-cn_minerals [data-f='sev']").count() == 1 and page.locator("#d-cpo_volume [data-f='sev']").count() == 0 and page.locator("#d-cowos_ramp [data-f='sev']").count() == 0)
+    typed(page, '#d-cn_minerals [data-f="p"]', 100)
+    h_p = hero(page)
+    slide(page, "#m-cn_minerals [data-f='sev']", 1)
+    check(f"severity: the full scenario is worse than 0.3 of it ({h_p}% to {hero(page)}%)", hero(page) < h_p - 5 and "1 × the standard case" in page.inner_text("#m-cn_minerals .sevrow output") and "0.3 × as bad" in page.inner_text("#d-cn_minerals .drv-note"), (h_p, hero(page), page.inner_text("#d-cn_minerals .drv-note")))
+    page.click("#reset-all"); settle(page)
+
+    # 8. suppose
+    page.click('#d-tw_blockade [data-sup="true"]'); settle(page)
+    h_tw = hero(page)
+    sit = page.evaluate("ODDSLAB.compute({n: ODDSLAB.N, seed: ODDSLAB.SEED, beliefs: {drivers: {}}, given: {tw_blockade: true}})")
+    check(f"suppose: a blockade cuts the headline ({h0}% to {h_tw}%), as the engine says", h_tw == round(sit["built"]["mean"] * 100) and h_tw < h0 - 25, (h_tw, sit["built"]["mean"]))
+    check("suppose: the situation and its chance are shown", page.is_visible("#situ") and "Taiwan blockade: happens" in page.inner_text("#situ-chips") and "a chance of 3%" in page.inner_text("#situ-t"), page.inner_text("#situ"))
+    check("suppose: compared with your numbers without it", "below your numbers without this situation (%d%%)" % h0 in page.inner_text("#hero-d") and [t.strip() for t in page.locator("#hist-lg .lg").all_inner_texts()] == ["In this situation", "Without the situation"], page.inner_text("#hero-d"))
+    note = page.inner_text("#d-cn_minerals .drv-note")
+    m = re.search(r"In this situation its chance is (\d+)%", note)
+    check("suppose: a linked event shows where it lands", m is not None and int(m.group(1)) == round(sit["drivers"]["cn_minerals"]["p"] * 100) and int(m.group(1)) > 60, note)
+    check("suppose: a linked quantity shows where it lands", "In this situation its central case is" in page.inner_text("#d-capex_2027 .drv-note"), page.inner_text("#d-capex_2027 .drv-note"))
+    check("suppose: unlinked rows say nothing (no noise shown as an effect)", page.inner_text("#d-jp_quake .drv-note").strip() == "" and page.inner_text("#d-inp_ramp .drv-note").strip() == "")
+    check("suppose: the row and its button are marked", "supposed" in page.get_attribute("#d-tw_blockade", "class") and page.get_attribute('#d-tw_blockade [data-sup="true"]', "aria-pressed") == "true")
+    clean_text(page, "supposed")
+    page.evaluate("document.querySelector('#lab-grid').scrollIntoView()")
+    shot(page, "odds_supposed.png")
+    page.click("#situ-chips .xbtn"); settle(page)
+    check("suppose: removing it restores the results", hero(page) == h0 and page.is_hidden("#situ") and page.get_attribute('#d-tw_blockade [data-sup="true"]', "aria-pressed") == "false")
+    page.click('#d-cowos_ramp button[aria-controls="m-cowos_ramp"]'); page.click('#d-cowos_ramp [data-sup="low"]'); settle(page)
+    check("suppose: a quantity at its low case, a 1-in-10 situation", "CoWoS packaging: at its low case or worse" in page.inner_text("#situ-chips") and re.search(r"a chance of (9|10|11)(\.\d)?%", page.inner_text("#situ-t")) is not None and hero(page) < h0, page.inner_text("#situ-t"))
+    page.click('#d-cowos_ramp [data-sup="high"]'); settle(page)
+    check("suppose: choosing the high case replaces the low case", page.locator("#situ-chips .chipx").count() == 1 and "high case or better" in page.inner_text("#situ-chips") and hero(page) >= h0)
+    page.click("#situ-clear"); settle(page)
+    typed(page, '#d-euv_halt [data-f="p"]', 0)
+    page.click('#d-euv_halt [data-sup="true"]'); settle(page)
+    check("suppose: something with no chance is called impossible, not shown as numbers", page.is_visible("#empty") and "cannot happen" in page.inner_text("#empty") and page.is_hidden("#hero") and page.is_hidden("#b-hist") and not errors, page.inner_text("#empty") if page.is_visible("#empty") else errors[:2])
+    page.click("#reset-all"); settle(page)
+    check("reset all: also drops what was supposed", hero(page) == h0 and page.is_hidden("#situ") and page.is_visible("#hero"))
+
+    # 9. links in plain numbers
+    lk = page.locator("#lk-tbl tbody tr")
+    first = lk.first.inner_text()
+    check(f"links: all {len(FILE['links'])} listed with a reason", lk.count() == len(FILE["links"]) and FILE["links"][0]["why"] in first, first[:160])
+    r1 = page.evaluate("(() => { const O = ODDS, a = ODDSLAB.MODEL.drivers.find(d => d.id === 'tw_blockade'), b = ODDSLAB.MODEL.drivers.find(d => d.id === 'cn_minerals'); return [pct(O.reading(a, b, 0.5).given), pct(O.reading(b, a, 0.5).given)]; })()")
+    check("links: shown both ways round with the engine's numbers", f"from a chance of 30% to {r1[0]}" in first and f"from a chance of 3% to {r1[1]}" in first, (r1, first))
+    typed(page, '#d-cn_minerals [data-f="p"]', 60)
+    check("links: follow your numbers", "from a chance of 60% to" in lk.first.inner_text(), lk.first.inner_text())
+    row = page.locator("#lk-tbl tbody tr", has_text="Hyperscaler spending plans for 2027").first.inner_text()
+    check("links: a quantity is read at its high case", "when it comes in at its high case or better" in row and "from a central case of" in row, row[:200])
+    page.click("#reset-all"); settle(page)
+
+    # 10. jumping from a result to the number behind it
+    page.evaluate("document.querySelector('#lab-grid').scrollIntoView(); document.querySelector('#results').scrollTop = 99999")
+    page.locator("#mat button.row").nth(1).click(); page.wait_for_timeout(900)
+    target = page.evaluate("(() => { const r = document.querySelector('.drv.flash'); if (!r) return null; const b = r.getBoundingClientRect(); return [r.dataset.id, b.top >= 0 && b.bottom <= innerHeight]; })()")
+    check("what matters: clicking a row goes to its number", target is not None and target[1] is True, target)
+    check("no page errors on the desktop run", not errors, errors[:3])
+    t = page.evaluate("""async () => { const t0 = performance.now(); const f = document.querySelector('#d-gulf_dc_hit [data-f="p"]'); f.value = 33; f.dispatchEvent(new Event('change', {bubbles: true}));
+        await new Promise(ok => { const tick = () => (!ODDSLAB.busy && ODDSLAB.cur.gulf_dc_hit.p === 0.33 && ODDSLAB.res.refKind === 'start') ? ok() : setTimeout(tick, 5); setTimeout(tick, 70); }); return performance.now() - t0; }""")
+    print("INFO one change, from typing to new results on screen: %d ms" % t)
+    ctx.close()
+
+    # 11. a browser without background workers still works, with the same numbers
+    ctx, page, errors = new_page(browser, init="delete window.Worker;")
+    page.goto(BASE + "odds/"); settle(page)
+    check("no worker: the page still works and gives the same headline", page.evaluate("ODDSLAB.usingWorker()") is False and hero(page) == h0 and not errors, (hero(page), errors[:2]))
+    ctx.close()
+
+    # 12. the other two pages lead here
+    ctx, page, errors = new_page(browser)
+    page.goto(BASE); page.wait_for_selector("#nav-odds")
+    check("home: third tab points to The Odds", page.locator(".atlases a").count() == 3 and page.evaluate("document.querySelector('#nav-odds').href") == BASE + "odds/" and len(page.inner_text("#nav-odds-c")) > 20)
+    page.click("#nav-odds"); page.wait_for_url(BASE + "odds/"); settle(page)
+    check("home: one click opens The Odds", page.inner_text("h1").strip().lower() == "the odds" and hero(page) == h0)
+    page.click("#nav-atlas"); page.wait_for_url(BASE + "money/"); page.wait_for_selector("#nav-odds")
+    check("The Money: third tab points to The Odds", page.evaluate("document.querySelector('#nav-odds').href") == BASE + "odds/" and page.get_attribute("#nav-atlas", "aria-current") == "page")
+    ctx.close()
+
+    # 13. phones
+    for scheme in ("light", "dark"):
+        ctx, page, errors = new_page(browser, scheme=scheme, width=390, height=844, touch=True)
+        page.goto(BASE + "odds/"); settle(page)
+        check(f"phone {scheme}: no sideways scroll", page.evaluate("document.documentElement.scrollWidth <= window.innerWidth + 1"), page.evaluate("[document.documentElement.scrollWidth, window.innerWidth]"))
+        check(f"phone {scheme}: switch fits on one line each", page.evaluate("[...document.querySelectorAll('.atlases .at-t')].every(e => e.getBoundingClientRect().height < 24)"))
+        check(f"phone {scheme}: results come before the numbers", page.evaluate("document.querySelector('#results').getBoundingClientRect().top < document.querySelector('#drivers').getBoundingClientRect().top"))
+        check(f"phone {scheme}: no headline bar while the headline is on screen", page.is_hidden("#mini"))
+        page.evaluate("document.querySelector('#d-cowos_ramp').scrollIntoView({block: 'center'})"); page.wait_for_timeout(400)
+        check(f"phone {scheme}: the headline follows you down the list", page.is_visible("#mini") and "%d%% of plan" % h0 in page.inner_text("#mini"), page.inner_text("#mini") if page.is_visible("#mini") else "")
+        typed(page, '#d-cowos_ramp [data-f="mid"]', 80)
+        check(f"phone {scheme}: the bar updates as numbers change", int(re.search(r"(\d+)% of plan", page.inner_text("#mini")).group(1)) < h0, page.inner_text("#mini"))
+        sizes = page.evaluate("[...document.querySelectorAll('#d-cowos_ramp .nf, #d-cowos_ramp .ghost, #d-tw_blockade .ghost, #d-tw_blockade .sl')].map(e => e.getBoundingClientRect().height).filter(v => v > 0)")
+        check(f"phone {scheme}: fields, sliders and buttons are big enough to tap", len(sizes) >= 7 and min(sizes) >= 36, sizes)
+        clean_text(page, f"phone {scheme}")
+        shot(page, f"odds_phone_{scheme}.png")
+        check(f"phone {scheme}: no page errors", not errors, errors[:3])
+        ctx.close()
+
+
+def main():
+    global BASE, OUT
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--shots", default=None, help="folder for screenshots")
+    a = ap.parse_args()
+    if a.shots:
+        OUT = os.path.abspath(a.shots); os.makedirs(OUT, exist_ok=True)
+    with tempfile.TemporaryDirectory() as site:
+        subprocess.run([sys.executable, os.path.join(ROOT, "src", "build.py"), "--target", "github", "--quotes", os.devnull + ".none", "--out", site],
+                       check=True, env=dict(os.environ, GITHUB_SHA="abcdef1234567890"), stdout=subprocess.DEVNULL)
+        srv = http.server.ThreadingHTTPServer(("127.0.0.1", 0), functools.partial(QuietHandler, directory=site))
+        threading.Thread(target=srv.serve_forever, daemon=True).start()
+        BASE = "http://127.0.0.1:%d/" % srv.server_address[1]
+        try:
+            with sync_playwright() as p:
+                browser = p.chromium.launch()
+                try:
+                    run_checks(browser)
+                finally:
+                    browser.close()
+        finally:
+            srv.shutdown()
+    bad = [r for r in RESULTS if not r[1]]
+    print("\n%d checks, %d failed" % (len(RESULTS), len(bad)))
+    for b in bad:
+        print("  FAILED:", b[0], b[2])
+    sys.exit(1 if bad else 0)
+
+
+if __name__ == "__main__":
+    main()

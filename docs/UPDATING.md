@@ -1,6 +1,6 @@
 # Keeping the pages current
 
-There are three update paths: prices and headlines update themselves, developments are logged from the Update desk (or in one file), and the deeper numbers are refreshed each quarter.
+There are three update paths: prices and headlines update themselves, developments are logged from the Update desk (or in one file), and the deeper numbers are refreshed each quarter. The Odds has its own model file, described in section 5.
 
 ## 1. Prices, analyst targets and headlines (automatic)
 
@@ -95,7 +95,7 @@ Publish from the desk, or rebuild (`python src/build.py`), check the build outpu
 
 ## 4. Changing the Update desk itself
 
-The desk is one file, `src/common/desk.js`, loaded only on the GitHub Pages build. After changing it, the templates or `src/build.py`, run the browser tests:
+The desk is one file, `src/common/desk.js`, loaded only on the GitHub Pages build. After changing it, the templates of The Chain or The Money, or `src/build.py`, run the browser tests:
 
 ```bash
 pip install playwright && playwright install chromium
@@ -104,9 +104,9 @@ python tests/test_desk.py            # about 2 minutes; add --shots shots to sav
 
 They build the site into a temporary folder and answer every GitHub call with a stand-in, so nothing is published. They cover visitors, the news radar, connecting a key, turning the schedule on, Refresh now, publishing, editing and deleting, a paused workflow, build warnings, missing permissions, a cached page catching up, The Money bar and phone layouts.
 
-## 5. The probability lab: engine and model
+## 5. The Odds: engine, model and page
 
-The lab's page is not built yet. Its two parts are in the repo and tested.
+The Odds (`/odds/`) is made of three files: the engine (the maths), the model (what is uncertain and what each thing does) and the page. `src/build.py` puts the engine and the model inside the page, so the page needs nothing else once it has loaded.
 
 ### The engine
 
@@ -129,12 +129,24 @@ Effects are listed at the top of the simulation section of the engine. The commo
 
 Every starting number is marked `judgement` until it has been researched. When you change a number, update its `note`, set `basis` and move `asOf` to the day you did it (deadlines are counted in months from `asOf`).
 
+### The page
+
+`src/odds/template.html` shows one row per driver, grouped as in the model file: a chance (yes-or-no questions) or a low, central and high case (quantities), a slider, and an About panel with how the question resolves, what the driver does, where its number comes from and, for events, how bad it is if it happens. Results sit beside the list: the average and typical share of the plan that gets built, the spread, what holds it back, what matters most, and how much each stage of the chain delivers. **Suppose it happens** keeps only the futures in which something happens, so linked drivers shift; each affected row shows where it lands. A table lists every link in plain numbers.
+
+The numbers are worked out in a background worker, 10,000 futures at a time, always the same futures, so a change in the results comes from the numbers and not from chance. Changes are kept only until the page is reloaded.
+
 ### After a change
 
 After changing the engine, the model file, or the chain in `src/supply/supply_data.py`, run:
 
 ```bash
 node tests/test_engine.mjs           # a few seconds; needs Node 18 or later and python3
+```
+
+After changing the page, the engine or `src/build.py`, also run:
+
+```bash
+python tests/test_odds.py            # about a minute; add --shots shots to save screenshots
 ```
 
 The tests compare the bell-curve functions with reference values from SciPy, the chain with the Python model on every link of every scenario, and simulated frequencies with the exact answers. For the model file they check that every driver is complete, that every link and scenario it names exists, that the starting links can all hold together, and that the plan is delivered in full when nothing goes wrong. The last lines print the baseline: the central case, the most frequent limits and the biggest swings.
