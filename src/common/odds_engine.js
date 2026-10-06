@@ -273,6 +273,10 @@ function rangeValue(d, z){
   const v = d.mid + z * (z < 0 ? (d.mid - d.low) : (d.high - d.mid)) / Z10;
   return Math.min(d.max == null ? Infinity : d.max, Math.max(d.min == null ? -Infinity : d.min, v));
 }
+/** What a range driver's value means for a link or a buyer group: 1 at `base` (default 100), moving `k` for one
+    (default 1) with the value. A value of 90 against a base of 100 gives 0.9; with k = 0.5 it gives 0.95.
+    `add` is added to the value first, so a driver written as "15% above plan" (add: 100) gives 1.15. */
+function level(v, e){ return 1 + (e.k == null ? 1 : e.k) * ((v + (e.add || 0)) / (e.base || 100) - 1); }
 /** Share of the outcome period that an effect starting `t` months from now covers. The period starts
     `period.start` months from now and lasts `period.len` months; `dur` (optional) is how long the effect lasts. */
 function overlap(t, period, dur){
@@ -329,6 +333,7 @@ function check(model){
     if (d.kind === "event"){
       if (!share(d.p)) out.push(d.id + ": probability must be between 0 and 1");
       if (d.window != null && !(d.window > 0)) out.push(d.id + ": window must be a number of months above 0");
+      if (d.from != null && !(d.from >= 0 && (d.window == null || d.from < d.window))) out.push(d.id + ": 'from' must be 0 or more and before the end of the window");
     } else if (d.kind === "range"){
       if (!(d.low <= d.mid && d.mid <= d.high)) out.push(d.id + ": needs low <= central <= high");
       if ((d.min != null && !(d.min <= d.low)) || (d.max != null && !(d.max >= d.high))) out.push(d.id + ": min and max must enclose the low and high cases");
@@ -344,7 +349,9 @@ function check(model){
       if (e.t === "shock" && !share(e.s)) out.push(d.id + ": a shock is a lost share between 0 and 1");
       if (e.t === "ease" && !share(e.f)) out.push(d.id + ": 'ease' needs f between 0 and 1 (the share of the shortfall that remains)");
       if (e.t === "dem" && !(e.m >= 0)) out.push(d.id + ": 'dem' needs m of 0 or more (what the group's orders are multiplied by)");
-      if (e.timing != null && e.timing !== "window" && e.timing !== "full") out.push(d.id + ": timing must be 'window' or 'full'");
+      if (e.timing != null && e.timing !== "window" && e.timing !== "until" && e.timing !== "full") out.push(d.id + ": timing must be 'window', 'until' or 'full'");
+      if (e.t === "scen" && model.scen && model.scen[e.id]) for (const k of (e.only || []).concat(e.skip || [])) if (!((model.scen[e.id].h0 || {})[k] != null)) out.push(d.id + ": scenario '" + e.id + "' has no shock on '" + k + "'");
+      if ((e.t === "ramp" || e.t === "demlvl") && ((e.base != null && !(e.base > 0)) || (e.k != null && !isFinite(e.k)) || (e.add != null && !isFinite(e.add)))) out.push(d.id + ": 'base' must be above 0, and 'k' and 'add' numbers");
       if (e.on != null && e.on !== "yes" && e.on !== "no") out.push(d.id + ": 'on' must be 'yes' or 'no'");
       if (e.dur != null && !(e.dur > 0)) out.push(d.id + ": dur must be a number of months above 0");
     }
@@ -366,6 +373,28 @@ function check(model){
   if (Object.keys(segW).length && Math.abs(tot - 1) > 1e-6) out.push("buyer groups must add up to 1 (they add up to " + tot + ")");
   if (model.period && !(model.period.len > 0 && model.period.start >= 0)) out.push("period needs start of 0 or more and len above 0 (months)");
   return out;
+}
+
+/** Turn the model file (data/odds.json, written with dates and readable fields) and the chain
+    (supply_model.export_graph()) into the model that simulate() takes. Deadlines and start dates become months
+    counted from the file's `asOf` date; an effect with "base": "mid" is measured against the driver's starting
+    central case; everything else on a driver (label, question, note ...) is carried along. */
+function assemble(file, chain){
+  const MONTH = 86400000 * 365.25 / 12, months = (a, b) => (Date.parse(b) - Date.parse(a)) / MONTH;
+  const drivers = file.drivers.map(d => {
+    const o = Object.assign({}, d);
+    if (d.kind === "event"){
+      if (d.window == null && d.deadline) o.window = Math.max(0.1, months(file.asOf, d.deadline));
+      if (d.from == null && d.starts) o.from = Math.max(0, months(file.asOf, d.starts));
+    }
+    // "base": "mid" ties an effect to the driver's starting central case, which is what the plan assumes
+    o.effects = (d.effects || []).map(e => e.base === "mid" ? Object.assign({}, e, {base: d.mid}) : e);
+    return o;
+  });
+  return {graph: chain.graph, scen: chain.scen, drivers, corr: (file.links || []).map(l => [l.a, l.b, l.rho]),
+          demand: {segments: Object.fromEntries((file.buyers || []).map(b => [b.id, b.share]))},
+          period: {start: Math.max(0, months(file.asOf, file.period.from)), len: file.period.months},
+          supplyOutput: file.supplyOutput || "campus"};
 }
 
 /* ---------------------------------------------------------------- the supply chain (weakest link) */
@@ -425,6 +454,24 @@ function chainOnce(graph, shocks){
 }
 
 /* ---------------------------------------------------------------- simulation */
+/* The model simulate() takes (assemble() builds it from data/odds.json and the chain):
+     {graph, scen, drivers, corr: [[idA, idB, rho]], demand: {segments: {id: share}}, period: {start, len}, supplyOutput}
+   Months are counted from today. A driver is
+     {id, kind: "event", p, sev?, from?, window?, effects}   from..window = when it can start (default: now to the end of the period)
+     {id, kind: "range", low, mid, high, min?, max?, effects}
+   and each effect is one of
+     {t: "scen", id, only?, skip?}   event: the scenario's first-12-month shocks times severity (all of them, only some, or all but some)
+     {t: "shock", node, s}            event: the link loses share s times severity
+     {t: "ease", node, f}             event: the link's shortfall is multiplied by f
+     {t: "dem", seg, m}               event: the buyer group's orders are multiplied by m (seg "all" = every group)
+     {t: "ramp", node, base?, k?, add?}     range: the link delivers level(value), at most 1
+     {t: "demlvl", seg, base?, k?, add?}    range: the buyer group's orders are multiplied by level(value)
+   Event effects also take
+     on: "no"            apply when the event does not happen
+     timing: "full"      the whole period (default)
+             "window"    from a random start between `from` and `window` to the end of the period (or for `dur` months)
+             "until"     already running, ending at a random point between `from` and `window`
+*/
 /** Run `n` futures. Options: {n = 10000, seed, beliefs, given, maxTries}.
     `given` keeps only the futures that match a situation, for example {tw_blockade: true} (see compileWhere for
     the form). The drivers linked to that situation shift the way the correlations say. Futures that do not match
@@ -454,7 +501,8 @@ function simulate(model, opts){
   const thr = drivers.map(d => d.kind === "event" ? (d.p <= 0 ? Infinity : d.p >= 1 ? -Infinity : normInv(1 - d.p)) : 0);
   const fx = drivers.map(d => (d.effects || []).map(e => {
     const o = Object.assign({}, e);
-    if (e.t === "scen") o.list = Object.entries(((model.scen || {})[e.id] || {}).h0 || {}).filter(([k]) => G.at.has(k)).map(([k, s]) => [G.at.get(k), s]);
+    if (e.t === "scen") o.list = Object.entries(((model.scen || {})[e.id] || {}).h0 || {})
+      .filter(([k]) => G.at.has(k) && (!e.only || e.only.includes(k)) && !(e.skip || []).includes(k)).map(([k, s]) => [G.at.get(k), s]);
     if (e.node != null) o.i = G.at.get(e.node);
     if (e.seg != null) o.g = e.seg === "all" ? -1 : segAt.get(e.seg);
     return o;
@@ -515,10 +563,14 @@ function simulate(model, opts){
       const d = drivers[i], start = u2(), v = vals[i], yes = isEvent[i] && v === 1;   // one timing draw per driver per future, used or not
       values[d.id][r] = v;
       for (const e of fx[i]){
-        if (e.t === "ramp"){ own[e.i] *= Math.min(1, Math.max(0, v / 100)); continue; }
-        if (e.t === "demlvl"){ const k = Math.max(0, v / 100); if (e.g < 0) for (let g = 0; g < seg.length; g++) seg[g] *= k; else seg[e.g] *= k; continue; }
+        if (e.t === "ramp"){ own[e.i] *= Math.min(1, Math.max(0, level(v, e))); continue; }
+        if (e.t === "demlvl"){ const k = Math.max(0, level(v, e)); if (e.g < 0) for (let g = 0; g < seg.length; g++) seg[g] *= k; else seg[e.g] *= k; continue; }
         if ((e.on === "no") === yes) continue;                    // effect fires on "yes" unless marked on: "no"
-        const frac = e.timing === "window" ? overlap(start * (d.window == null ? period.start + period.len : d.window), period, e.dur) : 1;
+        let frac = 1;
+        if (e.timing === "window" || e.timing === "until"){
+          const w0 = d.from || 0, w1 = d.window == null ? period.start + period.len : d.window, at = w0 + start * Math.max(0, w1 - w0);
+          frac = e.timing === "window" ? overlap(at, period, e.dur) : overlap(0, period, at);
+        }
         if (e.t === "scen"){ for (const [k, s] of e.list) own[k] *= 1 - Math.min(1, s * d.sev * frac); }
         else if (e.t === "shock") own[e.i] *= 1 - Math.min(1, e.s * d.sev * frac);
         else if (e.t === "ease") ease[e.i] *= 1 - (1 - e.f) * frac;
@@ -650,7 +702,7 @@ function profile(sub, all){
 }
 
 return {rng, normCdf, normInv, bvnCdf, both, cond, rhoForCond, condMedian, reading, rhoForReading,
-        cholesky, jacobiEigen, nearestCorr, repairCorr, rangeValue, overlap, applyBeliefs, compileWhere, check,
+        cholesky, jacobiEigen, nearestCorr, repairCorr, rangeValue, level, overlap, applyBeliefs, compileWhere, check, assemble,
         compileGraph, runChain, rootCause, chainOnce, simulate, subset,
         mean, quantiles, probBelow, histogram, summary, bindingTable, whatMatters, profile, Z10};
 });

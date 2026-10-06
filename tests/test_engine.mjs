@@ -4,6 +4,7 @@ import { createRequire } from "node:module";
 import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
+import fs from "node:fs";
 
 const require = createRequire(import.meta.url);
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -288,6 +289,92 @@ const TOY = {
   t0 = performance.now(); O.whatMatters(R, "built"); O.bindingTable(R); O.summary(R.out.built); const t3 = performance.now() - t0;
   console.log("INFO 27 drivers, 64 links: 10,000 futures in " + t1.toFixed(0) + " ms; given a 3% event (" + Rg.tried + " draws) in " + t2.toFixed(0) + " ms; summaries in " + t3.toFixed(0) + " ms");
   check("the full-size run produces sensible numbers", R.n === 10000 && O.mean(R.out.built) > 0.3 && O.mean(R.out.built) < 1 && Rg.n === 10000 && O.mean(Rg.out.built) < O.mean(R.out.built), [O.mean(R.out.built), O.mean(Rg.out.built)]);
+}
+
+// ---- effect options the real model uses
+{
+  const cl = x => JSON.parse(JSON.stringify(x));
+  const M = cl(TOY); M.period = {start: 3, len: 12}; M.corr = []; M.demand = {segments: {}};
+  const lost = drivers => { M.drivers = drivers; return 1 - O.mean(O.simulate(M, {n: 100000, seed: 4}).out.site); };
+  // already running, ends at a random month between 0 and 9; the year is months 3 to 15; average share of the year hit = (6 * 6 / 2) / 9 / 12
+  const until = lost([{id: "war", kind: "event", p: 1, window: 9, effects: [{t: "shock", node: "plant", s: 0.4, timing: "until"}]}]);
+  check("timing 'until': a running problem that ends part-way costs the months before it ends", close(until, 0.4 / 6, 0.002), until);
+  // starts at a random month between 9 and 15: average share hit = 3 / 12
+  const late = lost([{id: "late", kind: "event", p: 1, from: 9, window: 15, effects: [{t: "shock", node: "plant", s: 0.5, timing: "window"}]}]);
+  check("'from': an event that cannot start before a date", close(late, 0.5 * 0.25, 0.002), late);
+  M.scen = {both: {h0: {ore: 0.2, plant: 0.3}}};
+  const only = lost([{id: "a", kind: "event", p: 1, effects: [{t: "scen", id: "both", only: ["ore"]}]}]);
+  const skip = lost([{id: "a", kind: "event", p: 1, effects: [{t: "scen", id: "both", skip: ["ore"]}]}]);
+  const all = lost([{id: "a", kind: "event", p: 1, effects: [{t: "scen", id: "both"}]}]);
+  check("a scenario can be applied whole, in part, or with a link left out", close(only, 0.2, 1e-6) && close(skip, 0.3, 1e-6) && close(all, 0.3, 1e-6), [only, skip, all]);
+  M.drivers = [{id: "a", kind: "event", p: 1, effects: [{t: "scen", id: "both", only: ["site"], timing: "sometime"}]}];
+  check("check() catches a scenario part that does not exist and an unknown timing", O.check(M).length === 2, O.check(M));
+  check("level(): base, pass-through and offset", close(O.level(90, {}), 0.9, 1e-12) && close(O.level(90, {k: 0.5}), 0.95, 1e-12) && close(O.level(143, {base: 130}), 1.1, 1e-12) && close(O.level(15, {add: 100}), 1.15, 1e-12));
+  const D = cl(TOY); D.corr = []; D.demand = {segments: {big: 1}};
+  D.drivers = [{id: "more", kind: "range", low: 5, mid: 15, high: 30, effects: [{t: "demlvl", seg: "all", add: 100}]},
+               {id: "rev", kind: "range", low: 120, mid: 160, high: 220, effects: [{t: "demlvl", seg: "big", base: 160, k: 0.5}]}];
+  const R = O.simulate(D, {n: 4000, seed: 2});
+  let ok = true;
+  for (let i = 0; i < 4000; i++) ok = ok && close(R.out.demand[i], (1 + R.values.more[i] / 100) * (1 + 0.5 * (R.values.rev[i] / 160 - 1)), 1e-5);
+  check("range effects with an offset and a partial pass-through combine as documented", ok);
+}
+
+// ---- the real model: data/odds.json on the real chain
+{
+  const file = JSON.parse(fs.readFileSync(path.join(ROOT, "data", "odds.json"), "utf8"));
+  const M = O.assemble(file, {graph: FX.graph, scen: FX.scen});
+  check("the model file passes check()", O.check(M).length === 0, O.check(M));
+  const groups = new Set(file.groups.map(g => g.id)), bases = new Set(Object.keys(file.bases)), bad = [], ids = new Set();
+  for (const d of file.drivers){
+    for (const k of ["id", "group", "kind", "label", "question", "basis", "note", "does"]) if (!d[k] || typeof d[k] !== "string") bad.push(d.id + ": needs " + k);
+    if (!/^[a-z][a-z0-9_]*$/.test(d.id || "") || ids.has(d.id)) bad.push(d.id + ": id must be unique, lower case with underscores");
+    ids.add(d.id);
+    if (!groups.has(d.group)) bad.push(d.id + ": unknown group");
+    if (!bases.has(d.basis)) bad.push(d.id + ": unknown basis");
+    if (!d.resolves && !d.watch) bad.push(d.id + ": needs 'resolves' or 'watch'");
+    if (!String(d.question || "").trim().endsWith("?")) bad.push(d.id + ": the question should end with a question mark");
+    if (d.kind === "event" && !/^\d{4}-\d\d-\d\d$/.test(d.deadline || "")) bad.push(d.id + ": needs a deadline date");
+    if (d.kind === "event" && d.starts && !(d.starts < d.deadline)) bad.push(d.id + ": starts must be before the deadline");
+    if (d.kind === "range" && (!d.unit || d.min == null || d.max == null)) bad.push(d.id + ": needs unit, min and max");
+    if (!Array.isArray(d.effects) || !d.effects.length) bad.push(d.id + ": needs at least one effect");
+  }
+  for (const l of file.links){
+    if (!l.why) bad.push(l.a + " - " + l.b + ": needs a reason");
+    if (!(Math.abs(l.rho) <= 0.9)) bad.push(l.a + " - " + l.b + ": starting links stay within -0.9 to 0.9");
+  }
+  for (const g of groups) if (!file.drivers.some(d => d.group === g)) bad.push("group " + g + " has no drivers");
+  check("every driver and link in the model file is complete (" + file.drivers.length + " drivers, " + file.links.length + " links)", bad.length === 0 && file.drivers.length >= 20, bad);
+  check("buyer groups add up to 1", close(file.buyers.reduce((a, b) => a + b.share, 0), 1, 1e-9));
+
+  const byId = Object.fromEntries(M.drivers.map(d => [d.id, d])), yearEnd = M.period.start + M.period.len;
+  check("dates become months from the file's date", M.period.start > 0 && M.period.start < 12 && close(byId.tw_blockade.window, yearEnd, 0.05) && byId.cn_minerals.from > 0 && byId.cn_minerals.from < byId.cn_minerals.window && close(byId.digestion.from, M.period.start, 0.01), [M.period, byId.tw_blockade.window, byId.cn_minerals.from]);
+  check("\"base\": \"mid\" is tied to the starting central case", byId.capex_2027.effects[0].base === byId.capex_2027.mid && byId.sov_follow.effects[0].base === byId.sov_follow.mid && file.drivers.find(d => d.id === "capex_2027").effects[0].base === "mid");
+
+  const N = 40000, R = O.simulate(M, {n: N}), sb = O.summary(R.out.built), sd = O.summary(R.out.demand);
+  check("the starting links can all hold together (no repair needed)", R.corr.changed === false && R.unknown.length === 0);
+  let finite = true;
+  for (const k in R.out) for (let i = 0; i < N; i++) if (!(R.out[k][i] >= 0 && R.out[k][i] < 50)) finite = false;
+  check("every outcome is a sensible number in every future", finite && R.n === N);
+  check("baseline: most of the plan gets built, with a real downside", sb.p50 > 0.85 && sb.p50 < 0.98 && sb.p10 > 0.6 && sb.p10 < sb.p50 - 0.03 && sb.p95 <= 1 && O.probBelow(R.out.built, 0.6) < 0.06, sb);
+  check("baseline: buyers want more than the plan in the central case", sd.p50 > 1 && sd.p50 < 1.4, sd);
+  const calm = {drivers: {}};
+  for (const d of file.drivers) calm.drivers[d.id] = d.kind === "event" ? {p: d.effects.every(e => e.on === "no") ? 1 : 0} : {low: d.mid, high: d.mid};
+  const C = O.simulate(M, {n: 200, beliefs: calm});
+  check("with every range at its central case and no events, the plan is delivered almost in full (" + (100 * C.out.built[0]).toFixed(1) + "%)", C.out.built[0] > 0.98 && C.out.built[0] <= 1 && C.out.built[199] === C.out.built[0], C.out.built[0]);
+  const bt = O.bindingTable(R), wm = O.whatMatters(R, "built");
+  check("limits and rankings cover the whole model", close(bt.reduce((a, b) => a + b.share, 0), 1, 1e-9) && wm.length === file.drivers.length && wm.every(w => w.share >= 0 && w.share <= 1.0000001));
+  let supposed = 0;
+  for (const d of M.drivers) if (d.kind === "event"){
+    const g = O.simulate(M, {n: 1500, seed: 3, given: {[d.id]: true}});
+    if (g.n === 1500 && close(g.chance, d.p, 1e-9) && O.mean(g.values[d.id]) === 1 && O.mean(g.out.built) > 0) supposed++;
+  }
+  check("every event can be supposed", supposed === M.drivers.filter(d => d.kind === "event").length, supposed);
+  const tw = O.simulate(M, {n: 20000, seed: 3, given: {tw_blockade: true}});
+  check("supposing a Taiwan blockade cuts the build-out sharply and raises the linked risks", O.mean(tw.out.built) < O.mean(R.out.built) - 0.2 && O.mean(tw.values.cn_minerals) > byId.cn_minerals.p + 0.2 && O.mean(tw.values.credit_squeeze) > byId.credit_squeeze.p + 0.15, [O.mean(tw.out.built), O.mean(tw.values.cn_minerals)]);
+  const pc = v => (100 * v).toFixed(0) + "%";
+  console.log("INFO baseline built: central " + pc(sb.p50) + " of plan, 1-in-10 low " + pc(sb.p10) + ", 1-in-10 high " + pc(sb.p90) + "; chance below 80%: " + pc(O.probBelow(R.out.built, 0.8)));
+  console.log("INFO most frequent limits: " + bt.slice(0, 6).map(b => b.id + " " + pc(b.share)).join(", "));
+  console.log("INFO biggest swings: " + wm.slice().sort((a, b) => Math.abs(b.swing) - Math.abs(a.swing)).slice(0, 6).map(w => w.id + " " + (100 * w.swing).toFixed(0)).join(", "));
 }
 
 console.log("\n" + (passed + failed.length) + " checks, " + failed.length + " failed");

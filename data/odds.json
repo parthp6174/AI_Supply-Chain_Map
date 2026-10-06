@@ -1,0 +1,326 @@
+{
+  "version": 1,
+  "asOf": "2026-10-06",
+  "status": "provisional",
+  "statusNote": "These starting numbers are first estimates: facts already on this site plus judgement. None has been researched on its own yet. Change any of them to match your own view.",
+  "period": {"label": "Calendar 2027", "from": "2027-01-01", "months": 12},
+  "supplyOutput": "campus",
+  "plan": "100 is the AI data-center capacity that today's plans would add in 2027: what buyers have budgeted and suppliers have scheduled, with the shortages already known. Each supply number is the share of that plan one link delivers. Buyers want more than the plan (see Unmet demand), so a fall in orders only cuts what gets built once it is bigger than that cushion. Supply above plan is not counted: outcomes stop at 100.",
+  "buyers": [
+    {"id": "hyper", "label": "Hyperscalers", "share": 0.7, "who": "Amazon, Alphabet, Microsoft, Meta and Oracle"},
+    {"id": "neo", "label": "Neoclouds", "share": 0.2, "who": "CoreWeave, Nebius, Lambda, Crusoe and others, building largely for the labs"},
+    {"id": "sov", "label": "Sovereign and Gulf", "share": 0.1, "who": "State-backed projects such as Stargate UAE and HUMAIN"}
+  ],
+  "bases": {
+    "judgement": "A first estimate by judgement, anchored on facts already on this site. Not yet researched.",
+    "sourced": "Taken from a named source.",
+    "market": "Implied by a market price or a forecasting market."
+  },
+  "groups": [
+    {"id": "geo", "label": "Geopolitics and trade rules"},
+    {"id": "chips", "label": "Chip supply"},
+    {"id": "power", "label": "Power"},
+    {"id": "demand", "label": "Demand and money"}
+  ],
+  "drivers": [
+    {
+      "id": "tw_blockade", "group": "geo", "kind": "event", "label": "Taiwan blockade",
+      "question": "Will China blockade or quarantine Taiwan, stopping most commercial shipping for 30 days or more, starting before 31 Dec 2027?",
+      "resolves": "Yes if major news agencies report that most commercial shipping to and from Taiwan was stopped for 30 days or more.",
+      "deadline": "2027-12-31", "p": 0.03, "sev": 1, "basis": "judgement",
+      "note": "The Chain rates this a tail risk. The PLA exercise Justice Mission 2025 (30 Dec 2025) rehearsed a blockade.",
+      "does": "Applies The Chain's Taiwan blockade scenario from the day it starts: leading-edge wafers, CoWoS packaging and part of substrates, memory and rack assembly stop leaving the island.",
+      "effects": [{"t": "scen", "id": "taiwan", "timing": "window"}]
+    },
+    {
+      "id": "gulf_persist", "group": "geo", "kind": "event", "label": "Gulf war drags on",
+      "question": "Will oil flows through the Strait of Hormuz still be below 75% of their pre-war level (about 20M barrels a day) on 30 Jun 2027?",
+      "resolves": "The June 2027 monthly average from the EIA or IEA: yes if it is below 15M barrels a day.",
+      "deadline": "2027-06-30", "p": 0.45, "sev": 1, "basis": "judgement",
+      "note": "Flows were about 7.4M barrels a day in September 2026. The war began on 28 Feb 2026 and two ceasefires have broken down.",
+      "does": "If yes, sovereign buyers order 20% less than the plan through 2027. If no, they order 15% more, as insurers and investors return to the Gulf.",
+      "effects": [
+        {"t": "dem", "seg": "sov", "m": 0.8},
+        {"t": "dem", "seg": "sov", "m": 1.15, "on": "no"}
+      ]
+    },
+    {
+      "id": "helium_cut", "group": "geo", "kind": "event", "label": "Helium shortage cuts chip output",
+      "question": "Will a leading chipmaker (TSMC, Samsung, SK hynix or Micron) say that a helium shortage has cut its output, before 30 Jun 2027?",
+      "resolves": "Company statements, earnings calls or regulatory filings.",
+      "deadline": "2027-06-30", "p": 0.08, "sev": 1, "basis": "judgement",
+      "note": "A third of world helium went offline when Ras Laffan was hit in March 2026. Fabs are running on priority allocations, and South Korean fabs' six-month stock window closed in July.",
+      "does": "From that day chip fabs lose about 3% of output (the helium part of The Chain's Gulf scenario).",
+      "effects": [{"t": "scen", "id": "gulf", "only": ["helium"], "timing": "window"}]
+    },
+    {
+      "id": "gulf_dc_hit", "group": "geo", "kind": "event", "label": "Strike on a Gulf data center",
+      "question": "Will a military strike damage or shut down an AI data-center campus in a Gulf state between now and 31 Dec 2027?",
+      "resolves": "An operator statement or a major news agency report of damage or a shutdown caused by a strike.",
+      "deadline": "2027-12-31", "p": 0.2, "sev": 1, "basis": "judgement",
+      "note": "Drones knocked out two of three AWS zones in the UAE on 1 Mar 2026 and the IRGC threatened Stargate UAE on 3 Apr. War-risk insurance for Gulf data centers is up about 1,900%.",
+      "does": "From that day sovereign buyers order 40% less, and less compute reaches the labs from Gulf sites.",
+      "effects": [
+        {"t": "dem", "seg": "sov", "m": 0.6, "timing": "window"},
+        {"t": "shock", "node": "sovereign", "s": 0.3, "timing": "window"}
+      ]
+    },
+    {
+      "id": "cn_minerals", "group": "geo", "kind": "event", "label": "China's mineral controls return",
+      "question": "Will China's export controls on gallium, germanium, antimony or rare earths be back in force for US buyers at any point before 31 Mar 2027?",
+      "resolves": "MOFCOM announcements. The suspensions end on 10 Nov and 27 Nov 2026 unless they are extended.",
+      "starts": "2026-11-10", "deadline": "2027-03-31", "p": 0.3, "sev": 0.3, "basis": "judgement",
+      "note": "Both suspensions lapse in November 2026 unless extended. Severity starts at 0.3 of The Chain's worst case: the ban on gallium, germanium and antimony was in force from December 2024 until it was suspended in November 2025, and supply kept moving through third countries at higher prices.",
+      "does": "Applies The Chain's minerals scenario from the day controls return: gallium, rare earths, tungsten and indium go back behind licences. The hit lands hardest on lasers, through indium.",
+      "effects": [{"t": "scen", "id": "minerals", "timing": "window"}]
+    },
+    {
+      "id": "us_chip_rules", "group": "geo", "kind": "event", "label": "Tighter US chip export rules",
+      "question": "Will the US impose new limits that cut AI chip sales to Gulf or other non-allied buyers (a new rule, or licences halted) before 31 Dec 2027?",
+      "resolves": "A Commerce Department (BIS) rule, or company filings reporting halted licences.",
+      "deadline": "2027-12-31", "p": 0.25, "sev": 1, "basis": "judgement",
+      "note": "No specific rule is tracked on this site yet. Gulf buyers are the most exposed.",
+      "does": "From that day sovereign buyers order 35% less.",
+      "effects": [{"t": "dem", "seg": "sov", "m": 0.65, "timing": "window"}]
+    },
+    {
+      "id": "chip_tariff", "group": "geo", "kind": "event", "label": "Chip tariff exemptions end",
+      "question": "Will the US end or narrow the Section 232 exemptions so that the 25% tariff applies to most imported AI chips or servers before 30 Jun 2027?",
+      "resolves": "A Federal Register notice or presidential proclamation.",
+      "deadline": "2027-06-30", "p": 0.15, "sev": 1, "basis": "judgement",
+      "note": "A 25% tariff has applied since 15 Jan 2026, with exemptions.",
+      "does": "From that day all buyers order 5% less capacity, because the same budget buys fewer servers.",
+      "effects": [{"t": "dem", "seg": "all", "m": 0.95, "timing": "window"}]
+    },
+    {
+      "id": "jp_quake", "group": "geo", "kind": "event", "label": "Earthquake hits Japan's materials makers",
+      "question": "Will an earthquake stop production for a month or more at a major Japanese maker of ABF film, T-glass, substrates, photoresist or wafers before 31 Dec 2027?",
+      "resolves": "Company disclosures from Ajinomoto, Nittobo, Ibiden, Shinko, JSR, TOK, Shin-Etsu or SUMCO.",
+      "deadline": "2027-12-31", "p": 0.04, "sev": 0.5, "basis": "judgement",
+      "note": "The 2011 Tohoku quake stalled chip materials for months. Severity starts at 0.5 because The Chain's scenario assumes several makers are hit at once.",
+      "does": "Applies The Chain's Japan earthquake scenario from that day: ABF film, T-glass, substrates, resist, wafers and test equipment.",
+      "effects": [{"t": "scen", "id": "japan", "timing": "window"}]
+    },
+    {
+      "id": "euv_halt", "group": "geo", "kind": "event", "label": "EUV supply stops",
+      "question": "Will ASML's EUV shipments or servicing to leading chipmakers stop for 60 days or more before 31 Dec 2027?",
+      "resolves": "ASML statements, or export-licence changes by the Dutch or US governments.",
+      "deadline": "2027-12-31", "p": 0.01, "sev": 1, "basis": "judgement",
+      "note": "The Chain calls this unlikely, not impossible. ASML is the only supplier and is delivering.",
+      "does": "Applies The Chain's EUV scenario from that day: installed tools keep running but new capacity stops arriving.",
+      "effects": [{"t": "scen", "id": "euv", "timing": "window"}]
+    },
+
+    {
+      "id": "foundry_ramp", "group": "chips", "kind": "range", "label": "Leading-edge wafers",
+      "question": "What share of the leading-edge wafers (3nm and 2nm) that 2027 plans count on will foundries deliver?",
+      "watch": "TSMC's wafers a month at 3nm and 2nm, against the demand its customers report.",
+      "unit": "% of plan", "low": 98, "mid": 105, "high": 110, "min": 50, "max": 120, "basis": "judgement",
+      "note": "The Chain rates this step tight, not short: 3nm is heading from 180k to 210k wafers a month, and 2nm from 90k to 110k by mid-2027. Plans are sized to scarcer links, so the central case leaves some slack.",
+      "does": "Below 100, every AI accelerator is short by that share.",
+      "effects": [{"t": "ramp", "node": "foundry"}]
+    },
+    {
+      "id": "cowos_ramp", "group": "chips", "kind": "range", "label": "CoWoS packaging",
+      "question": "What share of the CoWoS packaging that 2027 plans count on will be delivered?",
+      "watch": "TSMC's CoWoS wafers a month and allocation comments from Nvidia, Broadcom and AMD.",
+      "unit": "% of plan", "low": 92, "mid": 100, "high": 105, "min": 50, "max": 120, "basis": "judgement",
+      "note": "The narrowest point of the chip chain per The Chain: about 130k wafers a month by end-2026 and about 260k by end-2028. Plans are sized to that ramp, so any slip cuts output directly.",
+      "does": "Below 100, GPUs and custom accelerators are short by that share.",
+      "effects": [{"t": "ramp", "node": "cowos"}]
+    },
+    {
+      "id": "hbm_ramp", "group": "chips", "kind": "range", "label": "HBM memory",
+      "question": "What share of the HBM memory that 2027 plans count on will the three makers deliver?",
+      "watch": "HBM bit shipments and allocation comments from SK hynix, Samsung and Micron.",
+      "unit": "% of plan", "low": 94, "mid": 103, "high": 108, "min": 50, "max": 120, "basis": "judgement",
+      "note": "Three suppliers, sold out, prices rising. The Chain rates it serious, one step below the scarcest links, so the central case leaves a little slack. The risk is HBM4 yields or qualification slipping.",
+      "does": "Below 100, fewer accelerators can be packaged, by that share.",
+      "effects": [{"t": "ramp", "node": "hbm"}]
+    },
+    {
+      "id": "substrate_ramp", "group": "chips", "kind": "range", "label": "Package substrates",
+      "question": "What share of the ABF package substrates that 2027 plans count on will be delivered?",
+      "watch": "Capacity and lead-time comments from Ibiden, Shinko, Unimicron and AT&S.",
+      "unit": "% of plan", "low": 95, "mid": 103, "high": 108, "min": 50, "max": 120, "basis": "judgement",
+      "note": "Short now, rated serious by The Chain. Ibiden is spending ¥500B through FY2028 for 2.5 times the capacity, so the central case leaves a little slack; new lines take two to three years.",
+      "does": "Below 100, chip packaging is short by that share.",
+      "effects": [{"t": "ramp", "node": "substrate"}]
+    },
+    {
+      "id": "tglass_ramp", "group": "chips", "kind": "range", "label": "T-glass cloth",
+      "question": "What share of the low-expansion glass cloth (T-glass) that 2027 plans count on will be delivered?",
+      "watch": "Nittobo's capacity additions and substrate makers' comments on glass cloth supply.",
+      "unit": "% of plan", "low": 90, "mid": 99, "high": 104, "min": 50, "max": 120, "basis": "judgement",
+      "note": "One maker, Nittobo, has about 90% of T-glass, and relief is not expected before mid-2027. A late ramp would leave the first half of 2027 short.",
+      "does": "Below 100, substrates are short by that share and high-speed boards by most of it.",
+      "effects": [{"t": "ramp", "node": "glasscloth"}]
+    },
+    {
+      "id": "inp_ramp", "group": "chips", "kind": "range", "label": "InP wafers for lasers",
+      "question": "What share of the indium phosphide (InP) wafers that 2027 plans count on will be delivered?",
+      "watch": "Capacity announcements from AXT, Sumitomo Electric and JX, and laser allocation comments from Lumentum and Coherent.",
+      "unit": "% of plan", "low": 88, "mid": 99, "high": 105, "min": 40, "max": 120, "basis": "judgement",
+      "note": "The scarcest input in AI networking per The Chain. Six-inch capacity is meant to double by end-2027 and the shortage is expected to outlast 2027, so this has the widest downside of the chip links.",
+      "does": "Below 100, lasers, optical links and cluster networks are short by that share.",
+      "effects": [{"t": "ramp", "node": "inp"}]
+    },
+    {
+      "id": "cpo_volume", "group": "chips", "kind": "event", "label": "Co-packaged optics in volume",
+      "question": "Will co-packaged optics account for 10% or more of the new AI cluster switch ports shipped in 2027?",
+      "resolves": "Shipment estimates from LightCounting or Dell'Oro, or Nvidia and Broadcom disclosures.",
+      "deadline": "2027-12-31", "p": 0.2, "sev": 1, "basis": "judgement",
+      "note": "The Chain notes that the laser shortage is speeding up adoption.",
+      "does": "Cuts any InP shortfall by a quarter, because each link needs fewer lasers.",
+      "effects": [{"t": "ease", "node": "inp", "f": 0.75}]
+    },
+
+    {
+      "id": "turbine_ramp", "group": "power", "kind": "range", "label": "Gas turbines",
+      "question": "What share of the gas turbines that 2027 plans count on will be delivered?",
+      "watch": "Deliveries and backlog at GE Vernova, Siemens Energy and Mitsubishi Heavy.",
+      "unit": "% of plan", "low": 93, "mid": 100, "high": 104, "min": 30, "max": 120, "basis": "judgement",
+      "note": "Makers can build about 60 to 70 GW a year against about 110 GW of orders, and slots are sold into 2030-31. Units for 2027 are already scheduled, so the risk is factory slips, not allocation.",
+      "does": "Below 100, gas-fired power on the grid and on site is short. Other sources cover part of the gap.",
+      "effects": [{"t": "ramp", "node": "turbines"}]
+    },
+    {
+      "id": "xfmr_ramp", "group": "power", "kind": "range", "label": "Large transformers",
+      "question": "What share of the large transformers that 2027 plans count on will be delivered?",
+      "watch": "Lead-time surveys and deliveries at Hitachi Energy, Siemens Energy and HD Hyundai Electric.",
+      "unit": "% of plan", "low": 91, "mid": 100, "high": 105, "min": 30, "max": 120, "basis": "judgement",
+      "note": "Lead times run up to four years and prices are up about 80%. The Chain calls this the slowest item to order for any new campus.",
+      "does": "Below 100, grid connections are short by that share.",
+      "effects": [{"t": "ramp", "node": "transformers"}]
+    },
+    {
+      "id": "grid_ramp", "group": "power", "kind": "range", "label": "Grid connections",
+      "question": "What share of the grid connections that 2027 plans count on will utilities deliver in time?",
+      "watch": "Interconnection data from PJM, ERCOT and other grid operators, and campus energisation dates.",
+      "unit": "% of plan", "low": 89, "mid": 99, "high": 104, "min": 30, "max": 120, "basis": "judgement",
+      "note": "PJM's July 2026 capacity auction missed its supply target. Queues decide where campuses can go, and connection dates slip more often than they are beaten.",
+      "does": "Below 100, the grid-fed part of new campuses (about two thirds of their power) is short by that share.",
+      "effects": [{"t": "ramp", "node": "grid"}]
+    },
+    {
+      "id": "nuclear_restart", "group": "power", "kind": "event", "label": "Three Mile Island restart delivers",
+      "question": "Will the Crane Clean Energy Center (the 835 MW Three Mile Island restart for Microsoft) be delivering power by 31 Dec 2027?",
+      "resolves": "Constellation statements or the reactor's NRC operating status.",
+      "deadline": "2027-12-31", "p": 0.5, "sev": 1, "basis": "judgement",
+      "note": "The restart is under way (The Money). It is small against the gigawatts needed in 2027 and matters more as a signal for 2028 to 2030.",
+      "does": "Cuts any grid shortfall by 5% from the day it delivers.",
+      "effects": [{"t": "ease", "node": "grid", "f": 0.95, "timing": "window"}]
+    },
+
+    {
+      "id": "unmet_demand", "group": "demand", "kind": "range", "label": "Unmet demand",
+      "question": "How much more AI capacity would buyers take in 2027 than today's plans deliver, if suppliers could build it?",
+      "watch": "Cloud backlogs at Microsoft, Oracle and CoreWeave, GPU rental prices, Nvidia lead times, and statements such as AWS saying capacity stays short of demand through 2027.",
+      "unit": "% above plan", "low": 3, "mid": 15, "high": 30, "min": 0, "max": 60, "basis": "judgement",
+      "note": "Every critical link in The Chain is sold out and AWS says capacity stays short of demand through 2027, which points to a real cushion. Its size is a judgement, and sceptics argue that part of it is double ordering.",
+      "does": "Lifts what all buyers want above the plan. A fall in orders only cuts what gets built once it is bigger than this cushion.",
+      "effects": [{"t": "demlvl", "seg": "all", "add": 100}]
+    },
+    {
+      "id": "capex_2027", "group": "demand", "kind": "range", "label": "Hyperscaler spending plans for 2027",
+      "question": "What will Amazon, Alphabet, Microsoft, Meta and Oracle plan to spend on capital projects in 2027, as a percentage of their 2026 plans (about $840B together)?",
+      "resolves": "Their 2027 guidance as it stands at mid-2027 (second-quarter results), midpoints added up.",
+      "unit": "% of 2026 plans", "low": 115, "mid": 130, "high": 150, "min": 60, "max": 220, "basis": "judgement",
+      "note": "2026 plans: Amazon $220B, Alphabet $200B, Microsoft $190B, Meta $137.5B, Oracle $92.5B. Alphabet says 2027 will 'significantly increase' and AWS says capacity stays short of demand through 2027.",
+      "does": "Hyperscalers place 70% of orders. Their orders move one for one with this number, measured against its starting central case.",
+      "effects": [{"t": "demlvl", "seg": "hyper", "base": "mid"}]
+    },
+    {
+      "id": "lab_revenue", "group": "demand", "kind": "range", "label": "Lab revenue growth",
+      "question": "Where will the combined annualised revenue of OpenAI and Anthropic stand at the end of 2027, taking today's level (about $135B) as 100?",
+      "resolves": "Company statements and filings on annualised revenue at the end of 2027.",
+      "unit": "index, today = 100", "low": 120, "mid": 165, "high": 230, "min": 60, "max": 400, "basis": "judgement",
+      "note": "The two labs have signed about $1.14T of compute commitments against about $135B of revenue. In The Money, OpenAI needs about 34% growth a year just to break even on its commitments.",
+      "does": "Weak revenue cuts what the labs can commit to. Neocloud orders move 0.3 for one with this number and hyperscaler orders 0.1 for one, measured against its starting central case.",
+      "effects": [
+        {"t": "demlvl", "seg": "neo", "base": "mid", "k": 0.3},
+        {"t": "demlvl", "seg": "hyper", "base": "mid", "k": 0.1}
+      ]
+    },
+    {
+      "id": "sov_follow", "group": "demand", "kind": "range", "label": "Sovereign projects that go ahead",
+      "question": "What share of the Gulf and other sovereign AI capacity announced for 2027 will actually be ordered?",
+      "resolves": "Project announcements and operator statements at the end of 2027.",
+      "unit": "% of announced", "low": 50, "mid": 75, "high": 95, "min": 0, "max": 110, "basis": "judgement",
+      "note": "Gulf projects sit inside the war's strike zone and insurers have pulled back. This is the follow-through apart from the war, strikes and export rules, which have their own entries.",
+      "does": "Sovereign buyers place 10% of orders. Their orders move one for one with this number, measured against its starting central case.",
+      "effects": [{"t": "demlvl", "seg": "sov", "base": "mid"}]
+    },
+    {
+      "id": "digestion", "group": "demand", "kind": "event", "label": "A pause in orders",
+      "question": "Will Nvidia report a quarter-on-quarter fall in data-center revenue for any fiscal quarter ending in calendar 2027?",
+      "resolves": "Nvidia's quarterly results.",
+      "starts": "2027-01-01", "deadline": "2027-12-31", "p": 0.12, "sev": 1, "basis": "judgement",
+      "note": "Nvidia's Q2 FY2027 call pointed to about 70% growth in FY2028, which makes a pause unlikely but not impossible.",
+      "does": "All buyers order 12% less from that quarter on.",
+      "effects": [{"t": "dem", "seg": "all", "m": 0.88, "timing": "window"}]
+    },
+    {
+      "id": "openai_funding", "group": "demand", "kind": "event", "label": "OpenAI raises $30B or more",
+      "question": "Will OpenAI close new equity or debt funding of $30B or more between now and 30 Jun 2027?",
+      "resolves": "A company announcement or filings.",
+      "deadline": "2027-06-30", "p": 0.7, "sev": 1, "basis": "judgement",
+      "note": "OpenAI's compute commitments run far ahead of its revenue (The Money), so it depends on raising outside money.",
+      "does": "If it does not, neoclouds order 15% less and hyperscalers 2% less through 2027, and less capital reaches the labs.",
+      "effects": [
+        {"t": "dem", "seg": "neo", "m": 0.85, "on": "no"},
+        {"t": "dem", "seg": "hyper", "m": 0.98, "on": "no"},
+        {"t": "shock", "node": "capital", "s": 0.1, "on": "no"}
+      ]
+    },
+    {
+      "id": "credit_squeeze", "group": "demand", "kind": "event", "label": "Credit squeeze on AI builders",
+      "question": "Will S&P or Moody's cut Oracle to junk, or a large neocloud default on or restructure its debt, before 31 Dec 2027?",
+      "resolves": "Rating agency actions and company filings.",
+      "deadline": "2027-12-31", "p": 0.2, "sev": 1, "basis": "judgement",
+      "note": "S&P has Oracle at BBB-, one notch above junk, with $117B of bonds outstanding. CoreWeave carries $35B of debt with $6.2B of principal due in 2027.",
+      "does": "From that day neoclouds order 45% less and hyperscalers 5% less (Oracle), and less capital reaches neoclouds, sovereign projects and labs.",
+      "effects": [
+        {"t": "dem", "seg": "neo", "m": 0.55, "timing": "window"},
+        {"t": "dem", "seg": "hyper", "m": 0.95, "timing": "window"},
+        {"t": "shock", "node": "capital", "s": 0.4, "timing": "window"}
+      ]
+    }
+  ],
+  "links": [
+    {"a": "tw_blockade", "b": "cn_minerals", "rho": 0.5, "why": "A confrontation over Taiwan would bring China's export levers with it."},
+    {"a": "tw_blockade", "b": "us_chip_rules", "rho": 0.4, "why": "A Taiwan crisis would come with tighter US technology controls."},
+    {"a": "cn_minerals", "b": "us_chip_rules", "rho": 0.4, "why": "Tit for tat: each side's controls have answered the other's."},
+    {"a": "cn_minerals", "b": "chip_tariff", "rho": 0.3, "why": "Both are moves in the same trade dispute."},
+    {"a": "us_chip_rules", "b": "chip_tariff", "rho": 0.2, "why": "A harder US line on chips tends to show up in both."},
+    {"a": "gulf_persist", "b": "helium_cut", "rho": 0.5, "why": "Helium stays short for as long as Ras Laffan is offline."},
+    {"a": "gulf_persist", "b": "gulf_dc_hit", "rho": 0.5, "why": "A longer war gives more time and reason for strikes on Gulf sites."},
+    {"a": "gulf_persist", "b": "credit_squeeze", "rho": 0.2, "why": "A long war keeps energy prices and borrowing costs high."},
+    {"a": "tw_blockade", "b": "credit_squeeze", "rho": 0.4, "why": "A blockade would be a financial shock as well as a supply shock."},
+    {"a": "tw_blockade", "b": "capex_2027", "rho": -0.3, "why": "Buyers would cut spending plans if chips could not be had and markets fell."},
+    {"a": "foundry_ramp", "b": "cowos_ramp", "rho": 0.5, "why": "Both depend on TSMC's execution, tools and people."},
+    {"a": "cowos_ramp", "b": "hbm_ramp", "rho": 0.3, "why": "The same accelerator generations pace both ramps."},
+    {"a": "cowos_ramp", "b": "substrate_ramp", "rho": 0.3, "why": "Packaging lines and substrate lines are planned against the same forecasts."},
+    {"a": "substrate_ramp", "b": "tglass_ramp", "rho": 0.5, "why": "Substrate makers cannot ramp without glass cloth, and both sit in Japan."},
+    {"a": "turbine_ramp", "b": "xfmr_ramp", "rho": 0.4, "why": "Both are heavy electrical equipment with the same steel, copper and labour limits."},
+    {"a": "xfmr_ramp", "b": "grid_ramp", "rho": 0.5, "why": "Transformers are the slowest part of a new grid connection."},
+    {"a": "turbine_ramp", "b": "grid_ramp", "rho": 0.3, "why": "New gas plants add the supply that lets utilities connect large loads."},
+    {"a": "nuclear_restart", "b": "grid_ramp", "rho": 0.2, "why": "Both move with how fast regulators and utilities act."},
+    {"a": "cpo_volume", "b": "inp_ramp", "rho": -0.2, "why": "The worse the laser shortage, the faster buyers move to co-packaged optics."},
+    {"a": "unmet_demand", "b": "capex_2027", "rho": 0.5, "why": "Buyers who cannot get enough capacity raise their spending plans."},
+    {"a": "unmet_demand", "b": "lab_revenue", "rho": 0.4, "why": "Fast lab growth is what keeps demand ahead of supply."},
+    {"a": "unmet_demand", "b": "digestion", "rho": -0.5, "why": "A pause in orders is what a vanished cushion looks like."},
+    {"a": "unmet_demand", "b": "credit_squeeze", "rho": -0.3, "why": "A credit squeeze removes the weakest buyers from the queue."},
+    {"a": "capex_2027", "b": "digestion", "rho": -0.5, "why": "A pause in orders and lower spending plans come together."},
+    {"a": "capex_2027", "b": "lab_revenue", "rho": 0.5, "why": "Hyperscalers spend more when their biggest AI customers are growing."},
+    {"a": "capex_2027", "b": "credit_squeeze", "rho": -0.4, "why": "Tight credit and lower spending plans come together."},
+    {"a": "capex_2027", "b": "openai_funding", "rho": 0.3, "why": "A funded OpenAI keeps its cloud commitments."},
+    {"a": "capex_2027", "b": "sov_follow", "rho": 0.3, "why": "Both rise and fall with confidence in AI demand."},
+    {"a": "lab_revenue", "b": "openai_funding", "rho": 0.6, "why": "Investors fund growth; slow revenue makes a large round harder."},
+    {"a": "lab_revenue", "b": "credit_squeeze", "rho": -0.5, "why": "Weak lab revenue is what would put neocloud and Oracle debt at risk."},
+    {"a": "lab_revenue", "b": "digestion", "rho": -0.4, "why": "Slow revenue is the likeliest cause of a pause in orders."},
+    {"a": "openai_funding", "b": "credit_squeeze", "rho": -0.5, "why": "A failed round would hit the lenders and landlords who built for OpenAI."},
+    {"a": "digestion", "b": "credit_squeeze", "rho": 0.4, "why": "A pause in orders cuts the revenue that leveraged builders need."},
+    {"a": "digestion", "b": "openai_funding", "rho": -0.3, "why": "Both reflect how much confidence there is in AI demand."}
+  ]
+}

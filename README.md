@@ -49,6 +49,7 @@ If Yahoo Finance or Google News is down or rate-limits a run, the pages keep the
 ```
 data/developments.json       dated log of developments (the desk edits this file)
 data/news_queries.json       news radar topics and searches
+data/odds.json               the probability lab's model: 27 uncertain drivers, what each does, starting numbers and links
 src/supply/supply_data.py    the chain: links, companies, shares, chokepoints, sites, scenarios, snapshot quotes
 src/supply/supply_model.py   stress model and diagram layout
 src/atlas/data_items.py      investments, builders, labs, deals
@@ -61,7 +62,7 @@ src/build.py                 builds both pages
 scripts/fetch_quotes.py      price and analyst-target refresh
 scripts/fetch_news.py        news radar refresh
 tests/test_desk.py           browser tests for the Update desk (fake GitHub API)
-tests/test_engine.mjs        tests for the probability engine (Node, no packages)
+tests/test_engine.mjs        tests for the probability engine and the model file (Node, no packages)
 site/                        built pages (what GitHub Pages serves)
 ```
 
