@@ -19,7 +19,7 @@
   --bg:#eef1f4; --surface:#fcfdfd; --raised:#ffffff;
   --ink:#0f1720; --ink-2:#44505d; --muted:#5d6977; --faint:#8793a0;
   --line:#d3dae1; --grid:#e3e8ed; --wash:#e9edf1;
-  --series:#2a78d6;
+  --series:#2a78d6; --neg:#e34948;
   --good:#0ca30c; --warn:#fab219; --serious:#ec835a; --crit:#d03b3b;
   --good-ink:#006300; --warn-ink:#7a4f00; --crit-ink:#a12828;
   --focus:#1c5cab;
@@ -34,7 +34,7 @@
     --bg:#0b1016; --surface:#111820; --raised:#161f29;
     --ink:#e8edf2; --ink-2:#b4c0cc; --muted:#93a0ae; --faint:#6f7c8a;
     --line:#263241; --grid:#1c2531; --wash:#18212b;
-    --series:#3987e5;
+    --series:#3987e5; --neg:#e66767;
     --good-ink:#4cd264; --warn-ink:#f5c14a; --crit-ink:#f08080;
     --focus:#86b6ef;
     color-scheme:dark;
@@ -44,7 +44,7 @@
   --bg:#0b1016; --surface:#111820; --raised:#161f29;
   --ink:#e8edf2; --ink-2:#b4c0cc; --muted:#93a0ae; --faint:#6f7c8a;
   --line:#263241; --grid:#1c2531; --wash:#18212b;
-  --series:#3987e5;
+  --series:#3987e5; --neg:#e66767;
   --good-ink:#4cd264; --warn-ink:#f5c14a; --crit-ink:#f08080;
   --focus:#86b6ef;
   color-scheme:dark;
@@ -234,15 +234,59 @@ input.sl:focus-visible::-moz-range-thumb{box-shadow:0 0 0 1px var(--ink),0 0 0 4
 .caret{display:inline-block;transition:transform .15s;margin-left:4px}
 [aria-expanded="true"] > .caret{transform:rotate(90deg)}
 
-/* links and method */
-.tbl-wrap{overflow:auto;border:1px solid var(--line);border-radius:var(--r);background:var(--surface)}
-.lk-tbl{min-width:820px}
-.lk-tbl td{color:var(--ink-2)}
-.lk-tbl .pair{color:var(--ink);font-weight:600}
-.lk-tbl .why{display:block;font-weight:400;color:var(--muted);font-size:var(--fs-xs);margin-top:2px;max-width:46ch}
-.lk-tbl .pair [data-n]::before{content:attr(data-n) ". ";color:var(--muted);font-weight:400;font-variant-numeric:tabular-nums}
-.lk-tbl .st{white-space:nowrap}
-.lk-tbl .st b{color:var(--ink);font-variant-numeric:tabular-nums}
+/* links: an overview grid of every pair, then one editable row per link */
+.grid-card{padding:16px 18px}
+.grid-wrap{overflow:auto;margin-top:8px;padding-bottom:4px}
+#grid{display:block;color:var(--ink)}
+#grid:focus-visible{outline:2px solid var(--focus);outline-offset:4px}
+#grid text{font-family:var(--font-sans);font-size:11.5px;fill:var(--ink-2)}
+#grid text.n{font-family:var(--font-mono);font-size:10px;fill:var(--muted)}
+#grid text.on{fill:var(--ink);font-weight:600}
+#grid .c{cursor:pointer}
+#grid .sg{font-size:12px;font-weight:700;pointer-events:none}
+#grid .dot{fill:var(--ink);stroke:var(--surface);stroke-width:1.5;pointer-events:none}
+#grid .cur{fill:none;stroke:var(--ink);stroke-width:2;pointer-events:none}
+.scale{display:inline-flex;align-items:center;gap:3px}
+.scale i{width:14px;height:14px;border-radius:3px;display:inline-block}
+.scale span{margin:0 3px}
+.dotk{width:7px;height:7px;border-radius:50%;background:var(--ink);display:inline-block}
+.lk-bar{display:flex;flex-wrap:wrap;gap:10px 22px;align-items:center;justify-content:space-between;margin:20px 0 12px}
+.lk-bar label,.lk-add{font-size:var(--fs-sm);display:inline-flex;flex-wrap:wrap;align-items:center;gap:6px 8px;margin:0;border-radius:var(--r)}
+.lk-bar select{border:1px solid var(--line);border-radius:var(--r);background:var(--surface);padding:5px 8px;font-size:var(--fs-sm);max-width:230px}
+.lk-list{display:grid;gap:8px}
+.lk{display:grid;grid-template-columns:minmax(0,1.15fr) 224px minmax(0,1fr) minmax(0,1fr) 84px;gap:6px 18px;align-items:start;background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--line);border-radius:var(--r);padding:10px 14px;scroll-margin-top:16px}
+.lk.hd{background:transparent;border-color:transparent;padding-block:0 2px;font-size:var(--fs-xs);text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:600;align-items:end}
+.lk.changed{border-left-color:var(--ink)}
+.lk.off .lk-pair [data-n],.lk.off .lk-read{color:var(--muted)}
+.lk.flash,.lk-add.flash{outline:2px solid var(--focus);outline-offset:3px}
+.lk-pair{display:grid;gap:1px;min-width:0}
+.lk-pair [data-n]{font-weight:600;line-height:1.3}
+.lk-pair [data-n]::before{content:attr(data-n) ". ";color:var(--muted);font-weight:400;font-variant-numeric:tabular-nums}
+.lk .why{display:block;color:var(--muted);font-size:var(--fs-xs);margin-top:2px;max-width:46ch}
+.lk-str{display:grid;gap:0}
+.lk-strtop{display:flex;align-items:flex-end;gap:8px}
+.lk-strtop .fld{justify-items:start}
+.lk-word{font-size:var(--fs-xs);color:var(--ink-2);padding-bottom:8px}
+.slw.lkw .trk u{top:-4px;bottom:-4px;background:var(--faint)}
+.slw.lkw .trk u[data-v="start"]{top:-6px;bottom:-6px;background:var(--ink-2)}
+.lk-read{font-size:var(--fs-sm);color:var(--ink-2);display:grid;gap:3px;min-width:0}
+.lk-read .cap2{display:none;font-size:var(--fs-xs);text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:600}
+.lk-read .to{display:flex;flex-wrap:wrap;align-items:center;gap:4px 6px}
+.lk-read .tv{display:inline-flex;align-items:center;gap:4px;white-space:nowrap}
+.lk-read .to .nf{width:62px}
+.lk-read .to .unit{padding-bottom:0}
+.lk-read b{color:var(--ink);font-variant-numeric:tabular-nums}
+.lk-act{display:flex;justify-content:flex-end}
+.warnbox{border-left-color:var(--serious);max-width:none;margin:0 0 14px}
+@media (max-width:1099px){
+  .lk{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+  .lk.hd{display:none}
+  .lk-pair,.lk-str,.lk-act{grid-column:1/-1}
+  .lk-str{max-width:340px}
+  .lk-read .cap2{display:block}
+  .lk-act{justify-content:flex-start}
+}
+@media (max-width:620px){ .lk{grid-template-columns:minmax(0,1fr)} .lk-bar select{max-width:100%} }
 .method{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 36px}
 .method h3{margin:14px 0 6px}
 .method p,.method li{max-width:66ch;color:var(--ink-2);margin:0 0 8px}
@@ -250,7 +294,7 @@ input.sl:focus-visible::-moz-range-thumb{box-shadow:0 0 0 1px var(--ink),0 0 0 4
 footer{padding-block:48px 72px;font-size:var(--fs-xs);color:var(--muted)}
 .mini{position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--ink);color:var(--surface);padding:9px 16px calc(9px + env(safe-area-inset-bottom,0px));display:flex;gap:4px 14px;align-items:baseline;flex-wrap:wrap;font-size:var(--fs-sm)}
 .mini b{font-size:var(--fs-lg)}
-.mini a{margin-left:auto;font-weight:600}
+.mini a{margin-left:auto;font-weight:600;font-size:var(--fs-lg);text-decoration:none;padding:0 4px}
 .errbox{border-left:3px solid var(--crit);padding:12px 16px;font-size:var(--fs-sm)}
 
 @media (min-width:1100px){ .mini{display:none!important} }
@@ -312,6 +356,7 @@ footer{padding-block:48px 72px;font-size:var(--fs-xs);color:var(--muted)}
         <div class="v"><span id="hero-v">–</span><small>of plan</small></div>
         <p class="sub">The average across all the futures.</p>
         <p class="delta" id="hero-d" hidden></p>
+        <p class="cap" id="hero-adj" hidden>Your links could not all be true at once, so the closest set that can was used. <a href="#links">See what changed</a>.</p>
         <div class="tiles">
           <div class="tile"><span class="l">A typical future: half end above this, half below</span><span class="v" id="t-mid">–</span></div>
           <div class="tile"><span class="l">1 time in 10 it ends at or below</span><span class="v" id="t-low">–</span></div>
@@ -357,9 +402,21 @@ footer{padding-block:48px 72px;font-size:var(--fs-xs);color:var(--muted)}
 <section id="links" aria-labelledby="links-h">
   <div class="sec-head">
     <h2 id="links-h">What moves together</h2>
-    <p>A link says two things tend to go the same way (above zero) or opposite ways (below zero). Each one is shown as it plays out with your numbers. Changing one chance does not move the things linked to it; supposing that it happens does. This version uses the starting links as they are: changing them is the next addition to this page.</p>
+    <p>A link says two things tend to go the same way (above zero) or opposite ways (below zero). Set its strength, or say where one thing should land when the other happens and the page works out the strength. Changing a chance does not move the things linked to it; supposing that it happens does.</p>
   </div>
-  <div class="tbl-wrap"><table class="lk-tbl" id="lk-tbl"></table></div>
+  <div class="notice warnbox" id="lk-warn" hidden><b>Adjusted</b><span id="lk-warn-t"></span></div>
+  <figure class="fig card grid-card">
+    <div class="rb-h"><h3>Every pair at a glance</h3>
+      <div class="legend"><span class="lg scale" id="grid-scale"></span><span class="lg"><span class="dotk"></span>changed by you</span></div></div>
+    <p class="cap">Rows and columns are the same list, numbered. A coloured square is a link: + the two go the same way, − opposite ways, stronger when darker. Click a square to change its link, or an empty one to add a link.</p>
+    <div class="grid-wrap"><svg id="grid" tabindex="0" role="img" aria-label="Grid of links between every pair of drivers. Use the arrow keys to move and Enter to change or add a link."></svg></div>
+  </figure>
+  <div class="lk-bar" id="lk-bar">
+    <label>Show links for <select id="lk-filter"></select> <span class="cap" id="lk-count"></span></label>
+    <form class="lk-add" id="lk-add"><span>Add a link between</span><select id="lk-a" aria-label="First of the two"></select><span>and</span><select id="lk-b" aria-label="Second of the two"></select><button type="submit" class="ghost" disabled>Add link</button></form>
+  </div>
+  <div class="lk-list" id="lk-list"></div>
+  <p class="cap" id="lk-empty" hidden>Nothing is linked to this one yet. Add a link above.</p>
 </section>
 
 <section id="method" aria-labelledby="method-h">
@@ -379,6 +436,7 @@ footer{padding-block:48px 72px;font-size:var(--fs-xs);color:var(--muted)}
         <li>The headline is the <b>average</b> of all the futures, so it moves when something rare but severe becomes more likely. The <b>typical future</b> beside it barely moves in that case, which is why both are shown.</li>
         <li><b>How bad, if it happens</b> scales an event's effect: 1 is the standard case, 0.5 half of it.</li>
         <li><b>Suppose</b> keeps only the futures in which the thing happens. Everything linked to it shifts, and each affected row shows where it lands.</li>
+        <li>A <b>link</b> runs from −0.95 (opposite ways) through 0 (unrelated) to +0.95 (same way). For a quantity, "happens" means it comes in at its high case or better. Each thing keeps its own chance whatever its links are; links only change what tends to happen together.</li>
       </ul>
     </div>
     <div>
@@ -397,7 +455,7 @@ footer{padding-block:48px 72px;font-size:var(--fs-xs);color:var(--muted)}
 </section>
 
 <footer id="foot"></footer>
-<div class="mini" id="mini" hidden><b id="mini-v"></b><span id="mini-t"></span><a href="#results">Results ↑</a></div>
+<div class="mini" id="mini" hidden><b id="mini-v"></b><span id="mini-t"></span><a href="#results" aria-label="Back to the results">↑</a></div>
 <div class="tip" id="tip" hidden></div>
 </div>
 
@@ -1169,10 +1227,22 @@ for (const d of MODEL.drivers) for (const e of d.effects){
   const nodes = e.node ? [e.node] : e.t === "scen" ? Object.keys((MODEL.scen[e.id] || {}).h0 || {}).filter(k => (!e.only || e.only.includes(k)) && !(e.skip || []).includes(k)) : [];
   for (const k of nodes){ (MOVERS[k] = MOVERS[k] || []); if (!MOVERS[k].includes(d.id)) MOVERS[k][e.t === "ramp" ? "unshift" : "push"](d.id); }
 }
-/** Drivers with a link to each driver. Two drivers with no link between them are independent, so supposing one
-    cannot move the other; any difference would only be sampling noise and is not shown. */
-const LINKED = {};
-for (const l of FILE.links) if (l.rho){ (LINKED[l.a] = LINKED[l.a] || new Set()).add(l.b); (LINKED[l.b] = LINKED[l.b] || new Set()).add(l.a); }
+/** Links between drivers: the starting ones (start = their starting strength) plus any the reader adds (start = null). */
+const linkKey = (a, b) => a < b ? a + "|" + b : b + "|" + a;
+const LINKS = (FILE.links || []).map(l => ({a: l.a, b: l.b, rho: l.rho, start: l.rho, why: l.why, msg: null}));
+const linkAt = (a, b) => { const k = linkKey(a, b); return LINKS.find(l => linkKey(l.a, l.b) === k); };
+const linkChanged = l => l.start == null ? l.rho !== 0 : Math.abs(l.rho - l.start) > 1e-9;
+const nLinksChanged = () => LINKS.filter(linkChanged).length;
+/** Two drivers with no link between them are independent, so supposing one cannot move the other; any difference
+    would only be sampling noise and is not shown. */
+const isLinked = (a, b) => { const l = linkAt(a, b); return !!l && l.rho !== 0; };
+const live = id => Object.assign({}, BY[id], cur[id]);
+const rhoText = r => (r > 0 ? "+" : r < 0 ? "−" : "") + (Math.round(Math.abs(r) * 100) / 100);
+const rhoWord = r => !r ? "No link" : (Math.abs(r) >= 0.5 ? "Strong" : Math.abs(r) >= 0.3 ? "Moderate" : "Weak") + (r > 0 ? ", same way" : ", opposite ways");
+const rowId = l => "lk-" + l.a + "--" + l.b;
+/** A reading as it is shown in its field: a chance in percent (one decimal below 10, whole above), or a value. */
+const tgt = (v, isEv) => isEv ? String(v * 100 < 9.95 ? Math.round(v * 1000) / 10 : Math.round(v * 100)) : num(v);
+let USED = {};      // when the links could not all hold together: the strength actually used for each pair
 let RES = {cur: null, ref: null, refKind: null}, R0 = null, matMode = "share";
 
 /* ---------------- the numbers behind the page: runs in a worker when it can ---------------- */
@@ -1180,6 +1250,10 @@ function compute(a){
   const O = ODDS, R = O.simulate(MODEL, {n: a.n, seed: a.seed, beliefs: a.beliefs, given: a.given});
   const q = arr => { const v = O.quantiles(arr, [0.05, 0.1, 0.25, 0.5, 0.75, 0.9, 0.95]); return {p05: v[0], p10: v[1], p25: v[2], p50: v[3], p75: v[4], p90: v[5], p95: v[6], mean: O.mean(arr)}; };
   const out = {n: R.n, asked: R.asked, tried: R.tried, chance: R.chance, unknown: R.unknown, corr: {changed: R.corr.changed, maxDiff: R.corr.maxDiff, worst: R.corr.worst}};
+  if (R.corr.changed){
+    const at = {}; R.drivers.forEach((d, i) => { at[d.id] = i; });
+    out.corr.used = ((a.beliefs || {}).corr || []).map(pr => [pr[0], pr[1], R.corr.matrix[at[pr[0]]][at[pr[1]]]]);
+  }
   if (!R.n) return out;
   out.built = q(R.out.built); out.demand = q(R.out.demand); out.tight = q(R.out.tight);
   out.below = {}; for (const t of [0.9, 0.8, 0.7, 0.6]) out.below[t] = O.probBelow(R.out.built, t);
@@ -1213,10 +1287,10 @@ let busy = false, pending = null, timer = null;
 function schedule(){ clearTimeout(timer); timer = setTimeout(request, 60); }
 function request(){
   clearTimeout(timer);
-  const beliefs = {drivers: JSON.parse(JSON.stringify(cur))}, sit = anyGiven();
+  const beliefs = {drivers: JSON.parse(JSON.stringify(cur)), corr: LINKS.map(l => [l.a, l.b, l.rho])}, sit = anyGiven();
   const args = [{n: N, seed: SEED, beliefs, given: Object.assign({}, given)}];
   if (sit) args.push({n: N, seed: SEED, beliefs, given: {}});
-  pending = {args, sit, changed: nChanged() > 0};
+  pending = {args, sit, changed: nChanged() + nLinksChanged() > 0};
   pump();
 }
 function pump(){
@@ -1297,6 +1371,7 @@ function driverRow(d){
   if (ev) supMore.append(h("button", {type: "button", class: "ghost sm", "data-sup": "false", "aria-pressed": "false", text: "Suppose it does not happen"}));
   else supMore.append(h("button", {type: "button", class: "ghost sm", "data-sup": "low", "aria-pressed": "false", text: "Suppose the low case or worse"}),
                       h("button", {type: "button", class: "ghost sm", "data-sup": "high", "aria-pressed": "false", text: "Suppose the high case or better"}));
+  supMore.append(h("button", {type: "button", class: "ghost sm", "data-act": "links", onclick: () => { $("#lk-filter").value = id; applyFilter(); $("#lk-bar").scrollIntoView({behavior: reduceMotion ? "auto" : "smooth", block: "start"}); }}));
   more.append(supMore);
 
   const row = h("article", {class: "drv", id: "d-" + id, "data-id": id, "aria-labelledby": "l-" + id},
@@ -1383,17 +1458,20 @@ function sync(id, opt){
     bits.push(h("span", {}, "Started at ", h("b", {text: was}), " ", h("button", {type: "button", onclick: () => { cur[id] = Object.assign({}, st); sync(id, {force: true}); updateBar(); request(); }, text: "Reset"})));
   }
   const rs = RES.refKind === "nosit" && RES.cur && RES.cur.n ? RES.cur.drivers[id] : null;
-  if (rs && g === undefined && Object.keys(given).some(k => LINKED[id] && LINKED[id].has(k))){
+  if (rs && g === undefined && Object.keys(given).some(k => isLinked(id, k))){
     if (ev && Math.abs(rs.p - c.p) >= 0.005) bits.push(h("span", {}, "In this situation its chance is ", h("b", {text: pct(rs.p)})));
     if (!ev && Math.abs(rs.mid - c.mid) >= Math.max(0.5, (d.max - d.min) * 0.005)) bits.push(h("span", {}, "In this situation its central case is ", h("b", {text: num(rs.mid)})));
   }
   note.replaceChildren(...bits);
+  const nl = LINKS.filter(l => l.rho !== 0 && (l.a === id || l.b === id)).length;
+  $('[data-act="links"]', row).textContent = nl ? "Its links (" + nl + ")" : "Add a link";
 }
 function syncAll(){ for (const d of MODEL.drivers) sync(d.id); updateBar(); }
 function updateBar(){
-  const n = nChanged(), g = Object.keys(given).length;
-  $("#dchanged").textContent = n ? (n === 1 ? "1 changed from its starting number" : n + " changed from their starting numbers") : "These are the starting numbers";
-  $("#reset-all").disabled = !n && !g;
+  const n = nChanged(), k = nLinksChanged(), g = Object.keys(given).length;
+  const parts = [n ? (n === 1 ? "1 number" : n + " numbers") : null, k ? (k === 1 ? "1 link" : k + " links") : null].filter(Boolean);
+  $("#dchanged").textContent = parts.length ? parts.join(" and ") + " changed" : "These are the starting numbers";
+  $("#reset-all").disabled = !n && !k && !g;
 }
 function buildDrivers(){
   const list = $("#dlist");
@@ -1408,6 +1486,7 @@ function buildDrivers(){
   $("#reset-all").addEventListener("click", () => {
     for (const d of MODEL.drivers) cur[d.id] = Object.assign({}, START[d.id]);
     for (const k of Object.keys(given)) delete given[k];
+    resetLinks();
     for (const d of MODEL.drivers) sync(d.id, {force: true});
     updateBar(); request();
   });
@@ -1422,6 +1501,12 @@ function jumpTo(id){
 /* ---------------- results ---------------- */
 function render(){
   const r = RES.cur, ref = RES.ref && RES.ref.n ? RES.ref : null, sit = anyGiven();
+  // links that could not all hold together: what was used instead
+  USED = {};
+  for (const u of r.corr.used || []) USED[linkKey(u[0], u[1])] = u[2];
+  const w = r.corr.changed ? r.corr.worst : null;
+  $("#lk-warn").hidden = !r.corr.changed;
+  if (r.corr.changed) $("#lk-warn-t").textContent = "These links cannot all be true at once, so the page used the closest set that can." + (w && BY[w[0]] && BY[w[1]] ? " The biggest change was to " + BY[w[0]].label + " and " + BY[w[1]].label + ", by " + (Math.round(r.corr.maxDiff * 100) / 100) + "." : "") + " Each adjusted row says what was used.";
   // the supposed situation
   $("#situ").hidden = !sit;
   if (sit){
@@ -1437,7 +1522,7 @@ function render(){
   if (none){
     $("#empty-t").replaceChildren(h("b", {text: r.tried ? "This situation is too rare to show." : "This cannot happen with your numbers."}),
       r.tried ? "It did not come up once in " + r.tried.toLocaleString("en-US") + " tries. Raise the chances involved, or suppose fewer things at once." : "One of the things you are supposing has a chance of zero, or of 100% when you suppose it does not happen.");
-    $("#mini").hidden = true; syncAll(); return;
+    $("#mini").hidden = true; syncAll(); syncLinks(); return;
   }
   // headline
   const b = r.built;
@@ -1451,11 +1536,12 @@ function render(){
   $("#t-mid").textContent = pct(b.p50); $("#t-low").textContent = pct(b.p10);
   $("#t-below").textContent = pct(r.below[$("#t-thr").value]);
   $("#t-tight").textContent = Math.round(r.tight.p50 * 100) + "%";
+  $("#hero-adj").hidden = !r.corr.changed;
   renderHist(r, ref); renderLimits(r, ref); renderMatters(r); renderOutputs(r);
   $("#mini-v").textContent = Math.round(b.mean * 100) + "% of plan";
   $("#mini-t").textContent = "average · 1-in-10 low " + pct(b.p10);
   $("#live").textContent = "On average " + Math.round(b.mean * 100) + "% of plan gets built. One time in ten, " + pct(b.p10) + " or less.";
-  syncAll(); renderLinks();
+  syncAll(); syncLinks();
 }
 
 let histState = null;
@@ -1599,24 +1685,210 @@ for (const b of $$("#mat-seg button")) b.addEventListener("click", () => {
 });
 $("#situ-clear").addEventListener("click", () => { for (const k of Object.keys(given)) delete given[k]; syncAll(); request(); });
 
-/* ---------------- links, in plain numbers, with the current chances ---------------- */
-function renderLinks(){
-  const live = id => Object.assign({}, BY[id], cur[id]);
-  const say = (a, b, rho) => {
-    const rd = ODDS.reading(a, b, rho), v = x => rd.unit === "chance" ? pct(x) : num(x);
-    return h("span", {class: "st"}, (rd.unit === "chance" ? "from a chance of " : "from a central case of "), h("b", {text: v(rd.base)}), " to ", h("b", {text: v(rd.given)}));
-  };
-  const word = r => (Math.abs(r) >= 0.5 ? "Strong" : Math.abs(r) >= 0.3 ? "Moderate" : "Weak") + (r > 0 ? ", same way" : ", opposite ways");
-  const high = d => d.kind === "range" ? h("span", {class: "why", text: "when it comes in at its high case or better"}) : null;
-  const body = FILE.links.map(l => {
-    const a = live(l.a), b = live(l.b);
-    return h("tr", {}, h("td", {class: "pair"}, h("span", {"data-n": "1", text: a.label}), h("br"), h("span", {"data-n": "2", text: b.label}), h("span", {class: "why", text: l.why})),
-      h("td", {class: "st"}, h("b", {text: (l.rho > 0 ? "+" : "−") + Math.abs(l.rho).toFixed(1)}), " " + word(l.rho)),
-      h("td", {}, b.label, h("br"), say(a, b, l.rho), high(a)),
-      h("td", {}, a.label, h("br"), say(b, a, l.rho), high(b)));
+/* ---------------- links: one editable row each, an add form, a filter and an overview grid ---------------- */
+function flash(el){ el.classList.add("flash"); setTimeout(() => el.classList.remove("flash"), 1600); }
+function linkRow(l){
+  const a = BY[l.a], b = BY[l.b];
+  const cell = (from, to, dir) => h("div", {class: "lk-read", "data-dir": dir},
+    h("span", {class: "cap2", text: dir === "ab" ? "If the first happens, the second goes" : "If the second happens, the first goes"}),
+    h("span", {class: "who", text: to.label}),
+    h("span", {class: "to"}, to.kind === "event" ? "from a chance of " : "from a central case of ", h("b", {"data-v": "base"}),
+      h("span", {class: "tv"}, "to", h("input", {class: "nf", type: "number", inputmode: "decimal", step: "any", "data-f": "target",
+        "aria-label": "Where " + to.label + " lands if " + from.label + (from.kind === "event" ? " happens" : " comes in at its high case or better") + (to.kind === "event" ? ": chance in percent" : ": central case")}),
+        to.kind === "event" ? h("span", {class: "unit", text: "%"}) : null)),
+    from.kind === "range" ? h("span", {class: "why", text: "when it comes in at its high case or better"}) : null);
+  const sl = h("input", {class: "sl", type: "range", min: -0.95, max: 0.95, step: "0.05", "data-f": "rhos", "aria-label": "Link strength: " + a.label + " and " + b.label});
+  const nf = h("input", {class: "nf", type: "number", inputmode: "decimal", min: -0.95, max: 0.95, step: "0.01", "data-f": "rho", "aria-label": "Link strength, from -0.95 to 0.95: " + a.label + " and " + b.label});
+  const act = h("button", {type: "button", class: "ghost sm", "data-act": "remove"});
+  const row = h("div", {class: "lk", id: rowId(l), "data-a": l.a, "data-b": l.b},
+    h("div", {class: "lk-pair"}, h("span", {"data-n": "1", text: a.label}), h("span", {"data-n": "2", text: b.label}), h("span", {class: "why", text: l.why || "Added by you."}), h("div", {class: "drv-note", "data-v": "note"})),
+    h("div", {class: "lk-str"},
+      h("div", {class: "lk-strtop"}, h("label", {class: "fld"}, h("span", {text: "strength"}), nf), h("span", {class: "lk-word", "data-v": "word"})),
+      h("div", {class: "slw lkw"}, h("div", {class: "trk"}, h("i", {"data-v": "fill"}), h("u", {style: "left:50%"}), h("u", {"data-v": "start"})), sl)),
+    cell(a, b, "ab"), cell(b, a, "ba"),
+    h("div", {class: "lk-act"}, act));
+  const after = opt => { syncLink(l, opt); renderGrid(); syncAll(); applyFilter(); };
+  const setRho = (v, opt) => { l.rho = Math.abs(v) < 0.005 ? 0 : clamp(Math.round(v * 100) / 100, -0.95, 0.95); l.msg = null; after(opt); schedule(); };
+  sl.addEventListener("input", () => setRho(+sl.value, {skip: sl}));
+  nf.addEventListener("input", () => { const v = parseFloat(nf.value); if (v === v) setRho(v, {skip: nf}); });
+  nf.addEventListener("change", () => { const v = parseFloat(nf.value); if (v === v) setRho(v, {force: true}); else syncLink(l, {force: true}); });
+  // "when the first happens, the second should land here": work out the strength that does it
+  for (const c of $$(".lk-read", row)){
+    const ab = c.getAttribute("data-dir") === "ab", f = $('[data-f="target"]', c);
+    f.addEventListener("change", () => {
+      const A = live(ab ? l.a : l.b), B = live(ab ? l.b : l.a), v = parseFloat(f.value);
+      if (!(v === v)){ syncLink(l, {force: true}); return; }
+      const isEv = B.kind === "event", target = isEv ? clamp(v, 0, 100) / 100 : v;
+      const rho = clamp(Math.round(ODDS.rhoForReading(A, B, target).rho * 100) / 100, -0.95, 0.95);
+      l.rho = Math.abs(rho) < 0.005 ? 0 : rho;
+      const got = ODDS.reading(A, B, l.rho).given, off = Math.abs(got - target) > (isEv ? 0.006 : Math.max(0.6, Math.abs(target) * 0.006));
+      l.msg = off ? "A link can only take " + B.label + " as far as " + (isEv ? pct(got) : num(got)) + " here." : null;
+      after({force: true}); schedule();
+    });
+  }
+  act.addEventListener("click", () => {
+    l.msg = null;
+    if (l.start == null){ LINKS.splice(LINKS.indexOf(l), 1); row.remove(); renderGrid(); syncAll(); applyFilter(); }
+    else { l.rho = l.rho === 0 && l.start !== 0 ? l.start : 0; after({force: true}); }       // remove, or put back
+    request();
   });
-  $("#lk-tbl").replaceChildren(h("thead", {}, h("tr", {}, h("th", {text: "These two"}), h("th", {text: "Link"}), h("th", {text: "If the first happens, the second goes"}), h("th", {text: "If the second happens, the first goes"}))), h("tbody", {}, body));
+  return row;
 }
+/** Write one link's strength and both plain-number readings into its row (same rules as sync() for the fields). */
+function syncLink(l, opt){
+  opt = opt || {};
+  const row = document.getElementById(rowId(l)); if (!row) return;
+  const set = (el, v) => {
+    if (!el || el === opt.skip) return;
+    if (!opt.force && el === document.activeElement && el.classList.contains("nf")) return;
+    el.value = v;
+  };
+  const A = live(l.a), B = live(l.b), r = l.rho, ch = linkChanged(l), off = r === 0;
+  set($('[data-f="rho"]', row), String(r)); set($('[data-f="rhos"]', row), r);
+  $('[data-f="rhos"]', row).setAttribute("aria-valuetext", rhoText(r) + ", " + rhoWord(r).toLowerCase());
+  $('[data-v="word"]', row).textContent = rhoWord(r);
+  const fill = $('[data-v="fill"]', row), half = Math.abs(r) / 0.95 * 50;
+  fill.style.left = (r < 0 ? 50 - half : 50) + "%"; fill.style.width = half + "%"; fill.style.background = r < 0 ? "var(--neg)" : "var(--series)";
+  const st = $('[data-v="start"]', row);
+  st.hidden = l.start == null || !ch; if (l.start != null) st.style.left = (50 + l.start / 0.95 * 50) + "%";
+  for (const [dir, X, Y] of [["ab", A, B], ["ba", B, A]]){
+    const c = $('.lk-read[data-dir="' + dir + '"]', row), rd = ODDS.reading(X, Y, r), isEv = rd.unit === "chance";
+    $('[data-v="base"]', c).textContent = isEv ? pct(rd.base) : num(rd.base);
+    set($('[data-f="target"]', c), tgt(rd.given, isEv));
+  }
+  row.classList.toggle("changed", ch); row.classList.toggle("off", off);
+  $('[data-act="remove"]', row).textContent = l.start != null && off && l.start !== 0 ? "Put back" : "Remove";
+  const bits = [];
+  if (l.start == null && off) bits.push(h("span", {text: "Set a strength to make it count."}));
+  else if (l.start != null && ch) bits.push(h("span", {}, off ? "Removed. It started at " : "Started at ", h("b", {text: rhoText(l.start)}), " ",
+    off ? null : h("button", {type: "button", onclick: () => { l.rho = l.start; l.msg = null; syncLink(l, {force: true}); renderGrid(); syncAll(); applyFilter(); request(); }, text: "Reset"})));
+  if (l.msg) bits.push(h("span", {text: l.msg}));
+  const used = USED[linkKey(l.a, l.b)];
+  if (used != null && Math.abs(used - r) >= 0.01) bits.push(h("span", {}, "Used ", h("b", {text: rhoText(used) || "0"}), " so that all the links fit together."));
+  $('[data-v="note"]', row).replaceChildren(...bits);
+}
+function syncLinks(force){ for (const l of LINKS) syncLink(l, force ? {force: true} : null); }
+function resetLinks(){
+  for (let i = LINKS.length - 1; i >= 0; i--){
+    const l = LINKS[i];
+    if (l.start == null){ const row = document.getElementById(rowId(l)); if (row) row.remove(); LINKS.splice(i, 1); }
+    else { l.rho = l.start; l.msg = null; }
+  }
+  syncLinks(true); renderGrid(); applyFilter();
+}
+function applyFilter(){
+  const id = $("#lk-filter").value; let shown = 0;
+  for (const l of LINKS){ const row = document.getElementById(rowId(l)); if (!row) continue; const on = !id || l.a === id || l.b === id; row.hidden = !on; if (on) shown++; }
+  $("#lk-empty").hidden = shown > 0;
+  const active = LINKS.filter(l => l.rho !== 0).length, k = nLinksChanged();
+  $("#lk-count").textContent = active + (active === 1 ? " link" : " links") + " in all" + (k ? ", " + k + " changed by you" : "") + (id ? "; " + shown + " shown" : "");
+}
+function showLink(l){
+  $("#lk-filter").value = ""; applyFilter();
+  const row = document.getElementById(rowId(l)); if (!row) return;
+  row.scrollIntoView({behavior: reduceMotion ? "auto" : "smooth", block: "center"}); flash(row);
+  $('[data-f="rho"]', row).focus({preventScroll: true});
+}
+function syncAdd(){
+  const a = $("#lk-a").value, b = $("#lk-b").value, btn = $("#lk-add button");
+  btn.disabled = !a || !b || a === b; btn.textContent = a && b && a !== b && linkAt(a, b) ? "Show this link" : "Add link";
+}
+function buildLinks(){
+  const options = (sel, first) => {
+    sel.append(h("option", {value: "", text: first}));
+    for (const g of FILE.groups){ const ds = MODEL.drivers.filter(d => d.group === g.id); if (ds.length) sel.append(h("optgroup", {label: g.label}, ds.map(d => h("option", {value: d.id, text: d.label})))); }
+  };
+  options($("#lk-filter"), "everything"); options($("#lk-a"), "choose one"); options($("#lk-b"), "choose another");
+  $("#lk-list").append(h("div", {class: "lk hd", "aria-hidden": "true"}, h("span", {text: "These two"}), h("span", {text: "Link"}), h("span", {text: "If the first happens, the second goes"}), h("span", {text: "If the second happens, the first goes"}), h("span")), ...LINKS.map(linkRow));
+  $("#lk-filter").addEventListener("change", applyFilter);
+  $("#lk-a").addEventListener("change", syncAdd); $("#lk-b").addEventListener("change", syncAdd);
+  $("#lk-add").addEventListener("submit", e => {
+    e.preventDefault();
+    const a = $("#lk-a").value, b = $("#lk-b").value;
+    if (!a || !b || a === b) return;
+    let l = linkAt(a, b);
+    if (!l){
+      l = {a, b, rho: 0, start: null, why: "", msg: null}; LINKS.push(l);
+      $("#lk-list .lk.hd").after(linkRow(l)); syncLink(l, {force: true}); renderGrid(); syncAll();
+    }
+    syncAdd(); showLink(l);
+  });
+  $("#grid-scale").append(h("span", {text: "opposite"}), ...[-0.9, -0.5, -0.2, 0, 0.2, 0.5, 0.9].map(v => h("i", {style: "background:" + cellFill(v), title: v ? rhoText(v) : "no link"})), h("span", {text: "same way"}));
+  syncLinks(true); renderGrid(); applyFilter(); syncAdd();
+}
+const cellFill = r => !r ? "var(--wash)" : "color-mix(in srgb, " + (r > 0 ? "var(--series)" : "var(--neg)") + " " + Math.round(25 + 75 * Math.min(1, Math.abs(r) / 0.9)) + "%, var(--wash))";
+let gridCur = null, gridRefs = null;
+function renderGrid(){
+  const svg = $("#grid"), ds = MODEL.drivers, n = ds.length, C = 20, LBL = 244, TOP = 20, GAP = 6, pos = [], kids = [], cols = [], rows = [];
+  if (!n) return;
+  let off = 0;
+  ds.forEach((d, i) => { if (i && d.group !== ds[i - 1].group) off += GAP; pos.push(i * C + off); });
+  const W = LBL + pos[n - 1] + C, H = TOP + pos[n - 1] + C;
+  svg.setAttribute("viewBox", "0 0 " + W + " " + H); svg.setAttribute("width", W); svg.setAttribute("height", H);
+  ds.forEach((d, i) => {
+    cols.push(s("text", {class: "n", x: LBL + pos[i] + (C - 2) / 2, y: 13, "text-anchor": "middle"}, i + 1));
+    rows.push([s("text", {class: "n", x: 20, y: TOP + pos[i] + 13, "text-anchor": "end"}, i + 1), s("text", {x: 28, y: TOP + pos[i] + 13}, d.label.length > 34 ? d.label.slice(0, 33) + "…" : d.label)]);
+  });
+  kids.push(...cols, ...rows.flat());
+  for (let i = 0; i < n; i++) for (let j = 0; j < n; j++){
+    if (i === j) continue;
+    const l = linkAt(ds[i].id, ds[j].id), r = l ? l.rho : 0, x = LBL + pos[j], y = TOP + pos[i];
+    const rect = s("rect", {class: "c", "data-i": i, "data-j": j, x, y, width: C - 2, height: C - 2, rx: 3});
+    rect.style.fill = cellFill(r);
+    kids.push(rect);
+    if (r) kids.push(s("text", {class: "sg", x: x + (C - 2) / 2, y: y + 13, "text-anchor": "middle", style: "fill:" + (Math.abs(r) >= 0.5 ? "#fff" : "var(--ink)")}, r > 0 ? "+" : "−"));
+    if (l && linkChanged(l)) kids.push(s("circle", {class: "dot", cx: x + C - 4, cy: y + 2, r: 2.5}));
+  }
+  const curRect = s("rect", {class: "cur", width: C, height: C, rx: 4, visibility: "hidden"});
+  kids.push(curRect);
+  svg.replaceChildren(...kids);
+  gridRefs = {pos, C, LBL, TOP, cols, rows, curRect};
+  gridMark(gridCur);
+}
+/** Outline one pair in the grid and bold its row and column. */
+function gridMark(c){
+  const g = gridRefs; if (!g) return;
+  gridCur = c;
+  g.cols.forEach((t, i) => t.classList.toggle("on", !!c && c[1] === i));
+  g.rows.forEach((pair, i) => pair.forEach(t => t.classList.toggle("on", !!c && c[0] === i)));
+  if (c){ g.curRect.setAttribute("x", g.LBL + g.pos[c[1]] - 1); g.curRect.setAttribute("y", g.TOP + g.pos[c[0]] - 1); }
+  g.curRect.setAttribute("visibility", c ? "visible" : "hidden");
+}
+function gridTip(c){
+  const a = MODEL.drivers[c[0]], b = MODEL.drivers[c[1]], l = linkAt(a.id, b.id), r = l ? l.rho : 0;
+  return [h("div", {class: "tt", text: a.label + " and " + b.label}), h("div", {class: "tr"}, h("b", {text: r ? rhoText(r) : "No link"}), r ? h("span", {text: rhoWord(r).toLowerCase()}) : null),
+    h("p", {text: l ? "Click to change this link." : "Click to add a link here."})];
+}
+function gridPick(c){
+  const a = MODEL.drivers[c[0]].id, b = MODEL.drivers[c[1]].id, l = linkAt(a, b);
+  hideTip();
+  if (l){ showLink(l); return; }
+  $("#lk-a").value = a; $("#lk-b").value = b; syncAdd();
+  const f = $("#lk-add"); f.scrollIntoView({behavior: reduceMotion ? "auto" : "smooth", block: "center"}); flash(f);
+  $("#lk-add button").focus({preventScroll: true});
+}
+(function gridEvents(){
+  const svg = $("#grid");
+  const at = e => { const t = e.target.closest ? e.target.closest("[data-i]") : null; return t ? [+t.getAttribute("data-i"), +t.getAttribute("data-j")] : null; };
+  svg.addEventListener("pointermove", e => { const c = at(e); gridMark(c); if (c) showTip(gridTip(c), e.clientX, e.clientY); else hideTip(); });
+  svg.addEventListener("pointerleave", () => { gridMark(null); hideTip(); });
+  svg.addEventListener("click", e => { const c = at(e); if (c) gridPick(c); });
+  svg.addEventListener("blur", () => { gridMark(null); hideTip(); });
+  svg.addEventListener("keydown", e => {
+    const n = MODEL.drivers.length, mv = {ArrowRight: [0, 1], ArrowLeft: [0, -1], ArrowDown: [1, 0], ArrowUp: [-1, 0]}[e.key];
+    if (mv){
+      let c = gridCur || [1, 0];
+      if (gridCur){
+        let i = clamp(c[0] + mv[0], 0, n - 1), j = clamp(c[1] + mv[1], 0, n - 1);
+        if (i === j){ i = clamp(i + mv[0], 0, n - 1); j = clamp(j + mv[1], 0, n - 1); }       // step over the diagonal
+        if (i !== j) c = [i, j];
+      }
+      e.preventDefault(); gridMark(c);
+      const r = gridRefs.curRect.getBoundingClientRect(); showTip(gridTip(c), r.left + r.width / 2, r.top + r.height / 2);
+    } else if ((e.key === "Enter" || e.key === " ") && gridCur){ e.preventDefault(); gridPick(gridCur); }
+    else if (e.key === "Escape"){ gridMark(null); hideTip(); }
+  });
+})();
 
 /* ---------------- start ---------------- */
 (function nav(){
@@ -1639,7 +1911,7 @@ function renderLinks(){
   if (!DATA.file){ fail("The model file (data/odds.json) has a problem, so there is nothing to run. The Update desk on The Chain lists what is wrong."); return; }
   const problems = ODDS.check(MODEL);
   if (problems.length){ fail("The model file has a problem: " + problems[0]); return; }
-  buildDrivers(); syncAll(); renderLinks(); request();
+  buildDrivers(); buildLinks(); syncAll(); request();
   // on a phone the results scroll away while you change numbers: keep the headline in a bar at the bottom
   if ("IntersectionObserver" in window){
     let heroSeen = true;
@@ -1647,7 +1919,7 @@ function renderLinks(){
     new IntersectionObserver(es => { heroSeen = es[0].isIntersecting; mini.hidden = heroSeen || !RES.cur || !RES.cur.n; }, {threshold: 0}).observe($("#hero"));
   }
 })();
-window.ODDSLAB = {get res(){ return RES; }, get busy(){ return busy || !!pending; }, cur, given, usingWorker: () => !!worker, compute, N, SEED, MODEL};
+window.ODDSLAB = {get res(){ return RES; }, get busy(){ return busy || !!pending; }, cur, given, links: LINKS, usingWorker: () => !!worker, compute, tgt, N, SEED, MODEL};
 </script>
 
 
