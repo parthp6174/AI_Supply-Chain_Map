@@ -22,9 +22,27 @@ FILE = json.load(open(os.path.join(ROOT, "data", "odds.json"), encoding="utf-8")
 DRIVERS = {d["id"]: d for d in FILE["drivers"]}
 N_EVENTS = sum(1 for d in FILE["drivers"] if d["kind"] == "event")
 N_RANGES = len(FILE["drivers"]) - N_EVENTS
-BASE = OUT = None
+BASE = OUT = SITE = None
 RESULTS = []
 IDLE = "window.ODDSLAB && ODDSLAB.res.cur && !ODDSLAB.busy"
+
+
+def iso_ago(hours):
+    import datetime as dt
+    t = dt.datetime.now(dt.timezone.utc).replace(microsecond=0) - dt.timedelta(hours=hours)
+    return t.isoformat().replace("+00:00", "Z")
+
+
+# market odds as scripts/fetch_markets.py writes them: prices recorded on 8 Oct 2026, read 2 hours before the test
+# (one 3 days before), plus a market nobody lists and one with an impossible price, which the build must drop
+MARKET_SAMPLE = {"fetched": iso_ago(2), "errors": [], "items": {
+    "polymarket:2382819": {"yes": 0.0335, "at": iso_ago(2), "question": "Will China blockade Taiwan in 2026?", "end": "2027-01-01T04:59:00Z", "closed": False, "volume": 405516, "week": 0.0005, "bid": 0.033, "ask": 0.034},
+    "polymarket:677407": {"yes": 0.0435, "at": iso_ago(2), "question": "China x Taiwan military clash before 2027?", "end": "2027-01-01T04:59:00Z", "closed": False, "volume": 3447247, "week": -0.002},
+    "polymarket:2176270": {"yes": 0.205, "at": iso_ago(2), "question": "Strait of Hormuz traffic returns to normal by December 31?", "end": "2027-01-01T04:59:00Z", "closed": False, "volume": 13747749, "week": -0.01},
+    "polymarket:4713484": {"yes": 0.44, "at": iso_ago(72), "question": "US-Iran ceasefire continues through December 31?", "end": "2026-12-31T23:59:00Z", "closed": False, "volume": 108719},
+    "polymarket:1345235": {"yes": 0.228, "at": iso_ago(2), "question": "Will OpenAI not IPO by December 31, 2027?", "end": "2028-01-01T04:59:00Z", "closed": False, "volume": 91105},
+    "polymarket:999": {"yes": 0.5, "at": iso_ago(1), "question": "Not listed on any driver"},
+    "polymarket:1811266": {"yes": 7, "at": iso_ago(1), "question": "An impossible price"}}}
 STRIP_DONE = "window.ODDSLAB && !ODDSLAB.busy && !ODDSLAB.stripBusy && Object.keys(ODDSLAB.strip.res).length === 4"
 
 
@@ -317,7 +335,7 @@ def run_checks(browser):
     page.select_option("#lk-filter", "")
     # each driver's own links, as tags on its row
     chips = page.locator("#d-tw_blockade .lchip[data-k]")
-    check(f"driver links: Taiwan blockade's row shows its {n_tw} links as tags", chips.count() == n_tw and "Moves with" in page.inner_text("#d-tw_blockade .dl-k") and page.inner_text("#d-euv_halt .dl-k") == "No links yet")
+    check(f"driver links: Taiwan blockade's row shows its {n_tw} links as tags", chips.count() == n_tw and "Moves with" in page.inner_text("#d-tw_blockade .drv-links .dl-k") and page.inner_text("#d-euv_halt .drv-links .dl-k") == "No links yet")
     first = page.locator('#d-tw_blockade .lchip[data-k="cn_minerals|tw_blockade"]')
     check("driver links: a tag shows the direction and strength, and marks a change", first.locator(".ar").inner_text() == "↑↑" and "pos" in first.locator(".ar").get_attribute("class") and "changed" in first.get_attribute("class") and page.locator('#d-tw_blockade .lchip[data-k="capex_2027|tw_blockade"] .ar').inner_text() == "↓")
     first.click(); page.wait_for_timeout(150)
@@ -392,6 +410,45 @@ def run_checks(browser):
     page.evaluate("document.querySelector('#links').scrollIntoView()")
     shot(page, "odds_links.png")
 
+    # 9c. market odds: Polymarket prices beside the drivers (the build embedded the sample written in main())
+    MKD = {d["id"]: d.get("markets", []) for d in FILE["drivers"]}
+    n_mk = sum(1 for k in ("tw_blockade", "gulf_persist", "gulf_dc_hit", "openai_funding") if MKD.get(k))
+    check("markets: the line above the drivers says how many have market odds and how old they are", page.inner_text("#mkt-age") == "Market odds on %d drivers, read 2 hours ago; some are out of date." % n_mk, page.inner_text("#mkt-age"))
+    check("markets: only listed markets with a sensible price reach the page", sorted(page.evaluate("Object.keys(ODDSLAB.markets.items)")) == sorted(k for k in MARKET_SAMPLE["items"] if k not in ("polymarket:999", "polymarket:1811266")), page.evaluate("Object.keys(ODDSLAB.markets.items)"))
+    tw = page.locator("#d-tw_blockade .drv-mkt .mchip")
+    close = MKD["tw_blockade"][0]
+    check("markets: a driver shows each market with the price of the side it names", tw.count() == 2 and close["label"] in tw.nth(0).inner_text() and page.evaluate("pct(0.0335)") in tw.nth(0).inner_text()
+          and "close" in tw.nth(0).get_attribute("class") and "related" in tw.nth(1).get_attribute("class") and tw.nth(0).get_attribute("href") == close["url"] and tw.nth(0).get_attribute("target") == "_blank" and "noopener" in tw.nth(0).get_attribute("rel"),
+          [tw.nth(i).inner_text() for i in range(tw.count())])
+    check("markets: a market priced on its No side shows the No price", page.evaluate("pct(1 - 0.205)") in page.inner_text("#d-gulf_persist .drv-mkt .mchip"), page.inner_text("#d-gulf_persist .drv-mkt"))
+    check("markets: a price read days ago is marked as old", "stale" in page.get_attribute("#d-gulf_dc_hit .drv-mkt .mchip", "class") and "old" in page.inner_text("#d-gulf_dc_hit .drv-mkt .mchip").lower())
+    check("markets: drivers without markets show no market line", page.is_hidden("#d-euv_halt .drv-mkt") and page.locator("#d-cn_minerals .drv-mkt .mchip").count() == 0)
+    tw.nth(1).hover()
+    tip = page.inner_text("#tip") if page.is_visible("#tip") else ""
+    check("markets: hovering a market explains it", "Polymarket" in tip and "This week:" in tip and "Traded:" in tip and "Read:" in tip and MKD["tw_blockade"][1]["differs"][:30] in tip, tip)
+    page.mouse.move(5, 5)
+    use = page.locator('#d-tw_blockade [data-act="use-mkt"]')
+    check("markets: a close fit offers its price with one click", use.count() == 1 and use.inner_text() == "Use " + page.evaluate("pct(0.0335)"))
+    use.click(); settle(page)
+    check("markets: 'Use' sets the chance to the market's, and the results follow", page.evaluate("ODDSLAB.cur.tw_blockade.p") == 0.0335 and page.input_value('#d-tw_blockade [data-f="p"]') == page.evaluate("num(3.35)") and "changed" in page.get_attribute("#d-tw_blockade", "class")
+          and page.locator('#d-tw_blockade [data-act="use-mkt"]').count() == 0 and page.is_visible("#hero-d"), page.input_value('#d-tw_blockade [data-f="p"]'))
+    page.click("#d-tw_blockade .drv-note button"); settle(page)
+    check("markets: after a reset the offer comes back", page.locator('#d-tw_blockade [data-act="use-mkt"]').count() == 1 and hero(page) == h0)
+    if page.is_hidden("#m-tw_blockade"):
+        page.click('#d-tw_blockade button[aria-controls="m-tw_blockade"]')
+    about = page.inner_text('#m-tw_blockade [data-v="mkt-dd"]')
+    check("markets: the About panel quotes each market's own question, how it differs, its size and age", MARKET_SAMPLE["items"]["polymarket:2382819"]["question"] in about and close["differs"][:40] in about and "$406k traded" in about and "read 2 hours ago" in about
+          and page.locator('#m-tw_blockade [data-v="mkt-dd"] a').first.get_attribute("href") == close["url"], about[:300])
+    newer = json.loads(json.dumps(MARKET_SAMPLE)); newer["fetched"] = iso_ago(0); newer["items"]["polymarket:2382819"].update(yes=0.05, at=iso_ago(0))
+    json.dump(newer, open(os.path.join(SITE, "data", "markets.json"), "w"))
+    got = page.evaluate("ODDSLAB.refreshMarkets()")
+    check("markets: newer prices published by the refresh replace the built-in ones", got is True and page.evaluate("pct(0.05)") in page.inner_text("#d-tw_blockade .drv-mkt .mchip") and "read just now" in page.inner_text("#mkt-age"), (got, page.inner_text("#d-tw_blockade .drv-mkt")))
+    older = json.loads(json.dumps(MARKET_SAMPLE)); older["fetched"] = iso_ago(30); older["items"]["polymarket:2382819"].update(yes=0.9)
+    json.dump(older, open(os.path.join(SITE, "data", "markets.json"), "w"))
+    check("markets: an older file never replaces newer prices", page.evaluate("ODDSLAB.refreshMarkets()") is False and page.evaluate("pct(0.05)") in page.inner_text("#d-tw_blockade .drv-mkt .mchip"))
+    os.remove(os.path.join(SITE, "data", "markets.json"))
+    clean_text(page, "markets")
+
     # 10. jumping from a result to the number behind it
     page.evaluate("document.querySelector('#lab-grid').scrollIntoView(); document.querySelector('#results').scrollTop = 99999")
     page.locator("#mat button.row").nth(1).click(); page.wait_for_timeout(900)
@@ -448,7 +505,11 @@ def main():
     if a.shots:
         OUT = os.path.abspath(a.shots); os.makedirs(OUT, exist_ok=True)
     with tempfile.TemporaryDirectory() as site:
-        subprocess.run([sys.executable, os.path.join(ROOT, "src", "build.py"), "--target", "github", "--quotes", os.devnull + ".none", "--out", site],
+        global SITE
+        SITE = site
+        sample = os.path.join(site, "markets-sample.json")
+        json.dump(MARKET_SAMPLE, open(sample, "w"))
+        subprocess.run([sys.executable, os.path.join(ROOT, "src", "build.py"), "--target", "github", "--quotes", os.devnull + ".none", "--markets", sample, "--out", site],
                        check=True, env=dict(os.environ, GITHUB_SHA="abcdef1234567890"), stdout=subprocess.DEVNULL)
         srv = http.server.ThreadingHTTPServer(("127.0.0.1", 0), functools.partial(QuietHandler, directory=site))
         threading.Thread(target=srv.serve_forever, daemon=True).start()

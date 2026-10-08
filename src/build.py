@@ -4,6 +4,7 @@
     python src/build.py                                  # GitHub Pages site -> site/
     python src/build.py --target artifact                # claude.ai versions -> dist/artifact/
     python src/build.py --quotes site/data/quotes.json   # embed the latest live quotes as the fallback snapshot
+    python src/build.py --markets site/data/markets.json # embed the latest market odds in The Odds (the default)
 
     python src/build.py --lenient                        # CI: skip broken developments and report them instead of failing
     python src/build.py --out /tmp/site                  # write the site somewhere else (the desk tests do this)
@@ -329,6 +330,16 @@ def load_odds(problems, lenient):
             if stories and d.get("story") not in stories: soft.append(f"{d['id']}: unknown story '{d.get('story')}' (its links are listed under Other links)")
         for l in o["links"]:
             if l.get("story") is not None and l["story"] not in stories: soft.append(f"link {l['a']} - {l['b']}: unknown story '{l['story']}' (listed under Other links)")
+        # markets shown beside a driver (prices read by scripts/fetch_markets.py): Polymarket by numeric id, the side
+        # of the market that matches the driver, how close a fit it is, a short label and a link
+        for d in o["drivers"]:
+            mks = d.get("markets") or []
+            keep = [m for m in mks if isinstance(m, dict) and m.get("src") == "polymarket" and str(m.get("id", "")).isdigit()
+                    and m.get("side") in ("yes", "no") and m.get("fit") in ("close", "related") and m.get("label")
+                    and str(m.get("url", "")).startswith("https://polymarket.com/")]
+            if len(keep) != len(mks):
+                soft.append(f"{d['id']}: a market needs src polymarket, a numeric id, side yes or no, fit close or related, a label and a polymarket.com link (left out)")
+                d["markets"] = keep
         # sources shown as links in each driver's About panel: a title and a web address, or the source is left out
         for d in o["drivers"]:
             srcs = d.get("src") or []
@@ -349,6 +360,39 @@ def load_odds(problems, lenient):
     if soft:
         problems.append("data/odds.json: " + "; ".join(soft[:6]) + ". The Odds still works.")
     return o
+
+
+ISO_UTC = re.compile(r"^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\dZ$")
+
+
+def load_markets(path, odds):
+    """The latest market prices for The Odds (site/data/markets.json, written by scripts/fetch_markets.py), kept
+    only for markets the model lists and checked field by field. None when there is no usable price yet; the page
+    then shows no market odds until the scheduled refresh has read some."""
+    if not odds or not path or not os.path.exists(path):
+        return None
+    try:
+        with open(path, encoding="utf-8") as f:
+            raw = json.load(f)
+    except (OSError, ValueError):
+        return None
+    if not isinstance(raw, dict) or not isinstance(raw.get("items"), dict):
+        return None
+    want = {"polymarket:" + str(m["id"]) for d in odds["drivers"] for m in d.get("markets") or []}
+    num = lambda v: isinstance(v, (int, float)) and not isinstance(v, bool) and math.isfinite(v)
+    items = {}
+    for k, v in raw["items"].items():
+        if k not in want or not isinstance(v, dict) or not num(v.get("yes")) or not 0 <= v["yes"] <= 1 or not ISO_UTC.match(str(v.get("at", ""))):
+            continue
+        it = dict(yes=v["yes"], at=v["at"], question=str(v.get("question") or "")[:300], closed=bool(v.get("closed")))
+        for key in ("volume", "week", "bid", "ask"):
+            if num(v.get(key)):
+                it[key] = v[key]
+        if re.match(r"^\d{4}-\d\d-\d\d", str(v.get("end", ""))):
+            it["end"] = str(v["end"])[:20]
+        items[k] = it
+    fetched = str(raw.get("fetched", ""))
+    return dict(fetched=fetched if ISO_UTC.match(fetched) else None, items=items) if items else None
 
 
 def desk_config(page):
@@ -397,7 +441,7 @@ def money(v):
 
 
 # ---------------------------------------------------------------- build
-def build(target, quotes_path, lenient=False, site_dir=None):
+def build(target, quotes_path, lenient=False, site_dir=None, markets_path=None):
     g = geo.load()
     problems = []
     dev = load_devs(problems, lenient)
@@ -513,7 +557,8 @@ def build(target, quotes_path, lenient=False, site_dir=None):
     odds_html = ""
     if gh:
         odata = dict(target=target, rev=rev, nav=nav, names=NAMES, supplyUrl="../", atlasUrl="../" + MONEY_PATH + "/", repoUrl=REPO_URL, siteUrl=SITE_URL,
-                     file=odds, chain=M.export_graph(), linkNames={n["id"]: [n.get("short") or n["name"], n["name"]] for n in nodes})
+                     file=odds, chain=M.export_graph(), linkNames={n["id"]: [n.get("short") or n["name"], n["name"]] for n in nodes},
+                     markets=load_markets(markets_path, odds), marketsUrl="../data/markets.json")
         with open(os.path.join(ROOT, "src", "odds", "template.html"), encoding="utf-8") as f:
             otpl = f.read()
         with open(os.path.join(ROOT, "src", "common", "odds_engine.js"), encoding="utf-8") as f:
@@ -553,10 +598,11 @@ if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("--target", choices=["github", "artifact"], default="github")
     ap.add_argument("--quotes", default=os.path.join(ROOT, "site", "data", "quotes.json"))
+    ap.add_argument("--markets", default=os.path.join(ROOT, "site", "data", "markets.json"), help="market odds for The Odds (from scripts/fetch_markets.py)")
     ap.add_argument("--lenient", action="store_true", help="skip broken developments instead of failing (used in CI)")
     ap.add_argument("--out", default=None, help="write the GitHub Pages site to this folder instead of site/ (used by tests)")
     a = ap.parse_args()
     try:
-        build(a.target, a.quotes, a.lenient, a.out)
+        build(a.target, a.quotes, a.lenient, a.out, a.markets)
     except BuildError as e:
         print("BUILD FAILED\n" + str(e)); sys.exit(1)

@@ -38,6 +38,7 @@ GitHub runs the update on a schedule, but only when it has spare capacity. The s
 | Share prices | Every few hours (GitHub's schedule), and on demand | `.github/workflows/pages.yml` runs `scripts/fetch_quotes.py` (Yahoo Finance via `yfinance`) and redeploys. Open pages re-check every 5 minutes. |
 | Analyst targets, ratings, next report dates | Once a day | Same job; the script refreshes them when they are more than 20 hours old. |
 | Headlines for the news radar | Every 3 hours, and on demand | `scripts/fetch_news.py` runs the Google News searches in `data/news_queries.json`. Headlines are only shown on the desk; nothing reaches the pages until someone adds it. |
+| Market odds on The Odds | Every run, and on demand | `scripts/fetch_markets.py` reads the Polymarket markets listed on drivers in `data/odds.json`. The Odds shows each beside its driver, with how it differs from the page's own question and how old the price is. |
 | Developments | Whenever you add one | From the Update desk, or one entry in `data/developments.json` pushed to `main`. An entry is dated and sourced, links to the boxes, sites, scenarios, companies and projects in The Money it touches, and can change ratings and statuses. |
 | Capex, revenue and backlog | After each earnings season | Edit `src/atlas/data_items.py` (builders, labs, deals) and push. |
 
@@ -62,9 +63,11 @@ src/common/                  map projection and precomputed country outlines
 src/build.py                 builds the three pages
 scripts/fetch_quotes.py      price and analyst-target refresh
 scripts/fetch_news.py        news radar refresh
+scripts/fetch_markets.py     market odds refresh (Polymarket) for The Odds
 tests/test_desk.py           browser tests for the Update desk (fake GitHub API)
 tests/test_engine.mjs        tests for the probability engine and the model file (Node, no packages)
 tests/test_odds.py           browser tests for The Odds
+tests/test_markets.py        tests for the market odds refresh (recorded answers, no network)
 site/                        built pages (what GitHub Pages serves)
 ```
 
@@ -74,6 +77,7 @@ site/                        built pages (what GitHub Pages serves)
 pip install -r requirements.txt
 python scripts/fetch_quotes.py          # optional: live prices into site/data/quotes.json
 python scripts/fetch_news.py --mode always   # optional: headlines into site/data/news.json
+python scripts/fetch_markets.py         # optional: market odds into site/data/markets.json
 python src/build.py                     # writes site/index.html, site/money/index.html and site/odds/index.html
 python -m http.server -d site 8000      # then open http://localhost:8000
 ```

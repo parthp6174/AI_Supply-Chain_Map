@@ -1,15 +1,15 @@
 name: Refresh prices and publish site
 
-# Rebuilds both pages and deploys them to GitHub Pages:
-#  - every 15 minutes on weekdays, 00:00-21:59 UTC (Tokyo's open through the US close, winter and summer);
-#    GitHub delays or drops scheduled runs at its busy :00 slot, so they run a few minutes past
-#  - every 6 hours at weekends, mainly to collect headlines for the news radar
+# Rebuilds the three pages and deploys them to GitHub Pages:
+#  - on a schedule: every 15 minutes on weekdays, 00:00-21:59 UTC (Tokyo's open through the US close), and every
+#    6 hours at weekends; the times sit a few minutes past the hour, away from GitHub's busy :00 slot. GitHub runs
+#    scheduled workflows far less often than asked (every 4 to 9 hours for this repository), so between runs the
+#    Update desk's Refresh now button is the way to get the latest numbers
 #  - on every push to main (for example, after publishing from the Update desk or editing data/developments.json)
 #  - on demand from the Actions tab or the Update desk's Refresh now button
 #
-# GitHub runs the schedule under the account that last changed one of the two schedule lines, and only if that
-# account can run workflows here. Change them only from the site owner's account; the Update desk's
-# "Turn on automatic updates" button does it in one click.
+# Each run reads share prices (Yahoo Finance), headlines for the news radar (Google News, every 3 hours) and the
+# market odds shown on The Odds (Polymarket), keeps the last good copy of each between runs, then builds and deploys.
 on:
   schedule:
     - cron: "7,22,37,52 0-21 * * 1-5"
@@ -64,6 +64,13 @@ jobs:
           key: news-v2-${{ github.run_id }}
           restore-keys: news-v2-
 
+      - name: Restore last market odds
+        uses: actions/cache/restore@v4
+        with:
+          path: site/data/markets.json
+          key: markets-${{ github.run_id }}
+          restore-keys: markets-
+
       - name: Fetch prices from Yahoo Finance
         continue-on-error: true
         run: python scripts/fetch_quotes.py --targets "${{ github.event.inputs.targets || 'auto' }}"
@@ -72,6 +79,11 @@ jobs:
       - name: Collect headlines from Google News
         continue-on-error: true
         run: python scripts/fetch_news.py --mode "${{ github.event_name == 'push' && 'missing' || github.event.inputs.news || 'auto' }}"
+
+      # prices of the forecasting markets listed on drivers in data/odds.json; a market that cannot be read keeps its last price
+      - name: Read market odds from Polymarket
+        continue-on-error: true
+        run: python scripts/fetch_markets.py
 
       - name: Save quotes
         if: always()
@@ -89,9 +101,17 @@ jobs:
           path: site/data/news.json
           key: news-v2-${{ github.run_id }}
 
+      - name: Save market odds
+        if: always()
+        continue-on-error: true
+        uses: actions/cache/save@v4
+        with:
+          path: site/data/markets.json
+          key: markets-${{ github.run_id }}
+
       # --lenient: a broken development is left out and listed on the Update desk instead of stopping the site
       - name: Build pages
-        run: python src/build.py --target github --quotes site/data/quotes.json --lenient
+        run: python src/build.py --target github --quotes site/data/quotes.json --markets site/data/markets.json --lenient
 
       - uses: actions/configure-pages@v5
 

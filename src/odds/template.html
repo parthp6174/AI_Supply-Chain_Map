@@ -220,6 +220,16 @@ input.sl:focus-visible::-moz-range-thumb{box-shadow:0 0 0 1px var(--ink),0 0 0 4
 .facts dd{margin:0;color:var(--ink-2);max-width:66ch}
 .tagb{display:inline-block;border:1px solid var(--line);border-radius:999px;padding:0 8px;font-size:var(--fs-xs);color:var(--ink-2);margin-right:6px;white-space:nowrap}
 .srcs{margin:6px 0 0;padding-left:1.2em;font-size:var(--fs-xs);display:grid;gap:3px}
+.drv-mkt{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:8px}
+.mchip{display:inline-flex;align-items:baseline;gap:6px;border:1px solid var(--ink-2);border-radius:999px;padding:2px 10px;font-size:var(--fs-xs);line-height:1.35;color:var(--ink-2);text-decoration:none;background:var(--surface);max-width:100%}
+.mchip.related{border-color:var(--line);border-style:dashed}
+.mchip b{color:var(--ink);font-variant-numeric:tabular-nums}
+.mchip .old{font-size:10.5px;color:var(--muted);font-family:var(--font-mono);text-transform:uppercase;letter-spacing:.04em}
+.mchip.stale b{color:var(--muted)}
+.mchip:hover{color:var(--ink);border-color:var(--faint)}
+.mkts{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.mkts .mq{font-size:var(--fs-xs);color:var(--muted);margin-top:2px;max-width:66ch}
+.mkts .tagb{margin-left:6px}
 .srcs a{color:var(--ink-2);word-break:break-word}
 .srcs a:hover{color:var(--ink)}
 .sevrow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 14px;align-items:center;max-width:520px}
@@ -333,7 +343,7 @@ details.grid-card[open]>summary{margin-bottom:8px}
   details.story>summary{grid-template-columns:14px minmax(0,1fr)}
   .st-meta{grid-column:2}
 }
-@media (pointer:coarse){ .lchip{min-height:36px} .steps button{min-height:40px} .lk-in select,.lk-bar select{min-height:40px} .ms-col{min-height:44px} }
+@media (pointer:coarse){ .mchip{min-height:36px;align-items:center} .lchip{min-height:36px} .steps button{min-height:40px} .lk-in select,.lk-bar select{min-height:40px} .ms-col{min-height:44px} }
 .method{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 36px}
 .method h3{margin:14px 0 6px}
 .method p,.method li{max-width:66ch;color:var(--ink-2);margin:0 0 8px}
@@ -437,6 +447,7 @@ footer{padding-block:48px 72px;font-size:var(--fs-xs);color:var(--muted)}
     <div class="drivers" id="drivers">
       <div class="dbar">
         <span class="dcount" id="dcount"></span>
+        <span class="cap" id="mkt-age" hidden></span>
         <span class="dact"><span class="cap" id="dchanged" aria-live="polite"></span><button type="button" class="ghost" id="reset-all" disabled>Reset all</button></span>
       </div>
       <div id="dlist"></div>
@@ -494,6 +505,7 @@ footer{padding-block:48px 72px;font-size:var(--fs-xs);color:var(--muted)}
         <li><b>How bad, if it happens</b> scales an event's effect: 1 is the standard case, 0.5 half of it.</li>
         <li><b>Suppose</b> keeps only the futures in which the thing happens. Everything linked to it shifts, and each affected row shows where it lands.</li>
         <li>A <b>link</b> runs from −0.95 (opposite ways) through 0 (unrelated) to +0.95 (same way). The five words set −0.6 (much less likely, or much lower), −0.3, 0 (no link), +0.3 and +0.6; Fine-tune sets anything in between. For a quantity, "happens" means it hits its high case or better, a 1-in-10 outcome. Each thing keeps its own chance whatever its links are; links only change what tends to happen together.</li>
+        <li><b>Market odds</b> come from Polymarket and are read by the scheduled refresh every few hours. A price is what traders pay for a contract worth $1 if the thing happens, so 3.4% means they put it at about 3.4%. Most markets ask a nearby question rather than this page's own: a solid outline marks a close fit, which you can use with one click, and a dashed one a related market. Each About panel says how the market differs. Long-dated bets on rare events tend to read high, because betting against them ties money up until the end.</li>
         <li><b>How strongly things move together</b> multiplies every link at once: none, half, as set, or 1.5 times as strong. Where links that strong cannot all be true at once, the futures use the closest set that can.</li>
       </ul>
     </div>
@@ -737,7 +749,8 @@ function driverRow(d){
     ev ? [h("dt", {text: "Deadline"}), h("dd", {text: fmtDate(d.deadline)})] : null,
     h("dt", {text: "What it does here"}), h("dd", {text: d.does}),
     h("dt", {text: "Where the number comes from"}), h("dd", {}, h("span", {class: "tagb", text: d.basis.charAt(0).toUpperCase() + d.basis.slice(1) + (d.checked ? ", " + fmtDate(d.checked) : "")}), d.note,
-      (d.src || []).length ? h("ol", {class: "srcs", "aria-label": "Sources"}, d.src.map(x => h("li", {}, h("a", {href: x.u, target: "_blank", rel: "noopener", text: x.t})))) : null));
+      (d.src || []).length ? h("ol", {class: "srcs", "aria-label": "Sources"}, d.src.map(x => h("li", {}, h("a", {href: x.u, target: "_blank", rel: "noopener", text: x.t})))) : null),
+    h("dt", {"data-v": "mkt-dt", hidden: true, text: "What markets say"}), h("dd", {"data-v": "mkt-dd", hidden: true}));
   more.append(facts);
   if (usesSev(d)){
     const sid = "sev-" + id;
@@ -763,6 +776,7 @@ function driverRow(d){
       h("div", {class: "slw" + (ev ? "" : " rng")}, h("div", {class: "trk"}, h("i", {"data-v": "fill"}), h("u", {"data-v": "start"})), slider),
       btns),
     h("div", {class: "drv-note", "data-v": "note"}),
+    h("div", {class: "drv-mkt", "data-v": "mkt", hidden: true}),
     links, h("div", {class: "lk-in", hidden: true}),
     more);
 
@@ -846,7 +860,7 @@ function sync(id, opt){
   }
   note.replaceChildren(...bits);
 }
-function syncAll(){ for (const d of MODEL.drivers){ sync(d.id); syncChips(d.id); syncInline(d.id); } updateBar(); }
+function syncAll(){ for (const d of MODEL.drivers){ sync(d.id); syncChips(d.id); syncInline(d.id); syncMkt(d.id); } updateBar(); }
 function updateBar(){
   const n = nChanged(), k = nLinksChanged(), g = Object.keys(given).length, sc = SCALE !== 1 ? scaleSays() : null;
   const parts = [n ? (n === 1 ? "1 number" : n + " numbers") : null, k ? (k === 1 ? "1 link" : k + " links") : null].filter(Boolean);
@@ -877,6 +891,100 @@ function jumpTo(id){
   row.scrollIntoView({behavior: reduceMotion ? "auto" : "smooth", block: "center"});
   row.classList.add("flash"); setTimeout(() => row.classList.remove("flash"), 1600);
   const f = $(".nf", row); if (f) f.focus({preventScroll: true});
+}
+
+/* ---------------- market odds: prices read from Polymarket by the scheduled refresh ---------------- */
+let MK = null;      // {fetched, items: {"polymarket:<id>": {yes, at, question, end, closed, volume, week, bid, ask}}}
+const ISO_UTC = /^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\dZ$/;
+const mkKey = m => m.src + ":" + m.id;
+const mkSpecs = d => (d.markets || []).filter(m => m && m.src === "polymarket" && /^\d+$/.test(String(m.id)) && (m.side === "yes" || m.side === "no") && /^https:\/\/polymarket\.com\//.test(m.url || ""));
+const MK_WANT = new Set(MODEL.drivers.flatMap(d => mkSpecs(d).map(mkKey)));
+/** A markets file as written by scripts/fetch_markets.py, kept only for listed markets with a sensible price. */
+function cleanMarkets(raw){
+  if (!raw || typeof raw !== "object" || !raw.items || typeof raw.items !== "object") return null;
+  const isNum = v => typeof v === "number" && isFinite(v), items = {};
+  for (const k of Object.keys(raw.items)){
+    const v = raw.items[k];
+    if (!MK_WANT.has(k) || !v || !isNum(v.yes) || v.yes < 0 || v.yes > 1 || !ISO_UTC.test(String(v.at))) continue;
+    const it = {yes: v.yes, at: v.at, question: String(v.question || "").slice(0, 300), closed: !!v.closed};
+    for (const f of ["volume", "week", "bid", "ask"]) if (isNum(v[f])) it[f] = v[f];
+    if (/^\d{4}-\d\d-\d\d/.test(String(v.end || ""))) it.end = String(v.end).slice(0, 20);
+    items[k] = it;
+  }
+  return Object.keys(items).length ? {fetched: ISO_UTC.test(String(raw.fetched)) ? raw.fetched : null, items} : null;
+}
+MK = cleanMarkets(DATA.markets);
+/** The price of the side of a market that the driver names (a market's No side for "not back to normal"). */
+function mkValue(m){ const it = MK && MK.items[mkKey(m)]; return it ? {p: m.side === "no" ? 1 - it.yes : it.yes, it} : null; }
+const hoursOld = iso => (Date.now() - Date.parse(iso)) / 3600000;
+const isStale = iso => hoursOld(iso) > 36;
+function ago(iso){
+  const hrs = hoursOld(iso);
+  if (!(hrs === hrs)) return "at an unknown time";
+  if (hrs < 1 / 30) return "just now";
+  if (hrs < 1){ const m = Math.round(hrs * 60); return m + (m === 1 ? " minute ago" : " minutes ago"); }
+  if (hrs < 36){ const n = Math.round(hrs); return n + (n === 1 ? " hour ago" : " hours ago"); }
+  const n = Math.round(hrs / 24); return n + (n === 1 ? " day ago" : " days ago");
+}
+function usd(v){ return v >= 1e9 ? "$" + num(v / 1e9) + "B" : v >= 1e6 ? "$" + num(v / 1e6) + "M" : v >= 1e3 ? "$" + Math.round(v / 1e3) + "k" : "$" + Math.round(v); }
+function mkTip(m, v){
+  const it = v.it, wk = it.week == null ? null : (m.side === "no" ? -it.week : it.week), wkPts = wk == null ? null : Math.round(wk * 1000) / 10;
+  return [h("div", {class: "tt", text: m.label + (m.fit === "close" ? "" : " (related)")}),
+    tipRow("", "Polymarket" + (m.side === "no" ? ", price of No" : ""), pct(v.p)),
+    wkPts == null ? null : h("div", {class: "tr"}, h("span", {text: "This week:"}), h("b", {text: wkPts === 0 ? "no change" : (wkPts > 0 ? "+" : "−") + Math.abs(wkPts) + (Math.abs(wkPts) === 1 ? " point" : " points")})),
+    it.volume == null ? null : h("div", {class: "tr"}, h("span", {text: "Traded:"}), h("b", {text: usd(it.volume)})),
+    h("div", {class: "tr"}, h("span", {text: "Read:"}), h("b", {text: ago(it.at)})),
+    h("p", {text: (it.closed ? "This market has ended. " : "") + (m.differs || "")})].filter(Boolean);
+}
+function useMarket(id, p){
+  cur[id].p = clamp(Math.round(p * 10000) / 10000, 0, 1);
+  sync(id, {force: true}); syncMkt(id); updateBar(); schedule();
+  $("#live").textContent = BY[id].label + " set to the market's " + pct(cur[id].p) + ".";
+}
+/** The "Market odds" line on a driver's row and the list in its About panel. Rebuilt only when what it shows
+    changes, so a focused chip or button is not replaced under the keyboard. */
+function syncMkt(id){
+  const d = BY[id], row = document.getElementById("d-" + id); if (!row) return;
+  const list = mkSpecs(d).map(m => ({m, v: mkValue(m)})).filter(x => x.v);
+  const useOk = x => x.m.fit === "close" && !x.v.it.closed && Math.abs(cur[id].p - x.v.p) >= 0.0005;
+  const sig = JSON.stringify(list.map(x => [mkKey(x.m), x.v.p, x.v.it.at, x.v.it.closed, isStale(x.v.it.at), useOk(x)]));
+  if (row.getAttribute("data-mk") === sig) return;
+  row.setAttribute("data-mk", sig);
+  const line = $('[data-v="mkt"]', row), dt = $('[data-v="mkt-dt"]', row), dd = $('[data-v="mkt-dd"]', row);
+  line.hidden = dt.hidden = dd.hidden = !list.length;
+  if (!list.length){ line.replaceChildren(); dd.replaceChildren(); return; }
+  const kids = [h("span", {class: "dl-k", text: "Market odds"})];
+  for (const x of list){
+    const {m, v} = x, stale = isStale(v.it.at);
+    kids.push(withTip(h("a", {class: "mchip " + m.fit + (stale ? " stale" : ""), href: m.url, target: "_blank", rel: "noopener", "data-k": mkKey(m),
+      "aria-label": m.label + ": " + pct(v.p) + " on Polymarket" + (m.fit === "close" ? "" : ", a related market") + (v.it.closed ? ", ended" : "") + (stale ? ", last read " + ago(v.it.at) : "") + ". Opens Polymarket"},
+      h("span", {class: "ml", text: m.label}), h("b", {text: pct(v.p)}), v.it.closed ? h("span", {class: "old", text: "ended"}) : stale ? h("span", {class: "old", text: "old"}) : null), () => mkTip(m, v)));
+    if (useOk(x)) kids.push(h("button", {type: "button", class: "ghost sm", "data-act": "use-mkt", onclick: () => useMarket(id, v.p)}, "Use " + pct(v.p)));
+  }
+  line.replaceChildren(...kids);
+  dd.replaceChildren(h("ul", {class: "mkts"}, list.map(({m, v}) => h("li", {},
+    h("div", {}, h("b", {text: pct(v.p)}), " " + m.label, m.fit === "close" ? null : h("span", {class: "tagb", text: "related"})),
+    h("div", {class: "mq", text: "Polymarket asks: \u201c" + (v.it.question || m.label) + "\u201d" + (m.side === "no" ? " The price shown is for No." : "")}),
+    m.differs ? h("div", {class: "mq", text: m.differs}) : null,
+    h("div", {class: "mq"}, [v.it.volume == null ? null : usd(v.it.volume) + " traded", v.it.end ? (v.it.closed ? "ended " : "ends ") + fmtDate(v.it.end.slice(0, 10)) : null, "read " + ago(v.it.at)].filter(Boolean).join(" · ") + " · ",
+      h("a", {href: m.url, target: "_blank", rel: "noopener", text: "Open on Polymarket"}))))));
+}
+function syncMktAge(){
+  const el = $("#mkt-age"), ds = MODEL.drivers.filter(d => mkSpecs(d).some(m => mkValue(m)));
+  el.hidden = !ds.length;
+  if (!ds.length) return;
+  const ats = Object.values(MK.items).map(it => it.at).sort(), newest = MK.fetched || ats[ats.length - 1], anyOld = ats.some(isStale);
+  el.textContent = "Market odds on " + ds.length + (ds.length === 1 ? " driver" : " drivers") + ", read " + ago(newest) + (anyOld ? "; some are out of date" : "") + ".";
+}
+/** Look for newer prices than the ones built into the page (the scheduled refresh writes them every few hours). */
+function refreshMarkets(){
+  if (!DATA.marketsUrl || !MK_WANT.size || !window.fetch) return Promise.resolve(false);
+  return fetch(DATA.marketsUrl + "?t=" + Date.now(), {cache: "no-store"}).then(r => r.ok ? r.json() : null).then(raw => {
+    const got = cleanMarkets(raw);
+    if (!got || (MK && MK.fetched && got.fetched && got.fetched <= MK.fetched)) return false;
+    MK = got; for (const d of MODEL.drivers) syncMkt(d.id); syncMktAge();
+    return true;
+  }).catch(() => false);
 }
 
 /* ---------------- results ---------------- */
@@ -1301,7 +1409,7 @@ function syncChips(id){
     c.setAttribute("aria-expanded", String(INL[id] === l));
   }
   for (const c of old.values()) c.remove();
-  $(".dl-k", row).textContent = mine.some(l => l.rho !== 0) ? "Moves with" : "No links yet";
+  $(".drv-links .dl-k", row).textContent = mine.some(l => l.rho !== 0) ? "Moves with" : "No links yet";
 }
 function toggleInline(id, what){
   INL[id] = INL[id] === what ? null : what;
@@ -1503,10 +1611,12 @@ function gridPick(c){
   if (!DATA.file){ fail("The model file (data/odds.json) has a problem, so there is nothing to run. The Update desk on The Chain lists what is wrong."); return; }
   const problems = ODDS.check(MODEL);
   if (problems.length){ fail("The model file has a problem: " + problems[0]); return; }
-  buildDrivers(); buildLinks(); syncAll(); request();
+  buildDrivers(); buildLinks(); syncAll(); syncMktAge(); request();
+  refreshMarkets(); setInterval(() => { refreshMarkets(); syncMktAge(); }, 10 * 60 * 1000);
   // on a phone the results scroll away while you change numbers: keep the headline in a bar at the bottom
   if ("IntersectionObserver" in window) new IntersectionObserver(es => { heroSeen = es[0].isIntersecting; syncMini(); }, {threshold: 0}).observe($("#hero"));
 })();
 window.ODDSLAB = {get res(){ return RES; }, get busy(){ return busy || !!pending; }, get strip(){ return STRIP; }, get stripBusy(){ return stripBusy; }, get scale(){ return SCALE; },
+  get markets(){ return MK; }, refreshMarkets,
   cur, given, links: LINKS, usingWorker: () => !!worker, compute, tgt, N, SEED, MODEL, STEPS};
 </script>

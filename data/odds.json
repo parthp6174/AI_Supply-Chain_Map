@@ -45,6 +45,11 @@
         {"t": "Polymarket market on a blockade by the end of 2026, via Lines.com (about 3%)", "u": "https://www.lines.com/prediction-markets/world/will-china-blockade-taiwan-by-in-2026"},
         {"t": "ISW and AEI: China & Taiwan Update, 2 Oct 2026", "u": "https://www.aei.org/commentary/china-taiwan-update-october-2-2026/"}
       ],
+      "markets": [
+        {"src": "polymarket", "id": "2382819", "side": "yes", "fit": "close", "label": "Blockade in 2026", "url": "https://polymarket.com/event/will-china-blockade-taiwan-by-in-2026", "differs": "Ends on 31 Dec 2026, a year before this question, and counts any sustained naval and air blockade, not only one that stops most shipping for 30 days."},
+        {"src": "polymarket", "id": "677407", "side": "yes", "fit": "related", "label": "Military clash before 2027", "url": "https://polymarket.com/event/china-x-taiwan-military-clash-before-2027", "differs": "Any military clash between China and Taiwan in 2026, which need not stop shipping."},
+        {"src": "polymarket", "id": "1811266", "side": "yes", "fit": "related", "label": "Invasion by 30 Jun 2027", "url": "https://polymarket.com/event/will-china-invade-taiwan-by-june-30-2027", "differs": "An invasion rather than a blockade. Long-dated markets on rare events tend to read high, because betting against them ties money up until the end."}
+      ],
       "effects": [{"t": "scen", "id": "taiwan", "timing": "window"}]
     },
     {
@@ -59,6 +64,9 @@
       "src": [
         {"t": "Global Energy Flow: Is the Strait of Hormuz open? (7 Oct 2026)", "u": "https://global-energy-flow.com/hormuz/"},
         {"t": "Al Jazeera and Reuters: Middle East oil exports surpass pre-war levels (5 Oct 2026)", "u": "https://www.aljazeera.com/news/2026/10/5/middle-east-oil-exports-surpass-pre-war-levels-despite-tensions-data-shows"}
+      ],
+      "markets": [
+        {"src": "polymarket", "id": "2176270", "side": "no", "fit": "related", "label": "Hormuz not back to normal by 31 Dec 2026", "url": "https://polymarket.com/event/strait-of-hormuz-traffic-returns-to-normal-by-december-31", "differs": "Counts ship transits (normal means a 7-day average of at least 60 a day on IMF PortWatch) rather than oil flows, and ends on 31 Dec 2026, six months before this question's date."}
       ],
       "effects": [
         {"t": "dem", "seg": "sov", "m": 0.8},
@@ -93,6 +101,9 @@
       "src": [
         {"t": "Indoneo: Missile strikes force the UAE to scatter its 5GW AI campus (14 Sep 2026)", "u": "https://www.indoneo.com/tech-ai/uae-5gw-ai-campus-hardened-dispersed-emirates/"},
         {"t": "Global Energy Flow: Is the Strait of Hormuz open? (7 Oct 2026)", "u": "https://global-energy-flow.com/hormuz/"}
+      ],
+      "markets": [
+        {"src": "polymarket", "id": "4713484", "side": "no", "fit": "related", "label": "US strike on Iran by 31 Dec 2026", "url": "https://polymarket.com/event/us-iran-ceasefire-continues-throughptptpt", "differs": "Prices a new US strike on Iran this year (the ceasefire market's No side), the escalation most likely to bring Iranian strikes on Gulf sites. It says nothing directly about data centers."}
       ],
       "effects": [
         {"t": "dem", "seg": "sov", "m": 0.6, "timing": "window"},
@@ -348,6 +359,9 @@
       "deadline": "2027-06-30", "p": 0.7, "sev": 1, "basis": "judgement",
       "note": "OpenAI's compute commitments run far ahead of its revenue (The Money), so it depends on raising outside money.",
       "does": "If it does not, neoclouds order 15% less and hyperscalers 2% less through 2027, and less capital reaches the labs.",
+      "markets": [
+        {"src": "polymarket", "id": "1345235", "side": "no", "fit": "related", "label": "OpenAI IPO by 31 Dec 2027", "url": "https://polymarket.com/event/openai-ipo-closing-market-cap-554", "differs": "An IPO would count as funding here, but this market runs six months past this question's date and leaves out private rounds and debt."}
+      ],
       "effects": [
         {"t": "dem", "seg": "neo", "m": 0.85, "on": "no"},
         {"t": "dem", "seg": "hyper", "m": 0.98, "on": "no"},

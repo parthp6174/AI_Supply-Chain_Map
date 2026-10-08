@@ -2,14 +2,15 @@
 
 There are three update paths: prices and headlines update themselves, developments are logged from the Update desk (or in one file), and the deeper numbers are refreshed each quarter. The Odds has its own model file, described in section 5.
 
-## 1. Prices, analyst targets and headlines (automatic)
+## 1. Prices, analyst targets, headlines and market odds (automatic)
 
 `.github/workflows/pages.yml` is scheduled for every 15 minutes on weekdays and every 6 hours at weekends (GitHub runs schedules only when it has spare capacity: in practice every 4 to 9 hours), and also runs on every push to `main` and on demand (the Update desk's **Refresh now** button or the Actions tab). Each run:
 
-1. restores the last `site/data/quotes.json` and `site/data/news.json` from the Actions cache;
+1. restores the last `site/data/quotes.json`, `site/data/news.json` and `site/data/markets.json` from the Actions cache;
 2. runs `scripts/fetch_quotes.py`, which downloads the latest price for all 92 tickers in one batch and, once a day, each company's average analyst target, rating, number of analysts and next report date;
 3. runs `scripts/fetch_news.py` when the headlines are more than 3 hours old (always on **Refresh now**; on a push only when there are none yet, so published entries go live quickly);
-4. rebuilds both pages with those numbers embedded (`--lenient`, see below), and deploys to GitHub Pages.
+4. runs `scripts/fetch_markets.py`, which reads the current price of every forecasting market listed on a driver of The Odds (Polymarket's public API, a handful of requests); a market it cannot read keeps its last price and the time of that price;
+5. rebuilds the three pages with those numbers embedded (`--lenient`, see below), and deploys to GitHub Pages.
 
 Scheduled runs are set a few minutes past the quarter-hour because GitHub delays, and sometimes drops, scheduled jobs at the start of the hour.
 
@@ -21,6 +22,8 @@ Open pages reload `data/quotes.json` every 5 minutes. Safeguards:
 - a ticker Yahoo cannot price keeps its last good price (or the 30 Sep 2026 snapshot), with its date shown;
 - a target more than 3x or under 0.3x the price (for example, one not adjusted for a split) is dropped instead of shown;
 - the page header says whether it is showing live prices or the snapshot, and when they were updated.
+
+An open copy of The Odds also looks for newer market odds (`data/markets.json`) every 10 minutes. A market price read more than 36 hours ago is marked as old, and the line above the drivers says when the odds were read.
 
 To add a company to the watchlist, add it to `C` and `Q` in `src/supply/supply_data.py` (the ticker must use Yahoo's suffix, such as `.T`, `.KS`, `.TW`, `.TWO`, `.SZ`, `.SS`, `.HK`, `.DE`, `.AS` or `.PA`) and list it in one of the `GROUPS`.
 
@@ -123,6 +126,7 @@ The Odds (`/odds/`) is made of three files: the engine (the maths), the model (w
 
 - `drivers`: each has a plain `question`, how it `resolves` (or what to `watch`), a `basis` label (`judgement`, `researched`, `sourced` or `market`), a `note` saying where the number comes from, a `does` sentence, and its `effects`. A number that is not plain `judgement` also has `checked` (the day it was researched) and `src`, a list of sources as `{"t": "title", "u": "https://..."}`; the About panel shows them as links. The build leaves out a source without a title or a web link and lists it on the Update desk. An event has `p`, a `deadline` and a severity `sev` (1 = as The Chain's scenario has it); a range has `low`, `mid`, `high` and a `unit`.
 - `links`: pairs of drivers with a correlation `rho` and the reason `why`. Positive means two events tend to happen together, or an event goes with the high side of a range. Write each link cause first (`a` is the thing that happens, `b` the thing it moves): the page reads it as "if a happens, b goes from … to …".
+- `markets` on a driver (optional): forecasting markets that ask the same or a nearby question, shown beside the driver with their live price. Each is `{"src": "polymarket", "id": "<market id>", "side": "yes" or "no", "fit": "close" or "related", "label": "short name", "url": "https://polymarket.com/event/...", "differs": "how it differs from this question"}`. `id` is the market's number in Polymarket's API (find it with `https://gamma-api.polymarket.com/public-search?q=...`); `side` is the side whose price matches the label ("Hormuz not back to normal" is the No side of "returns to normal"); `fit: "close"` offers the price with one click ("Use"), so keep it for markets that ask nearly the same question. When a market closes, the page shows it as ended: replace it with the next one (Polymarket usually opens a later date) or remove it. The build leaves out a market that is missing any of these fields and lists it on the Update desk.
 - `stories`: the groups the page files links under (US–China tension, the Gulf war, chip supply, power, AI demand and money), each with a `label` and a one-line `blurb`. Every driver names its `story`; a link goes in the story of its first driver unless it names a `story` of its own. A story the page does not know only moves those links to "Other links", and the Update desk lists it.
 - `say` on every driver: the words a sentence uses for it. An event has `if` ("China blockades Taiwan", for "If China blockades Taiwan, …") and `of` ("of a Taiwan blockade", for "the chance of a Taiwan blockade"; start it with "of" or "that"). A quantity has `if`, which is its high case ("lab revenue hits its high case"), `subj` ("hyperscaler spending plans"), `pl: true` when the subject is plural, and optionally `unit` when its own `unit` reads badly after a number (lab revenue uses "(today = 100)").
 - `buyers`: who places the orders (hyperscalers 70%, neoclouds 20%, sovereign 10%).
@@ -147,6 +151,7 @@ After changing the engine, the model file, or the chain in `src/supply/supply_da
 
 ```bash
 node tests/test_engine.mjs           # a few seconds; needs Node 18 or later and python3
+python tests/test_markets.py         # the market-odds refresh, against recorded answers (no network)
 ```
 
 After changing the page, the engine or `src/build.py`, also run:
