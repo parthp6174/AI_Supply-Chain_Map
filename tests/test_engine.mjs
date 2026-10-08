@@ -354,6 +354,15 @@ const TOY = {
     if (d.kind === "range" && s.if && !/high case$/.test(s.if)) bad.push(d.id + ": a quantity's say.if is its high case");
     if (/[.,]$/.test(s.if || "")) bad.push(d.id + ": say.if ends without punctuation");
   }
+  // a researched number carries the day it was checked and at least one source with a web link
+  for (const d of file.drivers){
+    const srcs = d.src || [];
+    for (const x of srcs) if (!x || !x.t || !/^https?:\/\//.test(x.u || "")) bad.push(d.id + ": each source needs a title (t) and a web link (u)");
+    if (d.basis !== "judgement"){
+      if (!/^\d{4}-\d\d-\d\d$/.test(d.checked || "") || d.checked > file.asOf) bad.push(d.id + ": a researched number needs the date it was checked (on or before asOf)");
+      if (!srcs.length) bad.push(d.id + ": a researched number needs at least one source");
+    }
+  }
   for (const l of file.links) if (l.story != null && !stories.has(l.story)) bad.push(l.a + " - " + l.b + ": unknown story '" + l.story + "'");
   for (const s of stories) if (!file.links.some(l => (l.story || (byId0[l.a] || {}).story) === s)) bad.push("story " + s + " has no links");
   check("every driver and link in the model file is complete (" + file.drivers.length + " drivers, " + file.links.length + " links)", bad.length === 0 && file.drivers.length >= 20, bad);

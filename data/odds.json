@@ -1,8 +1,8 @@
 {
   "version": 1,
-  "asOf": "2026-10-06",
+  "asOf": "2026-10-08",
   "status": "provisional",
-  "statusNote": "These starting numbers are first estimates: facts already on this site plus judgement. None has been researched on its own yet. Change any of them to match your own view.",
+  "statusNote": "Geopolitics and trade rules were researched on 8 Oct 2026, with sources in each row's About panel. The other numbers are still first estimates: facts already on this site plus judgement. Change any of them to match your own view.",
   "period": {"label": "Calendar 2027", "from": "2027-01-01", "months": 12},
   "supplyOutput": "campus",
   "plan": "100 is the AI data-center capacity that today's plans would add in 2027: what buyers have budgeted and suppliers have scheduled, with the shortages already known. Each supply number is the share of that plan one link delivers. Buyers want more than the plan (see Unmet demand), so a fall in orders only cuts what gets built once it is bigger than that cushion. Supply above plan is not counted: outcomes stop at 100.",
@@ -13,6 +13,7 @@
   ],
   "bases": {
     "judgement": "A first estimate by judgement, anchored on facts already on this site. Not yet researched.",
+    "researched": "Set by judgement after research: the latest facts, forecasts where they exist, and base rates. The sources are listed.",
     "sourced": "Taken from a named source.",
     "market": "Implied by a market price or a forecasting market."
   },
@@ -35,9 +36,15 @@
       "say": {"if": "China blockades Taiwan", "of": "of a Taiwan blockade"},
       "question": "Will China blockade or quarantine Taiwan, stopping most commercial shipping for 30 days or more, starting before 31 Dec 2027?",
       "resolves": "Yes if major news agencies report that most commercial shipping to and from Taiwan was stopped for 30 days or more.",
-      "deadline": "2027-12-31", "p": 0.03, "sev": 1, "basis": "judgement",
-      "note": "The Chain rates this a tail risk. The PLA exercise Justice Mission 2025 (30 Dec 2025) rehearsed a blockade.",
+      "deadline": "2027-12-31", "p": 0.03, "sev": 1, "basis": "market",
+      "note": "Forecasters see this as unlikely soon: Metaculus gives 2.5% to an attack or blockade during 2026 (861 forecasters) and Polymarket about 3% to a blockade by the end of 2026. This question is stricter (most shipping stopped for 30 days) but runs to the end of 2027, the PLA's reported readiness date. Signals are mixed: air incursions in September 2026 were well below 2024 and 2025 and Xi made a state visit to the US, while the China Coast Guard now patrols east of Taiwan without a break (ISW and AEI, 2 Oct 2026).",
       "does": "Applies The Chain's Taiwan blockade scenario from the day it starts: leading-edge wafers, CoWoS packaging and part of substrates, memory and rack assembly stop leaving the island.",
+      "checked": "2026-10-08",
+      "src": [
+        {"t": "Metaculus: Will China attack or blockade Taiwan during 2026? (2.5%)", "u": "https://www.metaculus.com/questions/41139/china-attacksblockades-taiwan-in-2026/"},
+        {"t": "Polymarket market on a blockade by the end of 2026, via Lines.com (about 3%)", "u": "https://www.lines.com/prediction-markets/world/will-china-blockade-taiwan-by-in-2026"},
+        {"t": "ISW and AEI: China & Taiwan Update, 2 Oct 2026", "u": "https://www.aei.org/commentary/china-taiwan-update-october-2-2026/"}
+      ],
       "effects": [{"t": "scen", "id": "taiwan", "timing": "window"}]
     },
     {
@@ -45,9 +52,14 @@
       "say": {"if": "the Gulf war drags on", "of": "that the Gulf war drags on"},
       "question": "Will oil flows through the Strait of Hormuz still be below 75% of their pre-war level (about 20M barrels a day) on 30 Jun 2027?",
       "resolves": "The June 2027 monthly average from the EIA or IEA: yes if it is below 15M barrels a day.",
-      "deadline": "2027-06-30", "p": 0.45, "sev": 1, "basis": "judgement",
-      "note": "Flows were about 7.4M barrels a day in September 2026. The war began on 28 Feb 2026 and two ceasefires have broken down.",
+      "deadline": "2027-06-30", "p": 0.55, "sev": 1, "basis": "researched",
+      "note": "Independent trackers put flows through the strait at 3.7M to 8M barrels a day in early October 2026, half of pre-war or less, even though Gulf crude exports as a whole were back at pre-war levels by late September through pipelines and ports that avoid the strait (Kpler). The June agreement expired on 18 Aug, ships have been attacked almost daily since 1 Oct, Iran says the strait stays closed until the US accepts its terms, and US officials expect airstrikes after the November midterms. A no needs a lasting settlement within about six months.",
       "does": "If yes, sovereign buyers order 20% less than the plan through 2027. If no, they order 15% more, as insurers and investors return to the Gulf.",
+      "checked": "2026-10-08",
+      "src": [
+        {"t": "Global Energy Flow: Is the Strait of Hormuz open? (7 Oct 2026)", "u": "https://global-energy-flow.com/hormuz/"},
+        {"t": "Al Jazeera and Reuters: Middle East oil exports surpass pre-war levels (5 Oct 2026)", "u": "https://www.aljazeera.com/news/2026/10/5/middle-east-oil-exports-surpass-pre-war-levels-despite-tensions-data-shows"}
+      ],
       "effects": [
         {"t": "dem", "seg": "sov", "m": 0.8},
         {"t": "dem", "seg": "sov", "m": 1.15, "on": "no"}
@@ -58,9 +70,15 @@
       "say": {"if": "a helium shortage cuts chip output", "of": "that a helium shortage cuts chip output"},
       "question": "Will a leading chipmaker (TSMC, Samsung, SK hynix or Micron) say that a helium shortage has cut its output, before 30 Jun 2027?",
       "resolves": "Company statements, earnings calls or regulatory filings.",
-      "deadline": "2027-06-30", "p": 0.08, "sev": 1, "basis": "judgement",
-      "note": "A third of world helium went offline when Ras Laffan was hit in March 2026. Fabs are running on priority allocations, and South Korean fabs' six-month stock window closed in July.",
+      "deadline": "2027-06-30", "p": 0.06, "sev": 1, "basis": "researched",
+      "note": "Qatar, about 30% of world helium, made no LNG and so no helium from 2 Mar 2026; a restart was set back by an explosion at Ras Laffan on 21 Jun, and LNG cargoes leaving the Gulf only recovered in September. Chipmakers have coped so far: Samsung and SK hynix signed extra US supply deals with Linde and Air Products in April, and we found no report of a leading chipmaker cutting output in seven months. The risk is a longer outage if the fighting spreads again.",
       "does": "From that day chip fabs lose about 3% of output (the helium part of The Chain's Gulf scenario).",
+      "checked": "2026-10-08",
+      "src": [
+        {"t": "GAPP: QatarEnergy confirms explosion during Ras Laffan restart (22 Jun 2026)", "u": "https://gapp-oil.com.ar/2026/06/22/qatarenergy-confirms-explosion-during-ras-laffan-restart/"},
+        {"t": "The Elec: Samsung and SK hynix secure long-term US helium supply (8 Apr 2026)", "u": "https://www.thelec.net/news/articleView.html?idxno=6422"},
+        {"t": "Al Jazeera and Reuters: LNG cargoes leaving Hormuz at their highest since February (5 Oct 2026)", "u": "https://www.aljazeera.com/news/2026/10/5/middle-east-oil-exports-surpass-pre-war-levels-despite-tensions-data-shows"}
+      ],
       "effects": [{"t": "scen", "id": "gulf", "only": ["helium"], "timing": "window"}]
     },
     {
@@ -68,9 +86,14 @@
       "say": {"if": "a strike hits a Gulf data center", "of": "of a strike on a Gulf data center"},
       "question": "Will a military strike damage or shut down an AI data-center campus in a Gulf state between now and 31 Dec 2027?",
       "resolves": "An operator statement or a major news agency report of damage or a shutdown caused by a strike.",
-      "deadline": "2027-12-31", "p": 0.2, "sev": 1, "basis": "judgement",
-      "note": "Drones knocked out two of three AWS zones in the UAE on 1 Mar 2026 and the IRGC threatened Stargate UAE on 3 Apr. War-risk insurance for Gulf data centers is up about 1,900%.",
+      "deadline": "2027-12-31", "p": 0.25, "sev": 1, "basis": "researched",
+      "note": "Iranian drones hit AWS sites in the UAE and Bahrain on 2 and 3 Mar 2026, and two of the three UAE zones were still impaired in September. No data center has been struck since, but Iran named Stargate UAE as a target in April, and the UAE is splitting its 5GW campus into hardened sites across several emirates. Attacks at sea resumed in October, and US airstrikes expected after the November midterms could bring Iranian strikes on Gulf states again.",
       "does": "From that day sovereign buyers order 40% less, and less compute reaches the labs from Gulf sites.",
+      "checked": "2026-10-08",
+      "src": [
+        {"t": "Indoneo: Missile strikes force the UAE to scatter its 5GW AI campus (14 Sep 2026)", "u": "https://www.indoneo.com/tech-ai/uae-5gw-ai-campus-hardened-dispersed-emirates/"},
+        {"t": "Global Energy Flow: Is the Strait of Hormuz open? (7 Oct 2026)", "u": "https://global-energy-flow.com/hormuz/"}
+      ],
       "effects": [
         {"t": "dem", "seg": "sov", "m": 0.6, "timing": "window"},
         {"t": "shock", "node": "sovereign", "s": 0.3, "timing": "window"}
@@ -79,11 +102,17 @@
     {
       "id": "cn_minerals", "group": "geo", "story": "uschina", "kind": "event", "label": "China's mineral controls return",
       "say": {"if": "China's mineral controls return", "of": "that China's mineral controls return"},
-      "question": "Will China's export controls on gallium, germanium, antimony or rare earths be back in force for US buyers at any point before 31 Mar 2027?",
-      "resolves": "MOFCOM announcements. The suspensions end on 10 Nov and 27 Nov 2026 unless they are extended.",
-      "starts": "2026-11-10", "deadline": "2027-03-31", "p": 0.3, "sev": 0.3, "basis": "judgement",
-      "note": "Both suspensions lapse in November 2026 unless extended. Severity starts at 0.3 of The Chain's worst case: the ban on gallium, germanium and antimony was in force from December 2024 until it was suspended in November 2025, and supply kept moving through third countries at higher prices.",
+      "question": "Will China's export controls on gallium, germanium, antimony or rare earths be back in force for US buyers at any point before 31 Dec 2027?",
+      "resolves": "MOFCOM announcements. China's pauses run with the US-China truce, which now ends on 10 Jan 2027 unless it is extended again.",
+      "starts": "2027-01-10", "deadline": "2027-12-31", "p": 0.3, "sev": 0.3, "basis": "researched",
+      "note": "The truce was extended on 24 Sep 2026, during Xi's state visit, by only two months to 10 Jan 2027, with no resolution on tariffs, technology limits or rare earths; we found no separate notice from China's commerce ministry yet, so the pauses are assumed to run with it. China's licences for dysprosium, terbium and yttrium, in force since April 2025, still slow supply. Severity stays at 0.3 of The Chain's worst case: during the 2024 and 2025 ban, supply kept moving through third countries at higher prices.",
       "does": "Applies The Chain's minerals scenario from the day controls return: gallium, rare earths, tungsten and indium go back behind licences. The hit lands hardest on lasers, through indium.",
+      "checked": "2026-10-08",
+      "src": [
+        {"t": "Phemex News: US-China trade truce extended two months to 10 Jan 2027 (26 Sep 2026)", "u": "https://phemex.com/news/article/uschina-trade-truce-extended-two-months-to-january-10-2027-97909"},
+        {"t": "Rare Earth Exchanges: truce extended to January 2027, rare earths unresolved (24 Sep 2026)", "u": "https://rareearthexchanges.com/news/us-china-trade-truce-rare-earth-chokepoints/"},
+        {"t": "CNBC: China suspends some critical mineral export curbs to the US (10 Nov 2025)", "u": "https://www.cnbc.com/2025/11/10/china-suspends-some-critical-mineral-export-curbs-to-the-us-as-trade-truce-takes-hold.html"}
+      ],
       "effects": [{"t": "scen", "id": "minerals", "timing": "window"}]
     },
     {
@@ -91,19 +120,30 @@
       "say": {"if": "the US tightens chip export rules", "of": "of tighter US chip export rules"},
       "question": "Will the US impose new limits that cut AI chip sales to Gulf or other non-allied buyers (a new rule, or licences halted) before 31 Dec 2027?",
       "resolves": "A Commerce Department (BIS) rule, or company filings reporting halted licences.",
-      "deadline": "2027-12-31", "p": 0.25, "sev": 1, "basis": "judgement",
-      "note": "No specific rule is tracked on this site yet. Gulf buyers are the most exposed.",
+      "deadline": "2027-12-31", "p": 0.15, "sev": 1, "basis": "researched",
+      "note": "The direction so far is the other way: in July 2026 Commerce moved the UAE into the same group as India, South Korea and Europe, so UAE companies and hyperscalers building there no longer need licences, citing its support in the Iran war; G42 and Saudi Arabia's Humain have had licences since November 2025. A new limit would most likely follow chips found going to China, or a change of course in Congress after the midterms.",
       "does": "From that day sovereign buyers order 35% less.",
+      "checked": "2026-10-08",
+      "src": [
+        {"t": "DCD: US eases AI chip export controls on the UAE (15 Jul 2026)", "u": "https://www.datacenterdynamics.com/en/news/us-govt-eases-ai-chip-export-controls-on-uae-following-countrys-support-in-iran-war/"},
+        {"t": "US Commerce Department: statement on UAE and Saudi chip exports (19 Nov 2025)", "u": "https://www.globalsecurity.org/military/library/news/2025/11/mil-251119-commerce01.htm"}
+      ],
       "effects": [{"t": "dem", "seg": "sov", "m": 0.65, "timing": "window"}]
     },
     {
       "id": "chip_tariff", "group": "geo", "story": "uschina", "kind": "event", "label": "Chip tariff exemptions end",
       "say": {"if": "chip tariff exemptions end", "of": "that chip tariff exemptions end"},
-      "question": "Will the US end or narrow the Section 232 exemptions so that the 25% tariff applies to most imported AI chips or servers before 30 Jun 2027?",
+      "question": "Will the US end or narrow the Section 232 exemptions so that a tariff applies to most AI chips or servers imported for US data centers, before 30 Jun 2027?",
       "resolves": "A Federal Register notice or presidential proclamation.",
-      "deadline": "2027-06-30", "p": 0.15, "sev": 1, "basis": "judgement",
-      "note": "A 25% tariff has applied since 15 Jan 2026, with exemptions.",
+      "deadline": "2027-06-30", "p": 0.35, "sev": 1, "basis": "researched",
+      "note": "A 25% tariff has applied to some AI accelerators since 15 Jan 2026, with exemptions for US data centers, startups and consumer devices. Commerce's Phase Two report was due on 1 Jul 2026 and is not public. Politico reported on 27 Aug that ending the exemptions and adding servers is under discussion, and on 2 Sep Lutnick said: \"build in the United States, pay nothing; build nowhere, pay to enter the market\". No rate or date is set, and duty-free allowances tied to US manufacturing could leave much of the trade exempt, which is why this is not higher.",
       "does": "From that day all buyers order 5% less capacity, because the same budget buys fewer servers.",
+      "checked": "2026-10-08",
+      "src": [
+        {"t": "Tech Times: chip tariff phase two confirmed by Lutnick (3 Sep 2026)", "u": "https://www.techtimes.com/articles/326474/20260903/chip-tariff-phase-two-confirmed-build-america-pay-lutnick-announces.htm"},
+        {"t": "Tech Times on Politico's report: phase 2 targets servers and data-center carve-outs (28 Aug 2026)", "u": "https://www.techtimes.com/articles/325864/20260828/trump-chip-tariff-phase-2-targets-servers-kills-data-center-carve-outs.htm"},
+        {"t": "PolySignal: will the Section 232 chip tariff change before 30 Jun 2027? (62% for any change, automated)", "u": "https://polysignal.uk/q/ia-section232.html"}
+      ],
       "effects": [{"t": "dem", "seg": "all", "m": 0.95, "timing": "window"}]
     },
     {
@@ -111,9 +151,13 @@
       "say": {"if": "an earthquake hits Japan's materials makers", "of": "of an earthquake hitting Japan's materials makers"},
       "question": "Will an earthquake stop production for a month or more at a major Japanese maker of ABF film, T-glass, substrates, photoresist or wafers before 31 Dec 2027?",
       "resolves": "Company disclosures from Ajinomoto, Nittobo, Ibiden, Shinko, JSR, TOK, Shin-Etsu or SUMCO.",
-      "deadline": "2027-12-31", "p": 0.04, "sev": 0.5, "basis": "judgement",
-      "note": "The 2011 Tohoku quake stalled chip materials for months. Severity starts at 0.5 because The Chain's scenario assumes several makers are hit at once.",
+      "deadline": "2027-12-31", "p": 0.05, "sev": 0.5, "basis": "researched",
+      "note": "Japan's Earthquake Research Committee (26 Sep 2025) puts a Nankai Trough M8-9 quake within 30 years at 60% to 94.5% or more by one method and 20% to 50% by another, roughly 1% to 5% a year. Such a quake would reach makers in Gifu and Mie, a Tokyo-area quake those in Kanagawa, and Fukushima, home to glass-fibre and wafer plants, had M7+ quakes in 2021 and 2022. Only the 2011 Tohoku quake stopped these makers for months; later quakes stopped nearby plants for days or weeks. Severity stays at 0.5 because The Chain's scenario has several makers hit at once.",
       "does": "Applies The Chain's Japan earthquake scenario from that day: ABF film, T-glass, substrates, resist, wafers and test equipment.",
+      "checked": "2026-10-08",
+      "src": [
+        {"t": "Adnkronos: Japan revises the Nankai Trough megaquake probability (26 Sep 2025)", "u": "https://english.adnkronos.com/2025/09/26/japan-revises-nankai-trough-megaquake-probability/"}
+      ],
       "effects": [{"t": "scen", "id": "japan", "timing": "window"}]
     },
     {
@@ -121,9 +165,13 @@
       "say": {"if": "EUV supply stops", "of": "that EUV supply stops"},
       "question": "Will ASML's EUV shipments or servicing to leading chipmakers stop for 60 days or more before 31 Dec 2027?",
       "resolves": "ASML statements, or export-licence changes by the Dutch or US governments.",
-      "deadline": "2027-12-31", "p": 0.01, "sev": 1, "basis": "judgement",
-      "note": "The Chain calls this unlikely, not impossible. ASML is the only supplier and is delivering.",
+      "deadline": "2027-12-31", "p": 0.01, "sev": 1, "basis": "researched",
+      "note": "ASML has never stopped EUV shipments or servicing for 60 days. It expects to ship about 65 EUV systems in 2026 (44 in 2025) and 80 to 85 in 2027, and reports no supply problems; Dutch controls apply only to China. What is left are rare shocks: a fire or failure at a sole supplier such as Zeiss (optics) or Trumpf (lasers), a cyberattack, or war in Europe.",
       "does": "Applies The Chain's EUV scenario from that day: installed tools keep running but new capacity stops arriving.",
+      "checked": "2026-10-08",
+      "src": [
+        {"t": "Crypto Briefing: ASML can ship about 65 low-NA EUV systems in 2026 (15 Jul 2026)", "u": "https://cryptobriefing.com/asml-65-euv-machines-ai-chip-supply/"}
+      ],
       "effects": [{"t": "scen", "id": "euv", "timing": "window"}]
     },
 

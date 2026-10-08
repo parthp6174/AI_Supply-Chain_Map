@@ -219,6 +219,9 @@ input.sl:focus-visible::-moz-range-thumb{box-shadow:0 0 0 1px var(--ink),0 0 0 4
 .facts dt{color:var(--muted)}
 .facts dd{margin:0;color:var(--ink-2);max-width:66ch}
 .tagb{display:inline-block;border:1px solid var(--line);border-radius:999px;padding:0 8px;font-size:var(--fs-xs);color:var(--ink-2);margin-right:6px;white-space:nowrap}
+.srcs{margin:6px 0 0;padding-left:1.2em;font-size:var(--fs-xs);display:grid;gap:3px}
+.srcs a{color:var(--ink-2);word-break:break-word}
+.srcs a:hover{color:var(--ink)}
 .sevrow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 14px;align-items:center;max-width:520px}
 .sevrow label{font-size:var(--fs-sm);font-weight:600;grid-column:1/-1;display:flex;justify-content:space-between;gap:10px}
 .sevrow output{font-variant-numeric:tabular-nums}
@@ -593,6 +596,8 @@ let USED = {};      // when the links could not all hold together: the strength 
 let RES = {cur: null, ref: null, refKind: null}, R0 = null, matMode = "share";
 let SCALE = 1;      // the master link setting: every link at this many times its strength (0, 0.5, 1 or 1.5)
 let STRIP = {key: null, res: {}}, stripBusy = false;      // the results at each master setting, for the same numbers
+let heroSeen = true;      // is the headline on screen? (the bar at the bottom of a phone shows it when it is not)
+const syncMini = () => { $("#mini").hidden = heroSeen || !RES.cur || !RES.cur.n; };
 
 /* ---------------- the numbers behind the page: runs in a worker when it can ---------------- */
 function compute(a){
@@ -731,7 +736,8 @@ function driverRow(d){
     h("dt", {text: d.resolves ? "How we will know" : "What to watch"}), h("dd", {text: d.resolves || d.watch}),
     ev ? [h("dt", {text: "Deadline"}), h("dd", {text: fmtDate(d.deadline)})] : null,
     h("dt", {text: "What it does here"}), h("dd", {text: d.does}),
-    h("dt", {text: "Where the number comes from"}), h("dd", {}, h("span", {class: "tagb", text: d.basis.charAt(0).toUpperCase() + d.basis.slice(1)}), d.note));
+    h("dt", {text: "Where the number comes from"}), h("dd", {}, h("span", {class: "tagb", text: d.basis.charAt(0).toUpperCase() + d.basis.slice(1) + (d.checked ? ", " + fmtDate(d.checked) : "")}), d.note,
+      (d.src || []).length ? h("ol", {class: "srcs", "aria-label": "Sources"}, d.src.map(x => h("li", {}, h("a", {href: x.u, target: "_blank", rel: "noopener", text: x.t})))) : null));
   more.append(facts);
   if (usesSev(d)){
     const sid = "sev-" + id;
@@ -920,6 +926,7 @@ function render(){
   $("#mini-v").textContent = Math.round(b.mean * 100) + "% of plan";
   $("#mini-t").textContent = "average · 1-in-10 low " + pct(b.p10);
   $("#live").textContent = "On average " + Math.round(b.mean * 100) + "% of plan gets built. One time in ten, " + pct(b.p10) + " or less.";
+  syncMini();      // the headline may have been off screen since before the first results arrived
   syncAll(); syncLinks();
 }
 
@@ -1491,17 +1498,14 @@ function gridPick(c){
   $("#dcount").textContent = MODEL.drivers.length + " things that could change the outcome";
   $("#method-plan").textContent = FILE.plan;
   $("#method-basis").textContent = FILE.statusNote + " Each row's About panel says where its number comes from.";
-  $("#foot").textContent = "Starting numbers as of " + fmtDate(FILE.asOf) + ": first estimates, not yet researched one by one. Research model, not investment advice.";
+  const nRes = MODEL.drivers.filter(d => d.basis && d.basis !== "judgement").length;
+  $("#foot").textContent = "Starting numbers as of " + fmtDate(FILE.asOf) + ": " + (nRes ? nRes + " of " + MODEL.drivers.length + " researched, with sources in each About panel; the rest are first estimates by judgement." : "first estimates, not yet researched one by one.") + " Research model, not investment advice.";
   if (!DATA.file){ fail("The model file (data/odds.json) has a problem, so there is nothing to run. The Update desk on The Chain lists what is wrong."); return; }
   const problems = ODDS.check(MODEL);
   if (problems.length){ fail("The model file has a problem: " + problems[0]); return; }
   buildDrivers(); buildLinks(); syncAll(); request();
   // on a phone the results scroll away while you change numbers: keep the headline in a bar at the bottom
-  if ("IntersectionObserver" in window){
-    let heroSeen = true;
-    const mini = $("#mini");
-    new IntersectionObserver(es => { heroSeen = es[0].isIntersecting; mini.hidden = heroSeen || !RES.cur || !RES.cur.n; }, {threshold: 0}).observe($("#hero"));
-  }
+  if ("IntersectionObserver" in window) new IntersectionObserver(es => { heroSeen = es[0].isIntersecting; syncMini(); }, {threshold: 0}).observe($("#hero"));
 })();
 window.ODDSLAB = {get res(){ return RES; }, get busy(){ return busy || !!pending; }, get strip(){ return STRIP; }, get stripBusy(){ return stripBusy; }, get scale(){ return SCALE; },
   cur, given, links: LINKS, usingWorker: () => !!worker, compute, tgt, N, SEED, MODEL, STEPS};

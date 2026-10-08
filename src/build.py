@@ -326,9 +326,16 @@ def load_odds(problems, lenient):
         # a story the page does not know only moves that link to "Other links", so the page still works
         stories = {s["id"] for s in o.get("stories", [])}
         for d in o["drivers"]:
-            if stories and d.get("story") not in stories: soft.append(f"{d['id']}: unknown story '{d.get('story')}'")
+            if stories and d.get("story") not in stories: soft.append(f"{d['id']}: unknown story '{d.get('story')}' (its links are listed under Other links)")
         for l in o["links"]:
-            if l.get("story") is not None and l["story"] not in stories: soft.append(f"link {l['a']} - {l['b']}: unknown story '{l['story']}'")
+            if l.get("story") is not None and l["story"] not in stories: soft.append(f"link {l['a']} - {l['b']}: unknown story '{l['story']}' (listed under Other links)")
+        # sources shown as links in each driver's About panel: a title and a web address, or the source is left out
+        for d in o["drivers"]:
+            srcs = d.get("src") or []
+            keep = [x for x in srcs if isinstance(x, dict) and x.get("t") and str(x.get("u", "")).startswith(("https://", "http://"))]
+            if len(keep) != len(srcs):
+                soft.append(f"{d['id']}: a source needs a title and a link starting with http:// or https:// (left out)")
+                d["src"] = keep
         if len(set(ids)) != len(ids): bad.append("a driver id is used twice")
         for k in ("asOf", "period", "groups", "buyers", "statusNote", "plan"):
             if k not in o: bad.append(f"'{k}' is missing")
@@ -340,7 +347,7 @@ def load_odds(problems, lenient):
         problems.append("data/odds.json: " + "; ".join(bad[:6]) + ". The Odds shows an error until this is fixed.")
         return None
     if soft:
-        problems.append("data/odds.json: " + "; ".join(soft[:6]) + ". The Odds lists those links under Other links until this is fixed.")
+        problems.append("data/odds.json: " + "; ".join(soft[:6]) + ". The Odds still works.")
     return o
 
 
