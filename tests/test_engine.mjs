@@ -343,6 +343,19 @@ const TOY = {
     if (!(Math.abs(l.rho) <= 0.9)) bad.push(l.a + " - " + l.b + ": starting links stay within -0.9 to 0.9");
   }
   for (const g of groups) if (!file.drivers.some(d => d.group === g)) bad.push("group " + g + " has no drivers");
+  // the stories the links are filed under, and the plain words each driver reads with in a sentence
+  const stories = new Set((file.stories || []).map(s => s.id)), byId0 = Object.fromEntries(file.drivers.map(d => [d.id, d]));
+  for (const s of file.stories || []) if (!s.id || !s.label || !s.blurb || s.id === "other") bad.push("story " + s.id + ": needs id (not 'other'), label and blurb");
+  for (const d of file.drivers){
+    if (!stories.has(d.story)) bad.push(d.id + ": unknown story '" + d.story + "'");
+    const s = d.say || {}, words = d.kind === "event" ? ["if", "of"] : ["if", "subj"];
+    for (const k of words) if (!s[k] || typeof s[k] !== "string") bad.push(d.id + ": say needs '" + k + "'");
+    if (d.kind === "event" && s.of && !/^(of|that) /.test(s.of)) bad.push(d.id + ": say.of starts with 'of' or 'that' (it follows 'the chance')");
+    if (d.kind === "range" && s.if && !/high case$/.test(s.if)) bad.push(d.id + ": a quantity's say.if is its high case");
+    if (/[.,]$/.test(s.if || "")) bad.push(d.id + ": say.if ends without punctuation");
+  }
+  for (const l of file.links) if (l.story != null && !stories.has(l.story)) bad.push(l.a + " - " + l.b + ": unknown story '" + l.story + "'");
+  for (const s of stories) if (!file.links.some(l => (l.story || (byId0[l.a] || {}).story) === s)) bad.push("story " + s + " has no links");
   check("every driver and link in the model file is complete (" + file.drivers.length + " drivers, " + file.links.length + " links)", bad.length === 0 && file.drivers.length >= 20, bad);
   check("buyer groups add up to 1", close(file.buyers.reduce((a, b) => a + b.share, 0), 1, 1e-9));
 

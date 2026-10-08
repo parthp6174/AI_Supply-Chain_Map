@@ -9,8 +9,9 @@ Nothing is published and nothing outside this machine is contacted. Exit code 1 
 
 Covers: the third tab on all three pages; every driver's row; the starting results against the engine run on the
 page itself; changing a chance, a range and a severity; typing decimals; resetting; supposing an event, a range
-case and something impossible; the links table; chart tooltips by mouse and keyboard; a browser without workers;
-phones in light and dark. The maths is tested separately in tests/test_engine.mjs.
+case and something impossible; the links (stories, the five words, Fine-tune, adding and deleting, each driver's tags
+and the panel they open, the grid) and how strongly they hold at once; chart tooltips by mouse and keyboard; a browser
+without workers; phones in light and dark. The maths is tested separately in tests/test_engine.mjs.
 """
 import argparse, functools, http.server, json, os, re, subprocess, sys, tempfile, threading
 
@@ -24,6 +25,7 @@ N_RANGES = len(FILE["drivers"]) - N_EVENTS
 BASE = OUT = None
 RESULTS = []
 IDLE = "window.ODDSLAB && ODDSLAB.res.cur && !ODDSLAB.busy"
+STRIP_DONE = "window.ODDSLAB && !ODDSLAB.busy && !ODDSLAB.stripBusy && Object.keys(ODDSLAB.strip.res).length === 4"
 
 
 class QuietHandler(http.server.SimpleHTTPRequestHandler):
@@ -230,21 +232,39 @@ def run_checks(browser):
     page.click("#reset-all"); settle(page)
     check("reset all: also drops what was supposed", hero(page) == h0 and page.is_hidden("#situ") and page.is_visible("#hero"))
 
-    # 9. links: read, change, aim, remove and put back, add, filter, impossible sets, the grid
-    rows = page.locator("#lk-list .lk:not(.hd)")
-    check(f"links: one row for each of the {len(FILE['links'])}, with its reason", rows.count() == len(FILE["links"]) and FILE["links"][0]["why"] in rows.first.inner_text())
-    check("grid: a square for every pair, a sign for every link", page.locator("#grid rect.c").count() == len(DRIVERS) * (len(DRIVERS) - 1) and page.locator("#grid text.sg").count() == 2 * len(FILE["links"]), page.locator("#grid text.sg").count())
+    # 9. links: plain sentences in stories, five words, Fine-tune, add and delete, filter, impossible sets, the grid
+    STORY_OF = lambda l: l.get("story") or DRIVERS[l["a"]]["story"]
+    stories = [s for s in FILE["stories"]]
+    check(f"stories: the links sit in {len(stories)} stories, folded to begin with", [t.strip() for t in page.locator("#stories details.story:not([hidden]) .st-name").all_inner_texts()] == [s["label"] for s in stories] and page.locator("#stories details.story[open]").count() == 0)
+    metas = page.evaluate("[...document.querySelectorAll('#stories details.story:not([hidden]) .st-meta')].map(e => e.textContent)")
+    want_meta = ["%d links" % sum(1 for l in FILE["links"] if STORY_OF(l) == s["id"]) for s in stories]
+    check("stories: each says how many links it holds", metas == want_meta, (metas, want_meta))
+    rows = page.locator("#stories .lk")
+    check(f"links: one row for each of the {len(FILE['links'])}, with its reason", rows.count() == len(FILE["links"]) and all(l["why"] in page.text_content("#lk-%s--%s" % (l["a"], l["b"])) for l in FILE["links"]))
+    check("grid: folded away, a square for every pair, a sign for every link", page.evaluate("document.querySelector('#grid-box').open") is False and page.locator("#grid rect.c").count() == len(DRIVERS) * (len(DRIVERS) - 1) and page.locator("#grid text.sg").count() == 2 * len(FILE["links"]), page.locator("#grid text.sg").count())
     TW = "#lk-tw_blockade--cn_minerals"
-    want = page.evaluate("""(() => { const O = ODDS, M = ODDSLAB.MODEL.drivers, a = M.find(d => d.id === 'tw_blockade'), b = M.find(d => d.id === 'cn_minerals');
-        return [ODDSLAB.tgt(O.reading(a, b, 0.5).given, true), ODDSLAB.tgt(O.reading(b, a, 0.5).given, true)]; })()""")
-    got = [page.input_value(TW + ' .lk-read[data-dir="ab"] [data-f="target"]'), page.input_value(TW + ' .lk-read[data-dir="ba"] [data-f="target"]')]
-    check(f"links: both readings shown with the engine's numbers ({got[0]}% and {got[1]}%)", got == want and "30%" in page.inner_text(TW + ' .lk-read[data-dir="ab"]') and "3%" in page.inner_text(TW + ' .lk-read[data-dir="ba"]'), (got, want))
+    want = page.evaluate("""(() => { const M = ODDSLAB.MODEL.drivers, a = M.find(d => d.id === 'tw_blockade'), b = M.find(d => d.id === 'cn_minerals');
+        return [pct(ODDS.reading(a, b, 0.5).given), ODDSLAB.tgt(ODDS.reading(a, b, 0.5).given, true), ODDSLAB.tgt(ODDS.reading(b, a, 0.5).given, true)]; })()""")
+    check("links: each reads as a sentence with the engine's numbers", page.text_content(TW + " .say") == "If China blockades Taiwan, the chance that China's mineral controls return goes from 30%% to %s." % want[0], page.text_content(TW + " .say"))
+    pressed = lambda sel: page.text_content(sel + ' .steps [aria-pressed="true"]')
+    check("links: the five words show each link's strength", pressed(TW) == "Much more likely" and pressed("#lk-tw_blockade--us_chip_rules") == "More likely" and pressed("#lk-tw_blockade--capex_2027") == "Lower" and page.text_content("#lk-tw_blockade--capex_2027 .steps button") == "Much lower", (pressed(TW), pressed("#lk-tw_blockade--us_chip_rules"), pressed("#lk-tw_blockade--capex_2027"), page.text_content("#lk-tw_blockade--capex_2027 .steps button")))
+    check("links: a quantity reads with its unit", re.fullmatch(r"If China blockades Taiwan, hyperscaler spending plans go from 130% to \d+(\.\d)?% of 2026 plans\.", page.text_content("#lk-tw_blockade--capex_2027 .say") or "") is not None, page.text_content("#lk-tw_blockade--capex_2027 .say"))
+    check("links: a quantity as the cause reads as its high case", (page.text_content("#lk-lab_revenue--openai_funding .say") or "").startswith("If lab revenue hits its high case, the chance that OpenAI raises $30B or more goes from 70% to "), page.text_content("#lk-lab_revenue--openai_funding .say"))
+    page.click("#st-uschina > summary")
+    check("stories: a click opens one", page.evaluate("document.querySelector('#st-uschina').open") is True and page.is_visible(TW + " .say"))
     typed(page, '#d-cn_minerals [data-f="p"]', 60)
-    check("links: the readings follow your chances", "60%" in page.inner_text(TW + ' .lk-read[data-dir="ab"] .to'))
+    check("links: the sentences follow your chances", "from 60% to" in page.text_content(TW + " .say"), page.text_content(TW + " .say"))
     typed(page, '#d-cn_minerals [data-f="p"]', 30)
+    page.click(TW + ' .steps [data-step="3"]'); settle(page)
+    check("five words: 'more likely' sets +0.3 and is marked and counted", page.evaluate("ODDSLAB.links.find(l => l.a === 'tw_blockade' && l.b === 'cn_minerals').rho") == 0.3 and pressed(TW) == "More likely" and "changed" in page.get_attribute(TW, "class") and "Started at +0.5 (much more likely)" in page.inner_text(TW + " [data-v=note]") and page.inner_text("#dchanged") == "1 link changed" and "1 changed" in page.inner_text("#st-uschina .st-meta"), page.inner_text(TW + " [data-v=note]"))
+    check("five words: the sentence follows", int(re.search(r"to (\d+)%", page.text_content(TW + " .say")).group(1)) < int(want[1]), page.text_content(TW + " .say"))
+    page.click(TW + ' .steps [data-step="3"]'); settle(page)
+    check("five words: choosing the word it already shows changes nothing", page.evaluate("ODDSLAB.links.find(l => l.a === 'tw_blockade' && l.b === 'cn_minerals').rho") == 0.3)
+    check("fine-tune: closed to begin with", page.is_hidden(TW + " .lk-fine") and page.get_attribute(TW + ' [data-act="fine"]', "aria-expanded") == "false")
+    page.click(TW + ' [data-act="fine"]')
+    check("fine-tune: shows the exact strength and both readings", page.is_visible(TW + " .lk-fine") and page.input_value(TW + " [data-f=rho]") == "0.3" and "If China's mineral controls return, the chance of a Taiwan blockade goes from 3% to" in page.inner_text(TW + ' .lk-read[data-dir="ba"]'), page.inner_text(TW + " .lk-fine"))
     typed(page, TW + ' [data-f="rho"]', 0.8)
-    check("change a link: stored, marked, and counted", page.evaluate("ODDSLAB.links.find(l => l.a === 'tw_blockade' && l.b === 'cn_minerals').rho") == 0.8 and "changed" in page.get_attribute(TW, "class") and "Started at +0.5" in page.inner_text(TW + " [data-v=note]") and page.inner_text("#dchanged") == "1 link changed", page.inner_text("#dchanged"))
-    check("change a link: the readings and the slider follow", int(page.input_value(TW + ' .lk-read[data-dir="ab"] [data-f="target"]')) > 90 and abs(float(page.input_value(TW + " [data-f=rhos]")) - 0.8) < 1e-9)
+    check("fine-tune: a typed strength is stored, and the readings and slider follow", page.evaluate("ODDSLAB.links.find(l => l.a === 'tw_blockade' && l.b === 'cn_minerals').rho") == 0.8 and int(page.input_value(TW + ' .lk-read[data-dir="ab"] [data-f="target"]')) > 90 and abs(float(page.input_value(TW + " [data-f=rhos]")) - 0.8) < 1e-9 and pressed(TW) == "Much more likely")
     check("change a link: the grid marks it, and the results compare with the starting numbers", page.locator("#grid circle.dot").count() == 2 and page.is_visible("#hero-d") and "the starting numbers" in page.inner_text("#hero-d"))
     page.click('#d-tw_blockade [data-sup="true"]'); settle(page)
     note = page.inner_text("#d-cn_minerals .drv-note")
@@ -252,63 +272,118 @@ def run_checks(browser):
     check("change a link: the futures use it (supposing a blockade now lifts the mineral controls above 90%)", m is not None and int(m.group(1)) > 90, note)
     page.click("#situ-clear"); settle(page)
     US = "#lk-tw_blockade--us_chip_rules"
+    page.click(US + ' [data-act="fine"]')
     typed(page, US + ' .lk-read[data-dir="ab"] [data-f="target"]', 40)
     rho = page.evaluate("ODDSLAB.links.find(l => l.b === 'us_chip_rules' && l.a === 'tw_blockade').rho")
     expect = page.evaluate("(() => { const M = ODDSLAB.MODEL.drivers, a = M.find(d => d.id === 'tw_blockade'), b = M.find(d => d.id === 'us_chip_rules'); return Math.round(ODDS.rhoForReading(a, b, 0.4).rho * 100) / 100; })()")
-    check(f"aim a link: 'if the first happens, 40%' sets the strength to {rho}", rho == expect and 0.1 < rho < 0.3 and page.input_value(US + ' .lk-read[data-dir="ab"] [data-f="target"]') == "40" and page.input_value(US + " [data-f=rho]") == str(rho), (rho, expect))
+    check(f"aim a link: 'if the first happens, 40%' sets the strength to {rho}", rho == expect and 0.1 < rho < 0.3 and page.input_value(US + ' .lk-read[data-dir="ab"] [data-f="target"]') == "40" and page.input_value(US + " [data-f=rho]") == str(rho) and "to 40%" in page.text_content(US + " .say"), (rho, expect))
     # a 3% event cannot become a 90% one just because a 25% event happens: at most 3/25 = 12%
     typed(page, US + ' .lk-read[data-dir="ba"] [data-f="target"]', 90)
     note = page.inner_text(US + " [data-v=note]")
     m = re.search(r"can only take Taiwan blockade as far as ([\d.]+)%", note)
     check("aim a link: an unreachable target says how far a link can go", page.evaluate("ODDSLAB.links.find(l => l.b === 'us_chip_rules' && l.a === 'tw_blockade').rho") == 0.95 and m is not None and 9 < float(m.group(1)) <= 12, note)
     CT = "#lk-cn_minerals--chip_tariff"
-    page.click(CT + ' [data-act="remove"]'); settle(page)
-    check("remove a starting link: kept as 'removed' with a way back", page.inner_text(CT + ' [data-act="remove"]') == "Put back" and "off" in page.get_attribute(CT, "class") and "Removed. It started at +0.3" in page.inner_text(CT + " [data-v=note]") and page.input_value(CT + " [data-f=rho]") == "0")
-    check("remove a starting link: no longer counted or drawn", "33 links in all" in page.inner_text("#lk-count") and page.locator("#grid text.sg").count() == 2 * (len(FILE["links"]) - 1), page.inner_text("#lk-count"))
-    page.click(CT + ' [data-act="remove"]'); settle(page)
-    check("put back: the link returns at its starting strength", page.input_value(CT + " [data-f=rho]") == "0.3" and page.inner_text(CT + ' [data-act="remove"]') == "Remove" and "34 links in all" in page.inner_text("#lk-count"))
+    page.click(CT + ' .steps [data-step="2"]'); settle(page)
+    check("no link: a starting link is kept as removed, with a way back", pressed(CT) == "No link" and "off" in page.get_attribute(CT, "class") and "Removed. It started at +0.3" in page.inner_text(CT + " [data-v=note]") and page.evaluate("ODDSLAB.links.find(l => l.a === 'cn_minerals' && l.b === 'chip_tariff').rho") == 0)
+    check("no link: no longer counted or drawn", "33 links in all" in page.inner_text("#lk-count") and page.locator("#grid text.sg").count() == 2 * (len(FILE["links"]) - 1), page.inner_text("#lk-count"))
+    page.click(CT + " [data-v=note] button"); settle(page)
+    check("reset one link: back at its starting strength", page.evaluate("ODDSLAB.links.find(l => l.a === 'cn_minerals' && l.b === 'chip_tariff').rho") == 0.3 and pressed(CT) == "More likely" and "34 links in all" in page.inner_text("#lk-count") and "changed" not in page.get_attribute(CT, "class"))
     page.select_option("#lk-a", "jp_quake"); page.select_option("#lk-b", "tglass_ramp")
     check("add a link: offered for a pair with none", page.inner_text("#lk-add button") == "Add link" and page.is_enabled("#lk-add button"))
     page.click("#lk-add button"); settle(page)
     NEW = "#lk-jp_quake--tglass_ramp"
-    check("add a link: a new row at the top, at zero until given a strength", page.locator(NEW).count() == 1 and page.locator("#lk-list .lk:not(.hd)").first.get_attribute("id") == NEW[1:] and page.input_value(NEW + " [data-f=rho]") == "0" and "Set a strength" in page.inner_text(NEW + " [data-v=note]") and page.evaluate("document.activeElement === document.querySelector('%s [data-f=rho]')" % NEW))
-    typed(page, NEW + " [data-f=rho]", -0.6)
-    check("add a link: once set it counts, is drawn, and reads both ways", "35 links in all" in page.inner_text("#lk-count") and page.locator("#grid text.sg").count() == 2 * len(FILE["links"]) + 2 and "from a central case of" in page.inner_text(NEW + ' .lk-read[data-dir="ab"]') and "when it comes in at its high case or better" in page.inner_text(NEW + ' .lk-read[data-dir="ba"]'))
+    check("add a link: a new row at the top of its first driver's story, at no link until given a strength", page.locator(NEW).count() == 1 and page.locator("#st-chips .lk").first.get_attribute("id") == NEW[1:] and page.evaluate("document.querySelector('#st-chips').open") is True and pressed(NEW) == "No link" and "Pick how strong" in page.inner_text(NEW + " [data-v=note]") and page.evaluate("document.activeElement === document.querySelector('%s .steps [aria-pressed=true]')" % NEW))
+    page.click(NEW + ' .steps [data-step="1"]'); settle(page)
+    page.click(NEW + ' [data-act="fine"]')
+    check("add a link: once set it counts, is drawn, and reads both ways", "35 links in all" in page.inner_text("#lk-count") and page.locator("#grid text.sg").count() == 2 * len(FILE["links"]) + 2 and page.text_content(NEW + " .say").startswith("If an earthquake hits Japan's materials makers, T-glass cloth goes from 99% to ") and "If T-glass cloth hits its high case, the chance of an earthquake" in page.inner_text(NEW + ' .lk-read[data-dir="ba"]'), page.text_content(NEW + " .say"))
     page.select_option("#lk-a", "tw_blockade"); page.select_option("#lk-b", "cn_minerals")
     check("add a link: an existing pair is offered as 'Show this link'", page.inner_text("#lk-add button") == "Show this link")
-    page.click(NEW + ' [data-act="remove"]'); settle(page)
-    check("remove an added link: the row goes", page.locator(NEW).count() == 0 and "34 links in all" in page.inner_text("#lk-count"))
+    page.click(NEW + ' [data-act="delete"]'); settle(page)
+    check("delete an added link: the row goes", page.locator(NEW).count() == 0 and "34 links in all" in page.inner_text("#lk-count"))
     page.select_option("#lk-filter", "tw_blockade")
     n_tw = sum(1 for l in FILE["links"] if "tw_blockade" in (l["a"], l["b"]))
-    check(f"filter: only the {n_tw} links of one driver", page.locator("#lk-list .lk:not(.hd):visible").count() == n_tw and page.is_hidden("#lk-empty"))
+    page.select_option("#lk-filter", "capex_2027")
+    n_cx = sum(1 for l in FILE["links"] if "capex_2027" in (l["a"], l["b"]))
+    check(f"filter: only the {n_cx} links of one driver, in every story that has them, opened", page.locator("#stories .lk:visible").count() == n_cx and page.is_hidden("#lk-empty") and page.evaluate("[...document.querySelectorAll('#stories details.story:not([hidden])')].map(e => e.id + (e.open ? '+' : ''))") == ["st-uschina+", "st-demand+"], page.evaluate("[...document.querySelectorAll('#stories details.story:not([hidden])')].map(e => e.id + (e.open ? '+' : ''))"))
     page.select_option("#lk-filter", "euv_halt")
-    check("filter: a driver with no links says so", page.locator("#lk-list .lk:not(.hd):visible").count() == 0 and page.is_visible("#lk-empty"))
+    check("filter: a driver with no links says so", page.locator("#stories .lk:visible").count() == 0 and page.is_visible("#lk-empty"))
     page.select_option("#lk-filter", "")
-    page.click('#d-tw_blockade button[aria-controls="m-tw_blockade"]')
-    check("About panel: offers the driver's links", page.inner_text('#d-tw_blockade [data-act="links"]') == "Its links (%d)" % n_tw)
-    page.click('#d-tw_blockade [data-act="links"]'); page.wait_for_timeout(700)
-    check("About panel: 'Its links' shows them", page.input_value("#lk-filter") == "tw_blockade" and page.locator("#lk-list .lk:not(.hd):visible").count() == n_tw)
-    page.select_option("#lk-filter", "")
-    for key, v in (("capex_2027--digestion", "0.95"), ("capex_2027--lab_revenue", "0.95"), ("lab_revenue--digestion", "-0.95")):
+    # each driver's own links, as tags on its row
+    chips = page.locator("#d-tw_blockade .lchip[data-k]")
+    check(f"driver links: Taiwan blockade's row shows its {n_tw} links as tags", chips.count() == n_tw and "Moves with" in page.inner_text("#d-tw_blockade .dl-k") and page.inner_text("#d-euv_halt .dl-k") == "No links yet")
+    first = page.locator('#d-tw_blockade .lchip[data-k="cn_minerals|tw_blockade"]')
+    check("driver links: a tag shows the direction and strength, and marks a change", first.locator(".ar").inner_text() == "↑↑" and "pos" in first.locator(".ar").get_attribute("class") and "changed" in first.get_attribute("class") and page.locator('#d-tw_blockade .lchip[data-k="capex_2027|tw_blockade"] .ar').inner_text() == "↓")
+    first.click(); page.wait_for_timeout(150)
+    box = "#d-tw_blockade .lk-in"
+    check("driver links: a tag opens the link under the row, as the same sentence", page.is_visible(box) and first.get_attribute("aria-expanded") == "true" and page.text_content(box + " .say") == page.text_content(TW + " .say") and page.text_content(box + ' .steps [aria-pressed="true"]') == "Much more likely",
+          (page.is_visible(box), first.get_attribute("aria-expanded"), page.text_content(box + " .say"), page.text_content(TW + " .say"), page.text_content(box + ' .steps [aria-pressed="true"]')))
+    page.click(box + ' .steps [data-step="0"]'); settle(page)
+    check("driver links: a word chosen there changes the link everywhere", page.evaluate("ODDSLAB.links.find(l => l.a === 'tw_blockade' && l.b === 'cn_minerals').rho") == -0.6 and pressed(TW) == "Much less likely" and first.locator(".ar").inner_text() == "↓↓" and "neg" in first.locator(".ar").get_attribute("class") and page.locator('#d-cn_minerals .lchip[data-k="cn_minerals|tw_blockade"] .ar').inner_text() == "↓↓")
+    page.click(box + ' [data-act="reset"]'); settle(page)
+    check("driver links: Reset there puts it back", page.evaluate("ODDSLAB.links.find(l => l.a === 'tw_blockade' && l.b === 'cn_minerals').rho") == 0.5 and page.is_hidden(box + ' [data-act="reset"]') and "changed" not in first.get_attribute("class"))
+    page.click(box + " .xbtn")
+    check("driver links: the panel closes", page.is_hidden(box) and first.get_attribute("aria-expanded") == "false")
+    page.click("#d-euv_halt .lchip.add")
+    check("driver links: 'Add a link' asks what to link it with", page.is_visible("#d-euv_halt .lk-in select") and page.evaluate("document.activeElement === document.querySelector('#d-euv_halt .lk-in select')"))
+    page.select_option("#d-euv_halt .lk-in select", "foundry_ramp"); page.click('#d-euv_halt .lk-in button[type="submit"]'); settle(page)
+    E = "#lk-euv_halt--foundry_ramp"
+    check("driver links: a link added from a row reads from that row's driver", page.locator(E).count() == 1 and page.text_content("#d-euv_halt .lk-in .say") == "If EUV supply stops, leading-edge wafers stay at 105% of plan." and page.locator("#d-euv_halt .lchip[data-k]").count() == 1, page.text_content("#d-euv_halt .lk-in .say"))
+    page.click('#d-euv_halt .lk-in .steps [data-step="0"]'); settle(page)
+    check("driver links: once given a strength it shows on both rows and in its story", page.evaluate("ODDSLAB.links.find(l => l.a === 'euv_halt').rho") == -0.6 and "EUV supply stops" in page.inner_text("#d-foundry_ramp .drv-links") and pressed(E) == "Much lower" and page.locator("#st-chips " + E).count() == 1)
+    page.click('#d-euv_halt .lk-in [data-act="delete"]'); settle(page)
+    check("driver links: deleting it there removes it everywhere", page.locator(E).count() == 0 and page.is_hidden("#d-euv_halt .lk-in") and "EUV supply stops" not in page.inner_text("#d-foundry_ramp .drv-links") and "34 links in all" in page.inner_text("#lk-count"))
+    for key, v in (("digestion--capex_2027", "0.95"), ("lab_revenue--capex_2027", "0.95"), ("lab_revenue--digestion", "-0.95")):
+        page.evaluate("document.querySelector('#lk-%s').closest('details').open = true" % key)
+        if page.is_hidden(f"#lk-{key} .lk-fine"):
+            page.click(f'#lk-{key} [data-act="fine"]')
         typed(page, f"#lk-{key} [data-f=rho]", v)
     check("impossible links: a warning says what was adjusted", page.is_visible("#lk-warn") and "The biggest change was to" in page.inner_text("#lk-warn-t") and page.is_visible("#hero-adj"), page.inner_text("#lk-warn-t") if page.is_visible("#lk-warn") else "")
-    check("impossible links: adjusted rows say what was used", page.locator("#lk-list [data-v=note]", has_text="so that all the links fit together").count() >= 1)
+    check("impossible links: adjusted rows say what was used", page.locator("#stories [data-v=note]", has_text="so that all the links fit together").count() >= 1)
     check("impossible links: the results are still worked out", re.fullmatch(r"\d+%", page.inner_text("#hero-v")) is not None and not errors)
     # the grid: mouse, keyboard
+    page.click("#grid-box > summary")
     page.evaluate("document.querySelector('#grid').scrollIntoView({block: 'center'})")
     cell = page.locator('#grid rect.c[data-i="0"][data-j="4"]')            # Taiwan blockade x China's mineral controls
-    box = cell.bounding_box(); page.mouse.move(box["x"] + 9, box["y"] + 9)
+    box_ = cell.bounding_box(); page.mouse.move(box_["x"] + 9, box_["y"] + 9)
     check("grid: hovering a square names the pair and its link", page.is_visible("#tip") and "Taiwan blockade and China's mineral controls return" in page.inner_text("#tip"), page.inner_text("#tip") if page.is_visible("#tip") else "")
     cell.click(); page.wait_for_timeout(700)
-    check("grid: clicking a linked square goes to its row", page.evaluate("document.activeElement === document.querySelector('%s [data-f=rho]')" % TW) and "flash" in page.get_attribute(TW, "class"))
+    check("grid: clicking a linked square opens its row at Fine-tune", page.evaluate("document.activeElement === document.querySelector('%s [data-f=rho]')" % TW) and "flash" in page.get_attribute(TW, "class") and page.is_visible(TW + " .lk-fine"))
     page.locator('#grid rect.c[data-i="8"][data-j="0"]').click(); page.wait_for_timeout(500)          # EUV x Taiwan: no link
     check("grid: clicking an empty square sets up the add form", page.input_value("#lk-a") == "euv_halt" and page.input_value("#lk-b") == "tw_blockade" and page.inner_text("#lk-add button") == "Add link")
     page.focus("#grid"); page.keyboard.press("ArrowRight")
     check("grid: arrow keys move across the pairs", page.is_visible("#tip") and " and " in page.inner_text("#tip .tt"))
     page.keyboard.press("Escape")
     page.click("#reset-all"); settle(page)
-    check("reset all: every link back to its start", page.locator("#lk-list .lk.changed").count() == 0 and page.is_hidden("#lk-warn") and "34 links in all" in page.inner_text("#lk-count") and hero(page) == h0 and page.locator("#grid circle.dot").count() == 0)
+    check("reset all: every link back to its start", page.locator("#stories .lk.changed").count() == 0 and page.is_hidden("#lk-warn") and "34 links in all" in page.inner_text("#lk-count") and hero(page) == h0 and page.locator("#grid circle.dot").count() == 0 and page.locator(".lchip.changed").count() == 0)
     clean_text(page, "links")
+
+    # 9b. how strongly things move together: every link at once
+    page.wait_for_function(STRIP_DONE, timeout=30000)
+    cols = page.locator("#ms-cols .ms-col")
+    vals = page.evaluate("[...document.querySelectorAll('#ms-cols .ms-v')].map(e => e.textContent)")
+    lite = page.evaluate("""[0, 0.5, 1, 1.5].map(k => ODDSLAB.compute({n: ODDSLAB.N, seed: ODDSLAB.SEED, lite: true, given: {},
+        beliefs: {drivers: {}, corr: ODDSLAB.links.map(l => [l.a, l.b, Math.max(-0.95, Math.min(0.95, Math.round(l.rho * k * 1000) / 1000))])}}))""")
+    check("master: four settings, each with its chance of a bad year from the engine", cols.count() == 4 and vals == [page.evaluate("pct(%r)" % x["below"]["0.8"]) for x in lite] and page.get_attribute('#ms-cols .ms-col[data-k="1"]', "aria-pressed") == "true", vals)
+    check("master: 'as set' matches the results, and links make a bad year likelier", vals[2] == page.inner_text("#t-below") and lite[2]["below"]["0.8"] > lite[0]["below"]["0.8"] * 1.2 and "if nothing were linked" in page.inner_text("#ms-cap"), page.inner_text("#ms-cap"))
+    page.locator('#ms-cols .ms-col[data-k="0"]').hover()
+    check("master: hovering a setting explains it", page.is_visible("#tip") and "no links at all" in page.inner_text("#tip") and "Average built" in page.inner_text("#tip"), page.inner_text("#tip") if page.is_visible("#tip") else "")
+    page.mouse.move(5, 5)
+    page.click('#ms-cols .ms-col[data-k="0"]'); settle(page)
+    check("master: 'none' unlinks everything for the results", page.evaluate("ODDSLAB.scale") == 0 and hero(page) == round(lite[0]["mean"] * 100) and page.get_attribute('#ms-cols .ms-col[data-k="0"]', "aria-pressed") == "true" and page.is_visible("#hero-scale") and "no links at all" in page.inner_text("#hero-scale") and page.inner_text("#dchanged") == "No links at all" and page.is_enabled("#reset-all") and "The results above use no links at all" in page.inner_text("#ms-cap"), (hero(page), lite[0]["mean"], page.inner_text("#dchanged")))
+    check("master: your links stay as you set them", page.evaluate("ODDSLAB.links.find(l => l.a === 'tw_blockade' && l.b === 'cn_minerals').rho") == 0.5 and page.text_content(TW + " .say") == "If China blockades Taiwan, the chance that China's mineral controls return goes from 30%% to %s." % want[0])
+    page.click('#d-tw_blockade [data-sup="true"]'); settle(page)
+    check("master: with no links, supposing one thing moves nothing else", page.inner_text("#d-cn_minerals .drv-note").strip() == "", page.inner_text("#d-cn_minerals .drv-note"))
+    page.click("#situ-clear"); settle(page)
+    page.click('#ms-cols .ms-col[data-k="1.5"]'); settle(page); page.wait_for_function(STRIP_DONE, timeout=30000)
+    check("master: 'stronger' says when links that strong cannot all hold, without the warning meant for your own links", page.evaluate("ODDSLAB.scale") == 1.5 and "cannot all be true at once" in page.inner_text("#ms-cap") and page.is_hidden("#lk-warn") and page.is_hidden("#hero-adj") and hero(page) == round(lite[3]["mean"] * 100), page.inner_text("#ms-cap"))
+    page.select_option("#t-thr", "0.7")
+    check("master: follows the threshold chosen in the results", page.inner_text("#ms-thr") == "70%" and page.locator("#ms-cols .ms-v").first.inner_text() == page.evaluate("pct(%r)" % lite[0]["below"]["0.7"]))
+    page.select_option("#t-thr", "0.8")
+    page.click("#reset-all"); settle(page)
+    check("reset all: links back to 'as set'", page.evaluate("ODDSLAB.scale") == 1 and page.get_attribute('#ms-cols .ms-col[data-k="1"]', "aria-pressed") == "true" and page.is_hidden("#hero-scale") and hero(page) == h0 and page.is_disabled("#reset-all"))
+    clean_text(page, "master")
+    page.evaluate("document.querySelector('#links').scrollIntoView()")
+    shot(page, "odds_links.png")
 
     # 10. jumping from a result to the number behind it
     page.evaluate("document.querySelector('#lab-grid').scrollIntoView(); document.querySelector('#results').scrollTop = 99999")

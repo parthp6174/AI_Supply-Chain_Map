@@ -234,8 +234,87 @@ input.sl:focus-visible::-moz-range-thumb{box-shadow:0 0 0 1px var(--ink),0 0 0 4
 .caret{display:inline-block;transition:transform .15s;margin-left:4px}
 [aria-expanded="true"] > .caret{transform:rotate(90deg)}
 
-/* links: an overview grid of every pair, then one editable row per link */
-.grid-card{padding:16px 18px}
+/* links: one control for all of them, then stories of plain sentences; every driver row shows its own links */
+.master{padding:16px 18px;margin-bottom:22px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);gap:12px 32px;align-items:start}
+.master h3{font-size:var(--fs-md)}
+.master .cap{margin-top:4px;max-width:58ch}
+.ms-say{font-size:var(--fs-sm);color:var(--ink-2);margin:10px 0 0;max-width:58ch}
+.ms-cols{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:8px}
+.ms-col{display:grid;grid-template-rows:auto 56px auto;gap:5px;justify-items:center;border:1px solid var(--line);background:var(--surface);border-radius:var(--r);padding:8px 4px 7px;cursor:pointer;color:var(--ink-2);font-size:var(--fs-sm);min-width:0}
+.ms-col:hover{border-color:var(--faint);color:var(--ink)}
+.ms-col[aria-pressed="true"]{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink);color:var(--ink);font-weight:600}
+.ms-v{font-weight:600;font-variant-numeric:tabular-nums;color:var(--ink);font-size:var(--fs-md)}
+.ms-bar{position:relative;width:30px;height:56px}
+.ms-bar::after{content:"";position:absolute;left:-8px;right:-8px;bottom:0;height:1px;background:var(--line)}
+.ms-bar i{position:absolute;left:0;right:0;bottom:0;height:0;background:var(--series);border-radius:4px 4px 0 0;transition:height .2s}
+.ms-col[aria-pressed="true"] .ms-bar i{background:color-mix(in srgb,var(--series) 72%,var(--ink))}
+.ms-l{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.stories{display:grid;gap:10px}
+details.story{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);scroll-margin-top:16px}
+details.story>summary,details.grid-card>summary{list-style:none;cursor:pointer}
+details.story>summary::-webkit-details-marker,details.grid-card>summary::-webkit-details-marker{display:none}
+details.story>summary{display:grid;grid-template-columns:14px minmax(0,1fr) auto;gap:2px 10px;align-items:baseline;padding:12px 16px;border-radius:var(--r)}
+details.story>summary:hover .st-name{text-decoration:underline;text-decoration-color:var(--faint);text-underline-offset:3px}
+.st-caret{color:var(--muted);display:inline-block;transition:transform .15s}
+details[open]>summary .st-caret{transform:rotate(90deg)}
+.st-name{font-weight:600;font-size:var(--fs-lg);line-height:1.3}
+.st-meta{font-family:var(--font-mono);font-size:var(--fs-xs);color:var(--muted);white-space:nowrap}
+.st-blurb{grid-column:2/-1;font-size:var(--fs-sm);color:var(--ink-2);max-width:80ch}
+.st-body{display:grid;gap:8px;padding:2px 16px 16px}
+.lk{display:grid;gap:6px;background:var(--raised);border:1px solid var(--line);border-left:3px solid var(--line);border-radius:var(--r);padding:12px 14px;scroll-margin-top:16px}
+.lk.changed{border-left-color:var(--ink)}
+.lk.off .say{color:var(--muted)}
+.lk.flash,.lk-add.flash{outline:2px solid var(--focus);outline-offset:3px}
+.say{margin:0;font-size:var(--fs-md);line-height:1.45;max-width:80ch}
+.say b{font-variant-numeric:tabular-nums;font-weight:600}
+.lk .why,.lk-in .why{margin:0;color:var(--muted);font-size:var(--fs-xs);max-width:80ch}
+.lk-ctl{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;margin-top:4px}
+.lk-btns{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.steps{display:inline-grid;grid-auto-flow:column;border:1px solid var(--line);border-radius:var(--r);background:var(--surface);overflow:hidden;max-width:100%}
+.steps button{border:0;background:transparent;padding:5px 10px;font-size:var(--fs-xs);line-height:1.25;cursor:pointer;color:var(--ink-2)}
+.steps button+button{border-left:1px solid var(--line)}
+.steps button:hover{background:var(--wash);color:var(--ink)}
+.steps button[aria-pressed="true"]{background:var(--ink);color:var(--surface)}
+.steps button:focus-visible{outline-offset:-3px}
+.lk-fine{display:grid;grid-template-columns:250px minmax(0,1fr);gap:10px 26px;border-top:1px solid var(--grid);margin-top:6px;padding-top:12px;align-items:start}
+.lk-fine .reads{display:grid;gap:12px;min-width:0}
+.lk-str{display:grid;gap:0}
+.lk-str .cap{margin-top:2px}
+.lk-strtop{display:flex;align-items:flex-end;gap:8px}
+.lk-strtop .fld{justify-items:start}
+.lk-word{font-size:var(--fs-xs);color:var(--ink-2);padding-bottom:8px}
+.slw.lkw .trk u{top:-4px;bottom:-4px;background:var(--faint)}
+.slw.lkw .trk u[data-v="start"]{top:-6px;bottom:-6px;background:var(--ink-2)}
+.lk-read{font-size:var(--fs-sm);color:var(--ink-2);display:grid;gap:2px;min-width:0}
+.lk-read .cap2{font-size:var(--fs-xs);text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:600}
+.lk-read .to{line-height:2.1}
+.lk-read .tv{display:inline-flex;align-items:center;gap:4px;white-space:nowrap}
+.lk-read .to .nf{width:62px}
+.lk-read .to .unit{padding-bottom:0;max-width:none}
+.lk-read b{color:var(--ink);font-variant-numeric:tabular-nums}
+.drv-links{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:8px}
+.dl-k{font-size:var(--fs-xs);color:var(--muted);margin-right:2px}
+.dl-chips{display:contents}
+.lchip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:2px 10px 2px 8px;font-size:var(--fs-xs);line-height:1.35;color:var(--ink-2);cursor:pointer;max-width:100%;text-align:left}
+.lchip:hover{border-color:var(--faint);color:var(--ink)}
+.lchip[aria-expanded="true"]{border-color:var(--ink);color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
+.lchip .ar{font-weight:700;font-size:11.5px;letter-spacing:-.14em;min-width:1.2em;text-align:center;color:var(--muted)}
+.lchip .ar.pos{color:var(--series)}
+.lchip .ar.neg{color:var(--neg)}
+.lchip.off,.lchip.add{border-style:dashed}
+.lchip.off .nm{color:var(--muted)}
+.lchip.changed::after{content:"";width:6px;height:6px;border-radius:50%;background:var(--ink);flex:none}
+.lk-in{margin-top:8px;border:1px solid var(--line);border-radius:var(--r);background:var(--raised);padding:10px 12px;display:grid;gap:6px}
+.lk-in .say{font-size:var(--fs-sm)}
+.lk-in form{display:flex;flex-wrap:wrap;gap:6px 8px;align-items:center;font-size:var(--fs-sm)}
+.lk-in select,.lk-bar select{border:1px solid var(--line);border-radius:var(--r);background:var(--surface);padding:5px 8px;font-size:var(--fs-sm);max-width:100%}
+.lk-bar{display:flex;flex-wrap:wrap;gap:10px 22px;align-items:center;justify-content:space-between;margin:0 0 12px}
+.lk-bar label,.lk-add{font-size:var(--fs-sm);display:inline-flex;flex-wrap:wrap;align-items:center;gap:6px 8px;margin:0;border-radius:var(--r)}
+.lk-bar select{max-width:230px}
+.warnbox{border-left-color:var(--serious);max-width:none;margin:0 0 14px}
+.grid-card{padding:14px 18px;margin-top:18px}
+details.grid-card>summary{display:flex;align-items:baseline;gap:10px}
+details.grid-card[open]>summary{margin-bottom:8px}
 .grid-wrap{overflow:auto;margin-top:8px;padding-bottom:4px}
 #grid{display:block;color:var(--ink)}
 #grid:focus-visible{outline:2px solid var(--focus);outline-offset:4px}
@@ -250,43 +329,16 @@ input.sl:focus-visible::-moz-range-thumb{box-shadow:0 0 0 1px var(--ink),0 0 0 4
 .scale i{width:14px;height:14px;border-radius:3px;display:inline-block}
 .scale span{margin:0 3px}
 .dotk{width:7px;height:7px;border-radius:50%;background:var(--ink);display:inline-block}
-.lk-bar{display:flex;flex-wrap:wrap;gap:10px 22px;align-items:center;justify-content:space-between;margin:20px 0 12px}
-.lk-bar label,.lk-add{font-size:var(--fs-sm);display:inline-flex;flex-wrap:wrap;align-items:center;gap:6px 8px;margin:0;border-radius:var(--r)}
-.lk-bar select{border:1px solid var(--line);border-radius:var(--r);background:var(--surface);padding:5px 8px;font-size:var(--fs-sm);max-width:230px}
-.lk-list{display:grid;gap:8px}
-.lk{display:grid;grid-template-columns:minmax(0,1.15fr) 224px minmax(0,1fr) minmax(0,1fr) 84px;gap:6px 18px;align-items:start;background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--line);border-radius:var(--r);padding:10px 14px;scroll-margin-top:16px}
-.lk.hd{background:transparent;border-color:transparent;padding-block:0 2px;font-size:var(--fs-xs);text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:600;align-items:end}
-.lk.changed{border-left-color:var(--ink)}
-.lk.off .lk-pair [data-n],.lk.off .lk-read{color:var(--muted)}
-.lk.flash,.lk-add.flash{outline:2px solid var(--focus);outline-offset:3px}
-.lk-pair{display:grid;gap:1px;min-width:0}
-.lk-pair [data-n]{font-weight:600;line-height:1.3}
-.lk-pair [data-n]::before{content:attr(data-n) ". ";color:var(--muted);font-weight:400;font-variant-numeric:tabular-nums}
-.lk .why{display:block;color:var(--muted);font-size:var(--fs-xs);margin-top:2px;max-width:46ch}
-.lk-str{display:grid;gap:0}
-.lk-strtop{display:flex;align-items:flex-end;gap:8px}
-.lk-strtop .fld{justify-items:start}
-.lk-word{font-size:var(--fs-xs);color:var(--ink-2);padding-bottom:8px}
-.slw.lkw .trk u{top:-4px;bottom:-4px;background:var(--faint)}
-.slw.lkw .trk u[data-v="start"]{top:-6px;bottom:-6px;background:var(--ink-2)}
-.lk-read{font-size:var(--fs-sm);color:var(--ink-2);display:grid;gap:3px;min-width:0}
-.lk-read .cap2{display:none;font-size:var(--fs-xs);text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:600}
-.lk-read .to{display:flex;flex-wrap:wrap;align-items:center;gap:4px 6px}
-.lk-read .tv{display:inline-flex;align-items:center;gap:4px;white-space:nowrap}
-.lk-read .to .nf{width:62px}
-.lk-read .to .unit{padding-bottom:0}
-.lk-read b{color:var(--ink);font-variant-numeric:tabular-nums}
-.lk-act{display:flex;justify-content:flex-end}
-.warnbox{border-left-color:var(--serious);max-width:none;margin:0 0 14px}
-@media (max-width:1099px){
-  .lk{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
-  .lk.hd{display:none}
-  .lk-pair,.lk-str,.lk-act{grid-column:1/-1}
-  .lk-str{max-width:340px}
-  .lk-read .cap2{display:block}
-  .lk-act{justify-content:flex-start}
+@media (max-width:860px){ .master{grid-template-columns:minmax(0,1fr)} }
+@media (max-width:760px){ .lk-fine{grid-template-columns:minmax(0,1fr)} .lk-str{max-width:340px} }
+@media (max-width:620px){
+  .steps{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));grid-auto-flow:row;width:100%}
+  .steps button{padding:6px 3px;text-align:center}
+  .lk-bar select{max-width:100%}
+  details.story>summary{grid-template-columns:14px minmax(0,1fr)}
+  .st-meta{grid-column:2}
 }
-@media (max-width:620px){ .lk{grid-template-columns:minmax(0,1fr)} .lk-bar select{max-width:100%} }
+@media (pointer:coarse){ .lchip{min-height:36px} .steps button{min-height:40px} .lk-in select,.lk-bar select{min-height:40px} .ms-col{min-height:44px} }
 .method{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 36px}
 .method h3{margin:14px 0 6px}
 .method p,.method li{max-width:66ch;color:var(--ink-2);margin:0 0 8px}
@@ -357,6 +409,7 @@ footer{padding-block:48px 72px;font-size:var(--fs-xs);color:var(--muted)}
         <p class="sub">The average across all the futures.</p>
         <p class="delta" id="hero-d" hidden></p>
         <p class="cap" id="hero-adj" hidden>Your links could not all be true at once, so the closest set that can was used. <a href="#links">See what changed</a>.</p>
+        <p class="cap" id="hero-scale" hidden></p>
         <div class="tiles">
           <div class="tile"><span class="l">A typical future: half end above this, half below</span><span class="v" id="t-mid">–</span></div>
           <div class="tile"><span class="l">1 time in 10 it ends at or below</span><span class="v" id="t-low">–</span></div>
@@ -402,21 +455,32 @@ footer{padding-block:48px 72px;font-size:var(--fs-xs);color:var(--muted)}
 <section id="links" aria-labelledby="links-h">
   <div class="sec-head">
     <h2 id="links-h">What moves together</h2>
-    <p>A link says two things tend to go the same way (above zero) or opposite ways (below zero). Set its strength, or say where one thing should land when the other happens and the page works out the strength. Changing a chance does not move the things linked to it; supposing that it happens does.</p>
+    <p>Some things tend to happen together. Each link says in plain numbers what one thing does to another, and the links are grouped into stories. Pick how strong a link is, or use Fine-tune for the exact number. Every driver's row above shows its links too. Changing a chance does not move the things linked to it; supposing that it happens does.</p>
+  </div>
+  <div class="card master" id="master">
+    <div>
+      <h3>How strongly things move together</h3>
+      <p class="cap">One setting for every link at once. Your links stay as you set them below; this changes how strongly the futures use them.</p>
+      <p class="ms-say" id="ms-cap"></p>
+    </div>
+    <div>
+      <div class="k">Chance of ending below <span id="ms-thr">80%</span> of plan</div>
+      <div class="ms-cols" id="ms-cols" role="group" aria-label="How strongly things move together"></div>
+    </div>
   </div>
   <div class="notice warnbox" id="lk-warn" hidden><b>Adjusted</b><span id="lk-warn-t"></span></div>
-  <figure class="fig card grid-card">
-    <div class="rb-h"><h3>Every pair at a glance</h3>
-      <div class="legend"><span class="lg scale" id="grid-scale"></span><span class="lg"><span class="dotk"></span>changed by you</span></div></div>
-    <p class="cap">Rows and columns are the same list, numbered. A coloured square is a link: + the two go the same way, − opposite ways, stronger when darker. Click a square to change its link, or an empty one to add a link.</p>
-    <div class="grid-wrap"><svg id="grid" tabindex="0" role="img" aria-label="Grid of links between every pair of drivers. Use the arrow keys to move and Enter to change or add a link."></svg></div>
-  </figure>
   <div class="lk-bar" id="lk-bar">
     <label>Show links for <select id="lk-filter"></select> <span class="cap" id="lk-count"></span></label>
     <form class="lk-add" id="lk-add"><span>Add a link between</span><select id="lk-a" aria-label="First of the two"></select><span>and</span><select id="lk-b" aria-label="Second of the two"></select><button type="submit" class="ghost" disabled>Add link</button></form>
   </div>
-  <div class="lk-list" id="lk-list"></div>
-  <p class="cap" id="lk-empty" hidden>Nothing is linked to this one yet. Add a link above.</p>
+  <div class="stories" id="stories"></div>
+  <p class="cap" id="lk-empty" hidden>Nothing is linked to this one yet. Add a link above, or from its row.</p>
+  <details class="card grid-card" id="grid-box">
+    <summary><span class="st-caret" aria-hidden="true">›</span><h3>Every pair at a glance</h3></summary>
+    <div class="rb-h"><p class="cap">Rows and columns are the same list, numbered. A coloured square is a link: + the two go the same way, − opposite ways, stronger when darker. Click a square to change its link, or an empty one to add a link.</p>
+      <div class="legend"><span class="lg scale" id="grid-scale"></span><span class="lg"><span class="dotk"></span>changed by you</span></div></div>
+    <div class="grid-wrap"><svg id="grid" tabindex="0" role="img" aria-label="Grid of links between every pair of drivers. Use the arrow keys to move and Enter to change or add a link."></svg></div>
+  </details>
 </section>
 
 <section id="method" aria-labelledby="method-h">
@@ -436,7 +500,8 @@ footer{padding-block:48px 72px;font-size:var(--fs-xs);color:var(--muted)}
         <li>The headline is the <b>average</b> of all the futures, so it moves when something rare but severe becomes more likely. The <b>typical future</b> beside it barely moves in that case, which is why both are shown.</li>
         <li><b>How bad, if it happens</b> scales an event's effect: 1 is the standard case, 0.5 half of it.</li>
         <li><b>Suppose</b> keeps only the futures in which the thing happens. Everything linked to it shifts, and each affected row shows where it lands.</li>
-        <li>A <b>link</b> runs from −0.95 (opposite ways) through 0 (unrelated) to +0.95 (same way). For a quantity, "happens" means it comes in at its high case or better. Each thing keeps its own chance whatever its links are; links only change what tends to happen together.</li>
+        <li>A <b>link</b> runs from −0.95 (opposite ways) through 0 (unrelated) to +0.95 (same way). The five words set −0.6 (much less likely, or much lower), −0.3, 0 (no link), +0.3 and +0.6; Fine-tune sets anything in between. For a quantity, "happens" means it hits its high case or better, a 1-in-10 outcome. Each thing keeps its own chance whatever its links are; links only change what tends to happen together.</li>
+        <li><b>How strongly things move together</b> multiplies every link at once: none, half, as set, or 1.5 times as strong. Where links that strong cannot all be true at once, the futures use the closest set that can.</li>
       </ul>
     </div>
     <div>
@@ -1169,7 +1234,7 @@ return {rng, normCdf, normInv, bvnCdf, both, cond, rhoForCond, condMedian, readi
 });
 </script>
 <script>
-const DATA = {"target":"github","rev":"","nav":{"supply":"64 links from mine to model, 31 chokepoints, 92 stocks","atlas":"The investment numbers: $1.71T of capex, 85 projects, the payback test","odds":"Set the odds on 27 things that could change 2027 and see what gets built"},"names":{"brand":"Chokepoint","chain":"The Chain","money":"The Money","odds":"The Odds"},"supplyUrl":"../","atlasUrl":"../money/","repoUrl":"https://github.com/Parthp6174/AI_Supply-Chain_Map","siteUrl":"https://parthp6174.github.io/AI_Supply-Chain_Map/","file":{"version":1,"asOf":"2026-10-06","status":"provisional","statusNote":"These starting numbers are first estimates: facts already on this site plus judgement. None has been researched on its own yet. Change any of them to match your own view.","period":{"label":"Calendar 2027","from":"2027-01-01","months":12},"supplyOutput":"campus","plan":"100 is the AI data-center capacity that today's plans would add in 2027: what buyers have budgeted and suppliers have scheduled, with the shortages already known. Each supply number is the share of that plan one link delivers. Buyers want more than the plan (see Unmet demand), so a fall in orders only cuts what gets built once it is bigger than that cushion. Supply above plan is not counted: outcomes stop at 100.","buyers":[{"id":"hyper","label":"Hyperscalers","share":0.7,"who":"Amazon, Alphabet, Microsoft, Meta and Oracle"},{"id":"neo","label":"Neoclouds","share":0.2,"who":"CoreWeave, Nebius, Lambda, Crusoe and others, building largely for the labs"},{"id":"sov","label":"Sovereign and Gulf","share":0.1,"who":"State-backed projects such as Stargate UAE and HUMAIN"}],"bases":{"judgement":"A first estimate by judgement, anchored on facts already on this site. Not yet researched.","sourced":"Taken from a named source.","market":"Implied by a market price or a forecasting market."},"groups":[{"id":"geo","label":"Geopolitics and trade rules"},{"id":"chips","label":"Chip supply"},{"id":"power","label":"Power"},{"id":"demand","label":"Demand and money"}],"drivers":[{"id":"tw_blockade","group":"geo","kind":"event","label":"Taiwan blockade","question":"Will China blockade or quarantine Taiwan, stopping most commercial shipping for 30 days or more, starting before 31 Dec 2027?","resolves":"Yes if major news agencies report that most commercial shipping to and from Taiwan was stopped for 30 days or more.","deadline":"2027-12-31","p":0.03,"sev":1,"basis":"judgement","note":"The Chain rates this a tail risk. The PLA exercise Justice Mission 2025 (30 Dec 2025) rehearsed a blockade.","does":"Applies The Chain's Taiwan blockade scenario from the day it starts: leading-edge wafers, CoWoS packaging and part of substrates, memory and rack assembly stop leaving the island.","effects":[{"t":"scen","id":"taiwan","timing":"window"}]},{"id":"gulf_persist","group":"geo","kind":"event","label":"Gulf war drags on","question":"Will oil flows through the Strait of Hormuz still be below 75% of their pre-war level (about 20M barrels a day) on 30 Jun 2027?","resolves":"The June 2027 monthly average from the EIA or IEA: yes if it is below 15M barrels a day.","deadline":"2027-06-30","p":0.45,"sev":1,"basis":"judgement","note":"Flows were about 7.4M barrels a day in September 2026. The war began on 28 Feb 2026 and two ceasefires have broken down.","does":"If yes, sovereign buyers order 20% less than the plan through 2027. If no, they order 15% more, as insurers and investors return to the Gulf.","effects":[{"t":"dem","seg":"sov","m":0.8},{"t":"dem","seg":"sov","m":1.15,"on":"no"}]},{"id":"helium_cut","group":"geo","kind":"event","label":"Helium shortage cuts chip output","question":"Will a leading chipmaker (TSMC, Samsung, SK hynix or Micron) say that a helium shortage has cut its output, before 30 Jun 2027?","resolves":"Company statements, earnings calls or regulatory filings.","deadline":"2027-06-30","p":0.08,"sev":1,"basis":"judgement","note":"A third of world helium went offline when Ras Laffan was hit in March 2026. Fabs are running on priority allocations, and South Korean fabs' six-month stock window closed in July.","does":"From that day chip fabs lose about 3% of output (the helium part of The Chain's Gulf scenario).","effects":[{"t":"scen","id":"gulf","only":["helium"],"timing":"window"}]},{"id":"gulf_dc_hit","group":"geo","kind":"event","label":"Strike on a Gulf data center","question":"Will a military strike damage or shut down an AI data-center campus in a Gulf state between now and 31 Dec 2027?","resolves":"An operator statement or a major news agency report of damage or a shutdown caused by a strike.","deadline":"2027-12-31","p":0.2,"sev":1,"basis":"judgement","note":"Drones knocked out two of three AWS zones in the UAE on 1 Mar 2026 and the IRGC threatened Stargate UAE on 3 Apr. War-risk insurance for Gulf data centers is up about 1,900%.","does":"From that day sovereign buyers order 40% less, and less compute reaches the labs from Gulf sites.","effects":[{"t":"dem","seg":"sov","m":0.6,"timing":"window"},{"t":"shock","node":"sovereign","s":0.3,"timing":"window"}]},{"id":"cn_minerals","group":"geo","kind":"event","label":"China's mineral controls return","question":"Will China's export controls on gallium, germanium, antimony or rare earths be back in force for US buyers at any point before 31 Mar 2027?","resolves":"MOFCOM announcements. The suspensions end on 10 Nov and 27 Nov 2026 unless they are extended.","starts":"2026-11-10","deadline":"2027-03-31","p":0.3,"sev":0.3,"basis":"judgement","note":"Both suspensions lapse in November 2026 unless extended. Severity starts at 0.3 of The Chain's worst case: the ban on gallium, germanium and antimony was in force from December 2024 until it was suspended in November 2025, and supply kept moving through third countries at higher prices.","does":"Applies The Chain's minerals scenario from the day controls return: gallium, rare earths, tungsten and indium go back behind licences. The hit lands hardest on lasers, through indium.","effects":[{"t":"scen","id":"minerals","timing":"window"}]},{"id":"us_chip_rules","group":"geo","kind":"event","label":"Tighter US chip export rules","question":"Will the US impose new limits that cut AI chip sales to Gulf or other non-allied buyers (a new rule, or licences halted) before 31 Dec 2027?","resolves":"A Commerce Department (BIS) rule, or company filings reporting halted licences.","deadline":"2027-12-31","p":0.25,"sev":1,"basis":"judgement","note":"No specific rule is tracked on this site yet. Gulf buyers are the most exposed.","does":"From that day sovereign buyers order 35% less.","effects":[{"t":"dem","seg":"sov","m":0.65,"timing":"window"}]},{"id":"chip_tariff","group":"geo","kind":"event","label":"Chip tariff exemptions end","question":"Will the US end or narrow the Section 232 exemptions so that the 25% tariff applies to most imported AI chips or servers before 30 Jun 2027?","resolves":"A Federal Register notice or presidential proclamation.","deadline":"2027-06-30","p":0.15,"sev":1,"basis":"judgement","note":"A 25% tariff has applied since 15 Jan 2026, with exemptions.","does":"From that day all buyers order 5% less capacity, because the same budget buys fewer servers.","effects":[{"t":"dem","seg":"all","m":0.95,"timing":"window"}]},{"id":"jp_quake","group":"geo","kind":"event","label":"Earthquake hits Japan's materials makers","question":"Will an earthquake stop production for a month or more at a major Japanese maker of ABF film, T-glass, substrates, photoresist or wafers before 31 Dec 2027?","resolves":"Company disclosures from Ajinomoto, Nittobo, Ibiden, Shinko, JSR, TOK, Shin-Etsu or SUMCO.","deadline":"2027-12-31","p":0.04,"sev":0.5,"basis":"judgement","note":"The 2011 Tohoku quake stalled chip materials for months. Severity starts at 0.5 because The Chain's scenario assumes several makers are hit at once.","does":"Applies The Chain's Japan earthquake scenario from that day: ABF film, T-glass, substrates, resist, wafers and test equipment.","effects":[{"t":"scen","id":"japan","timing":"window"}]},{"id":"euv_halt","group":"geo","kind":"event","label":"EUV supply stops","question":"Will ASML's EUV shipments or servicing to leading chipmakers stop for 60 days or more before 31 Dec 2027?","resolves":"ASML statements, or export-licence changes by the Dutch or US governments.","deadline":"2027-12-31","p":0.01,"sev":1,"basis":"judgement","note":"The Chain calls this unlikely, not impossible. ASML is the only supplier and is delivering.","does":"Applies The Chain's EUV scenario from that day: installed tools keep running but new capacity stops arriving.","effects":[{"t":"scen","id":"euv","timing":"window"}]},{"id":"foundry_ramp","group":"chips","kind":"range","label":"Leading-edge wafers","question":"What share of the leading-edge wafers (3nm and 2nm) that 2027 plans count on will foundries deliver?","watch":"TSMC's wafers a month at 3nm and 2nm, against the demand its customers report.","unit":"% of plan","low":98,"mid":105,"high":110,"min":50,"max":120,"basis":"judgement","note":"The Chain rates this step tight, not short: 3nm is heading from 180k to 210k wafers a month, and 2nm from 90k to 110k by mid-2027. Plans are sized to scarcer links, so the central case leaves some slack.","does":"Below 100, every AI accelerator is short by that share.","effects":[{"t":"ramp","node":"foundry"}]},{"id":"cowos_ramp","group":"chips","kind":"range","label":"CoWoS packaging","question":"What share of the CoWoS packaging that 2027 plans count on will be delivered?","watch":"TSMC's CoWoS wafers a month and allocation comments from Nvidia, Broadcom and AMD.","unit":"% of plan","low":92,"mid":100,"high":105,"min":50,"max":120,"basis":"judgement","note":"The narrowest point of the chip chain per The Chain: about 130k wafers a month by end-2026 and about 260k by end-2028. Plans are sized to that ramp, so any slip cuts output directly.","does":"Below 100, GPUs and custom accelerators are short by that share.","effects":[{"t":"ramp","node":"cowos"}]},{"id":"hbm_ramp","group":"chips","kind":"range","label":"HBM memory","question":"What share of the HBM memory that 2027 plans count on will the three makers deliver?","watch":"HBM bit shipments and allocation comments from SK hynix, Samsung and Micron.","unit":"% of plan","low":94,"mid":103,"high":108,"min":50,"max":120,"basis":"judgement","note":"Three suppliers, sold out, prices rising. The Chain rates it serious, one step below the scarcest links, so the central case leaves a little slack. The risk is HBM4 yields or qualification slipping.","does":"Below 100, fewer accelerators can be packaged, by that share.","effects":[{"t":"ramp","node":"hbm"}]},{"id":"substrate_ramp","group":"chips","kind":"range","label":"Package substrates","question":"What share of the ABF package substrates that 2027 plans count on will be delivered?","watch":"Capacity and lead-time comments from Ibiden, Shinko, Unimicron and AT&S.","unit":"% of plan","low":95,"mid":103,"high":108,"min":50,"max":120,"basis":"judgement","note":"Short now, rated serious by The Chain. Ibiden is spending ¥500B through FY2028 for 2.5 times the capacity, so the central case leaves a little slack; new lines take two to three years.","does":"Below 100, chip packaging is short by that share.","effects":[{"t":"ramp","node":"substrate"}]},{"id":"tglass_ramp","group":"chips","kind":"range","label":"T-glass cloth","question":"What share of the low-expansion glass cloth (T-glass) that 2027 plans count on will be delivered?","watch":"Nittobo's capacity additions and substrate makers' comments on glass cloth supply.","unit":"% of plan","low":90,"mid":99,"high":104,"min":50,"max":120,"basis":"judgement","note":"One maker, Nittobo, has about 90% of T-glass, and relief is not expected before mid-2027. A late ramp would leave the first half of 2027 short.","does":"Below 100, substrates are short by that share and high-speed boards by most of it.","effects":[{"t":"ramp","node":"glasscloth"}]},{"id":"inp_ramp","group":"chips","kind":"range","label":"InP wafers for lasers","question":"What share of the indium phosphide (InP) wafers that 2027 plans count on will be delivered?","watch":"Capacity announcements from AXT, Sumitomo Electric and JX, and laser allocation comments from Lumentum and Coherent.","unit":"% of plan","low":88,"mid":99,"high":105,"min":40,"max":120,"basis":"judgement","note":"The scarcest input in AI networking per The Chain. Six-inch capacity is meant to double by end-2027 and the shortage is expected to outlast 2027, so this has the widest downside of the chip links.","does":"Below 100, lasers, optical links and cluster networks are short by that share.","effects":[{"t":"ramp","node":"inp"}]},{"id":"cpo_volume","group":"chips","kind":"event","label":"Co-packaged optics in volume","question":"Will co-packaged optics account for 10% or more of the new AI cluster switch ports shipped in 2027?","resolves":"Shipment estimates from LightCounting or Dell'Oro, or Nvidia and Broadcom disclosures.","deadline":"2027-12-31","p":0.2,"sev":1,"basis":"judgement","note":"The Chain notes that the laser shortage is speeding up adoption.","does":"Cuts any InP shortfall by a quarter, because each link needs fewer lasers.","effects":[{"t":"ease","node":"inp","f":0.75}]},{"id":"turbine_ramp","group":"power","kind":"range","label":"Gas turbines","question":"What share of the gas turbines that 2027 plans count on will be delivered?","watch":"Deliveries and backlog at GE Vernova, Siemens Energy and Mitsubishi Heavy.","unit":"% of plan","low":93,"mid":100,"high":104,"min":30,"max":120,"basis":"judgement","note":"Makers can build about 60 to 70 GW a year against about 110 GW of orders, and slots are sold into 2030-31. Units for 2027 are already scheduled, so the risk is factory slips, not allocation.","does":"Below 100, gas-fired power on the grid and on site is short. Other sources cover part of the gap.","effects":[{"t":"ramp","node":"turbines"}]},{"id":"xfmr_ramp","group":"power","kind":"range","label":"Large transformers","question":"What share of the large transformers that 2027 plans count on will be delivered?","watch":"Lead-time surveys and deliveries at Hitachi Energy, Siemens Energy and HD Hyundai Electric.","unit":"% of plan","low":91,"mid":100,"high":105,"min":30,"max":120,"basis":"judgement","note":"Lead times run up to four years and prices are up about 80%. The Chain calls this the slowest item to order for any new campus.","does":"Below 100, grid connections are short by that share.","effects":[{"t":"ramp","node":"transformers"}]},{"id":"grid_ramp","group":"power","kind":"range","label":"Grid connections","question":"What share of the grid connections that 2027 plans count on will utilities deliver in time?","watch":"Interconnection data from PJM, ERCOT and other grid operators, and campus energisation dates.","unit":"% of plan","low":89,"mid":99,"high":104,"min":30,"max":120,"basis":"judgement","note":"PJM's July 2026 capacity auction missed its supply target. Queues decide where campuses can go, and connection dates slip more often than they are beaten.","does":"Below 100, the grid-fed part of new campuses (about two thirds of their power) is short by that share.","effects":[{"t":"ramp","node":"grid"}]},{"id":"nuclear_restart","group":"power","kind":"event","label":"Three Mile Island restart delivers","question":"Will the Crane Clean Energy Center (the 835 MW Three Mile Island restart for Microsoft) be delivering power by 31 Dec 2027?","resolves":"Constellation statements or the reactor's NRC operating status.","deadline":"2027-12-31","p":0.5,"sev":1,"basis":"judgement","note":"The restart is under way (The Money). It is small against the gigawatts needed in 2027 and matters more as a signal for 2028 to 2030.","does":"Cuts any grid shortfall by 5% from the day it delivers.","effects":[{"t":"ease","node":"grid","f":0.95,"timing":"window"}]},{"id":"unmet_demand","group":"demand","kind":"range","label":"Unmet demand","question":"How much more AI capacity would buyers take in 2027 than today's plans deliver, if suppliers could build it?","watch":"Cloud backlogs at Microsoft, Oracle and CoreWeave, GPU rental prices, Nvidia lead times, and statements such as AWS saying capacity stays short of demand through 2027.","unit":"% above plan","low":3,"mid":15,"high":30,"min":0,"max":60,"basis":"judgement","note":"Every critical link in The Chain is sold out and AWS says capacity stays short of demand through 2027, which points to a real cushion. Its size is a judgement, and sceptics argue that part of it is double ordering.","does":"Lifts what all buyers want above the plan. A fall in orders only cuts what gets built once it is bigger than this cushion.","effects":[{"t":"demlvl","seg":"all","add":100}]},{"id":"capex_2027","group":"demand","kind":"range","label":"Hyperscaler spending plans for 2027","question":"What will Amazon, Alphabet, Microsoft, Meta and Oracle plan to spend on capital projects in 2027, as a percentage of their 2026 plans (about $840B together)?","resolves":"Their 2027 guidance as it stands at mid-2027 (second-quarter results), midpoints added up.","unit":"% of 2026 plans","low":115,"mid":130,"high":150,"min":60,"max":220,"basis":"judgement","note":"2026 plans: Amazon $220B, Alphabet $200B, Microsoft $190B, Meta $137.5B, Oracle $92.5B. Alphabet says 2027 will 'significantly increase' and AWS says capacity stays short of demand through 2027.","does":"Hyperscalers place 70% of orders. Their orders move one for one with this number, measured against its starting central case.","effects":[{"t":"demlvl","seg":"hyper","base":"mid"}]},{"id":"lab_revenue","group":"demand","kind":"range","label":"Lab revenue growth","question":"Where will the combined annualised revenue of OpenAI and Anthropic stand at the end of 2027, taking today's level (about $135B) as 100?","resolves":"Company statements and filings on annualised revenue at the end of 2027.","unit":"index, today = 100","low":120,"mid":165,"high":230,"min":60,"max":400,"basis":"judgement","note":"The two labs have signed about $1.14T of compute commitments against about $135B of revenue. In The Money, OpenAI needs about 34% growth a year just to break even on its commitments.","does":"Weak revenue cuts what the labs can commit to. Neocloud orders move 0.3 for one with this number and hyperscaler orders 0.1 for one, measured against its starting central case.","effects":[{"t":"demlvl","seg":"neo","base":"mid","k":0.3},{"t":"demlvl","seg":"hyper","base":"mid","k":0.1}]},{"id":"sov_follow","group":"demand","kind":"range","label":"Sovereign projects that go ahead","question":"What share of the Gulf and other sovereign AI capacity announced for 2027 will actually be ordered?","resolves":"Project announcements and operator statements at the end of 2027.","unit":"% of announced","low":50,"mid":75,"high":95,"min":0,"max":110,"basis":"judgement","note":"Gulf projects sit inside the war's strike zone and insurers have pulled back. This is the follow-through apart from the war, strikes and export rules, which have their own entries.","does":"Sovereign buyers place 10% of orders. Their orders move one for one with this number, measured against its starting central case.","effects":[{"t":"demlvl","seg":"sov","base":"mid"}]},{"id":"digestion","group":"demand","kind":"event","label":"A pause in orders","question":"Will Nvidia report a quarter-on-quarter fall in data-center revenue for any fiscal quarter ending in calendar 2027?","resolves":"Nvidia's quarterly results.","starts":"2027-01-01","deadline":"2027-12-31","p":0.12,"sev":1,"basis":"judgement","note":"Nvidia's Q2 FY2027 call pointed to about 70% growth in FY2028, which makes a pause unlikely but not impossible.","does":"All buyers order 12% less from that quarter on.","effects":[{"t":"dem","seg":"all","m":0.88,"timing":"window"}]},{"id":"openai_funding","group":"demand","kind":"event","label":"OpenAI raises $30B or more","question":"Will OpenAI close new equity or debt funding of $30B or more between now and 30 Jun 2027?","resolves":"A company announcement or filings.","deadline":"2027-06-30","p":0.7,"sev":1,"basis":"judgement","note":"OpenAI's compute commitments run far ahead of its revenue (The Money), so it depends on raising outside money.","does":"If it does not, neoclouds order 15% less and hyperscalers 2% less through 2027, and less capital reaches the labs.","effects":[{"t":"dem","seg":"neo","m":0.85,"on":"no"},{"t":"dem","seg":"hyper","m":0.98,"on":"no"},{"t":"shock","node":"capital","s":0.1,"on":"no"}]},{"id":"credit_squeeze","group":"demand","kind":"event","label":"Credit squeeze on AI builders","question":"Will S&P or Moody's cut Oracle to junk, or a large neocloud default on or restructure its debt, before 31 Dec 2027?","resolves":"Rating agency actions and company filings.","deadline":"2027-12-31","p":0.2,"sev":1,"basis":"judgement","note":"S&P has Oracle at BBB-, one notch above junk, with $117B of bonds outstanding. CoreWeave carries $35B of debt with $6.2B of principal due in 2027.","does":"From that day neoclouds order 45% less and hyperscalers 5% less (Oracle), and less capital reaches neoclouds, sovereign projects and labs.","effects":[{"t":"dem","seg":"neo","m":0.55,"timing":"window"},{"t":"dem","seg":"hyper","m":0.95,"timing":"window"},{"t":"shock","node":"capital","s":0.4,"timing":"window"}]}],"links":[{"a":"tw_blockade","b":"cn_minerals","rho":0.5,"why":"A confrontation over Taiwan would bring China's export levers with it."},{"a":"tw_blockade","b":"us_chip_rules","rho":0.4,"why":"A Taiwan crisis would come with tighter US technology controls."},{"a":"cn_minerals","b":"us_chip_rules","rho":0.4,"why":"Tit for tat: each side's controls have answered the other's."},{"a":"cn_minerals","b":"chip_tariff","rho":0.3,"why":"Both are moves in the same trade dispute."},{"a":"us_chip_rules","b":"chip_tariff","rho":0.2,"why":"A harder US line on chips tends to show up in both."},{"a":"gulf_persist","b":"helium_cut","rho":0.5,"why":"Helium stays short for as long as Ras Laffan is offline."},{"a":"gulf_persist","b":"gulf_dc_hit","rho":0.5,"why":"A longer war gives more time and reason for strikes on Gulf sites."},{"a":"gulf_persist","b":"credit_squeeze","rho":0.2,"why":"A long war keeps energy prices and borrowing costs high."},{"a":"tw_blockade","b":"credit_squeeze","rho":0.4,"why":"A blockade would be a financial shock as well as a supply shock."},{"a":"tw_blockade","b":"capex_2027","rho":-0.3,"why":"Buyers would cut spending plans if chips could not be had and markets fell."},{"a":"foundry_ramp","b":"cowos_ramp","rho":0.5,"why":"Both depend on TSMC's execution, tools and people."},{"a":"cowos_ramp","b":"hbm_ramp","rho":0.3,"why":"The same accelerator generations pace both ramps."},{"a":"cowos_ramp","b":"substrate_ramp","rho":0.3,"why":"Packaging lines and substrate lines are planned against the same forecasts."},{"a":"substrate_ramp","b":"tglass_ramp","rho":0.5,"why":"Substrate makers cannot ramp without glass cloth, and both sit in Japan."},{"a":"turbine_ramp","b":"xfmr_ramp","rho":0.4,"why":"Both are heavy electrical equipment with the same steel, copper and labour limits."},{"a":"xfmr_ramp","b":"grid_ramp","rho":0.5,"why":"Transformers are the slowest part of a new grid connection."},{"a":"turbine_ramp","b":"grid_ramp","rho":0.3,"why":"New gas plants add the supply that lets utilities connect large loads."},{"a":"nuclear_restart","b":"grid_ramp","rho":0.2,"why":"Both move with how fast regulators and utilities act."},{"a":"cpo_volume","b":"inp_ramp","rho":-0.2,"why":"The worse the laser shortage, the faster buyers move to co-packaged optics."},{"a":"unmet_demand","b":"capex_2027","rho":0.5,"why":"Buyers who cannot get enough capacity raise their spending plans."},{"a":"unmet_demand","b":"lab_revenue","rho":0.4,"why":"Fast lab growth is what keeps demand ahead of supply."},{"a":"unmet_demand","b":"digestion","rho":-0.5,"why":"A pause in orders is what a vanished cushion looks like."},{"a":"unmet_demand","b":"credit_squeeze","rho":-0.3,"why":"A credit squeeze removes the weakest buyers from the queue."},{"a":"capex_2027","b":"digestion","rho":-0.5,"why":"A pause in orders and lower spending plans come together."},{"a":"capex_2027","b":"lab_revenue","rho":0.5,"why":"Hyperscalers spend more when their biggest AI customers are growing."},{"a":"capex_2027","b":"credit_squeeze","rho":-0.4,"why":"Tight credit and lower spending plans come together."},{"a":"capex_2027","b":"openai_funding","rho":0.3,"why":"A funded OpenAI keeps its cloud commitments."},{"a":"capex_2027","b":"sov_follow","rho":0.3,"why":"Both rise and fall with confidence in AI demand."},{"a":"lab_revenue","b":"openai_funding","rho":0.6,"why":"Investors fund growth; slow revenue makes a large round harder."},{"a":"lab_revenue","b":"credit_squeeze","rho":-0.5,"why":"Weak lab revenue is what would put neocloud and Oracle debt at risk."},{"a":"lab_revenue","b":"digestion","rho":-0.4,"why":"Slow revenue is the likeliest cause of a pause in orders."},{"a":"openai_funding","b":"credit_squeeze","rho":-0.5,"why":"A failed round would hit the lenders and landlords who built for OpenAI."},{"a":"digestion","b":"credit_squeeze","rho":0.4,"why":"A pause in orders cuts the revenue that leveraged builders need."},{"a":"digestion","b":"openai_funding","rho":-0.3,"why":"Both reflect how much confidence there is in AI demand."}]},"chain":{"graph":{"nodes":[{"id":"quartz","inputs":[]},{"id":"gallium","inputs":[]},{"id":"indium","inputs":[]},{"id":"ree","inputs":[]},{"id":"tungsten","inputs":[]},{"id":"helium","inputs":[]},{"id":"copper","inputs":[]},{"id":"natgas","inputs":[]},{"id":"uranium","inputs":[]},{"id":"poly","inputs":[]},{"id":"resist","inputs":[]},{"id":"gases","inputs":[["helium",null,1.0,0.5],["tungsten",null,1.0,0.4]]},{"id":"chems","inputs":[["ree",null,0.0,0.0]]},{"id":"abf","inputs":[]},{"id":"glasscloth","inputs":[]},{"id":"goes","inputs":[]},{"id":"enrich","inputs":[["uranium",null,1.0,1.0]]},{"id":"wafers","inputs":[["poly",null,1.0,1.0],["quartz",null,1.0,0.5]]},{"id":"inp","inputs":[["indium",null,1.0,0.8]]},{"id":"substrate","inputs":[["abf",null,1.0,1.0],["glasscloth",null,1.0,1.0],["copper",null,1.0,0.3]]},{"id":"pcb","inputs":[["glasscloth",null,1.0,0.8],["copper",null,1.0,0.3]]},{"id":"litho","inputs":[]},{"id":"depetch","inputs":[["ree",null,0.0,0.0]]},{"id":"metrology","inputs":[]},{"id":"eda","inputs":[]},{"id":"bonders","inputs":[]},{"id":"testeq","inputs":[]},{"id":"dicing","inputs":[]},{"id":"turbines","inputs":[]},{"id":"transformers","inputs":[["goes",null,1.0,0.8],["copper",null,1.0,0.5]]},{"id":"foundry","inputs":[["wafers",null,1.0,1.0],["resist",null,1.0,1.0],["gases",null,1.0,0.2],["chems",null,1.0,0.5],["litho",null,1.0,0.25],["depetch",null,1.0,0.25],["metrology",null,1.0,0.25]]},{"id":"dram","inputs":[["wafers",null,1.0,1.0],["resist",null,1.0,1.0],["gases",null,1.0,0.2],["chems",null,1.0,0.5],["litho",null,1.0,0.25],["depetch",null,1.0,0.25],["metrology",null,1.0,0.25]]},{"id":"nand","inputs":[["wafers",null,1.0,1.0],["resist",null,1.0,1.0],["gases",null,1.0,0.2],["chems",null,1.0,0.5],["litho",null,1.0,0.15],["depetch",null,1.0,0.25]]},{"id":"china_fab","inputs":[["wafers",null,1.0,1.0],["resist",null,1.0,1.0],["gases",null,1.0,0.2],["chems",null,1.0,0.5],["litho",null,1.0,0.25],["depetch",null,1.0,0.25]]},{"id":"gaspower","inputs":[["turbines",null,1.0,1.0],["natgas",null,1.0,1.0]]},{"id":"nuclear","inputs":[["enrich",null,1.0,0.5]]},{"id":"hbm","inputs":[["dram",null,1.0,1.0],["bonders",null,1.0,0.5],["testeq",null,1.0,0.3],["dicing",null,1.0,0.3]]},{"id":"cowos","inputs":[["foundry",null,1.0,1.0],["hbm",null,1.0,1.0],["substrate",null,1.0,1.0],["testeq",null,1.0,0.3],["dicing",null,1.0,0.3]]},{"id":"osat","inputs":[["foundry",null,1.0,1.0],["substrate",null,1.0,1.0],["testeq",null,1.0,0.3]]},{"id":"grid","inputs":[["transformers",null,1.0,1.0],["gaspower","gen",0.4,1.0],["nuclear","gen",0.2,1.0]]},{"id":"onsite","inputs":[["natgas",null,1.0,1.0],["turbines","equip",0.5,1.0]]},{"id":"gpu","inputs":[["cowos",null,1.0,1.0],["eda",null,1.0,0.3]]},{"id":"asic","inputs":[["cowos",null,1.0,1.0],["eda",null,1.0,0.3]]},{"id":"cpu","inputs":[["osat",null,1.0,1.0],["eda",null,1.0,0.3]]},{"id":"netsi","inputs":[["osat",null,1.0,1.0],["eda",null,1.0,0.3]]},{"id":"bmc","inputs":[["osat",null,1.0,1.0]]},{"id":"lasers","inputs":[["inp",null,1.0,1.0],["gallium",null,1.0,0.4]]},{"id":"optics","inputs":[["lasers",null,1.0,1.0],["netsi",null,1.0,0.5],["pcb",null,1.0,0.5]]},{"id":"fiber","inputs":[["gallium",null,1.0,0.3],["copper",null,1.0,0.3]]},{"id":"china_chips","inputs":[["china_fab",null,1.0,1.0]]},{"id":"electrical","inputs":[["copper",null,1.0,0.3]]},{"id":"cooling","inputs":[["copper",null,1.0,0.2],["ree",null,0.0,0.0]]},{"id":"servers","inputs":[["gpu","accel",0.72,1.0],["asic","accel",0.28,1.0],["cpu",null,1.0,1.0],["dram",null,1.0,0.7],["pcb",null,1.0,1.0],["bmc",null,1.0,1.0],["netsi",null,1.0,0.8]]},{"id":"netsys","inputs":[["netsi",null,1.0,1.0],["optics",null,1.0,1.0],["fiber",null,1.0,1.0],["pcb",null,1.0,0.5]]},{"id":"storage","inputs":[["nand","flash",0.7,1.0]]},{"id":"build","inputs":[]},{"id":"campus","inputs":[["servers",null,1.0,1.0],["netsys",null,1.0,1.0],["storage",null,1.0,0.3],["build",null,1.0,1.0],["electrical",null,1.0,1.0],["cooling",null,1.0,1.0],["grid","power",0.65,1.0],["onsite","power",0.35,1.0]]},{"id":"capital","inputs":[]},{"id":"hyper","inputs":[["campus",null,1.0,1.0]]},{"id":"neo","inputs":[["campus",null,1.0,1.0],["capital",null,1.0,0.8]]},{"id":"sovereign","inputs":[["campus",null,1.0,1.0],["capital",null,1.0,0.5]]},{"id":"china_cloud","inputs":[["china_chips",null,1.0,1.0]]},{"id":"labs","inputs":[["hyper","compute",0.7,1.0],["neo","compute",0.2,1.0],["sovereign","compute",0.1,1.0],["capital",null,1.0,0.6]]},{"id":"users","inputs":[["labs","ai",0.6,1.0],["hyper","ai",0.4,1.0]]}],"other":{"grid|gen":0.4,"onsite|equip":0.5,"storage|flash":0.3},"outputs":[{"id":"accel","label":"AI accelerators","mix":[["gpu",0.72],["asic",0.28]]},{"id":"hbm","label":"HBM memory","mix":[["hbm",1.0]]},{"id":"optics","label":"Optical links","mix":[["optics",1.0]]},{"id":"servers","label":"AI servers and racks","mix":[["servers",1.0]]},{"id":"campus","label":"New campus capacity","mix":[["campus",1.0]]},{"id":"labs","label":"Compute reaching labs","mix":[["labs",1.0]]}]},"scen":{"taiwan":{"kind":"supply","h0":{"foundry":0.85,"cowos":0.9,"osat":0.4,"substrate":0.2,"wafers":0.1,"dram":0.15,"hbm":0.05,"bmc":0.3,"servers":0.3,"pcb":0.25},"h1":{"foundry":0.7,"cowos":0.65,"osat":0.2,"substrate":0.1,"wafers":0.05,"dram":0.1,"hbm":0.0,"bmc":0.1,"servers":0.1,"pcb":0.1}},"gulf":{"kind":"supply","h0":{"helium":0.33,"sovereign":0.5,"natgas":0.03,"capital":0.05},"h1":{"helium":0.25,"sovereign":0.35,"natgas":0.03,"capital":0.03}},"minerals":{"kind":"supply","h0":{"gallium":0.6,"ree":0.5,"tungsten":0.4,"indium":0.4},"h1":{"gallium":0.3,"ree":0.3,"tungsten":0.2,"indium":0.2}},"power":{"kind":"supply","h0":{"turbines":0.35,"transformers":0.3,"grid":0.2,"electrical":0.1},"h1":{"turbines":0.25,"transformers":0.2,"grid":0.2,"electrical":0.05}},"inp":{"kind":"supply","h0":{"inp":0.25,"lasers":0.05},"h1":{"inp":0.08,"lasers":0.0}},"hbm":{"kind":"supply","h0":{"hbm":0.25,"dram":0.05,"bonders":0.1},"h1":{"hbm":0.08,"dram":0.0,"bonders":0.0}},"japan":{"kind":"supply","h0":{"abf":0.4,"glasscloth":0.5,"substrate":0.3,"resist":0.3,"wafers":0.2,"testeq":0.3,"dicing":0.3,"metrology":0.2},"h1":{"abf":0.1,"glasscloth":0.15,"substrate":0.1,"resist":0.05,"wafers":0.05,"testeq":0.05,"dicing":0.05,"metrology":0.05}},"euv":{"kind":"supply","h0":{"litho":0.9},"h1":{"litho":1.0,"foundry":0.35,"dram":0.3}},"finance":{"kind":"demand","h0":{},"h1":{},"cut":[0.25,0.4]},"compound":{"kind":"compound","h0":{"foundry":0.85,"cowos":0.9,"osat":0.4,"substrate":0.2,"wafers":0.1,"dram":0.15,"hbm":0.05,"bmc":0.3,"servers":0.3,"pcb":0.25,"helium":0.33,"sovereign":0.5,"natgas":0.03,"capital":0.5,"gallium":0.6,"ree":0.5,"tungsten":0.4,"indium":0.4,"turbines":0.35,"transformers":0.3,"grid":0.2,"electrical":0.1},"h1":{"foundry":0.7,"cowos":0.65,"osat":0.2,"substrate":0.1,"wafers":0.05,"dram":0.1,"hbm":0,"bmc":0.1,"servers":0.1,"pcb":0.1,"helium":0.25,"sovereign":0.35,"natgas":0.03,"capital":0.4,"gallium":0.3,"ree":0.3,"tungsten":0.2,"indium":0.2,"turbines":0.25,"transformers":0.2,"grid":0.2,"electrical":0.05},"cut":[0.4,0.5]}}},"linkNames":{"quartz":["High-purity quartz","High-purity quartz"],"gallium":["Gallium & germanium","Gallium and germanium"],"indium":["Indium","Indium"],"ree":["Rare earths","Medium and heavy rare earths"],"tungsten":["Tungsten & moly","Tungsten and molybdenum"],"helium":["Helium","Helium"],"copper":["Copper","Copper"],"natgas":["Natural gas","Natural gas"],"uranium":["Uranium","Uranium ore"],"poly":["Polysilicon","Semiconductor-grade polysilicon"],"resist":["Photoresists","Photoresists"],"gases":["Specialty gases","Bulk and specialty gases"],"chems":["Process chemicals","Process chemicals, slurries and filters"],"abf":["ABF film","ABF build-up film"],"glasscloth":["Glass-fiber cloth","Low-expansion glass-fiber cloth (T-glass)"],"goes":["Electrical steel","Grain-oriented electrical steel (GOES)"],"enrich":["Uranium enrichment","Uranium enrichment"],"wafers":["300mm wafers","300mm silicon wafers"],"inp":["InP wafers","Indium phosphide (InP) wafers"],"substrate":["ABF substrates","FC-BGA (ABF) package substrates"],"pcb":["Boards & laminates","High-speed boards and laminates"],"litho":["EUV lithography","Lithography (EUV and DUV)"],"depetch":["Deposition & etch","Deposition, etch and clean tools"],"metrology":["Inspection","Inspection and metrology"],"eda":["Design software & IP","Chip-design software (EDA) and IP"],"bonders":["HBM bonders","HBM stacking bonders"],"testeq":["Test equipment","Automated test equipment (ATE)"],"dicing":["Dicing & grinding","Dicing and grinding"],"turbines":["Gas turbines","Heavy-duty gas turbines"],"transformers":["Transformers","Large power transformers"],"foundry":["Leading-edge foundry","Leading-edge logic foundry (3nm, 2nm)"],"dram":["DRAM fabs","DRAM fabs"],"nand":["NAND flash","NAND flash fabs"],"china_fab":["China's fabs","China's domestic fabs (SMIC, CXMT)"],"gaspower":["Gas-fired plants","Gas-fired power plants"],"nuclear":["Nuclear power","Nuclear power"],"hbm":["HBM stacks","High-bandwidth memory (HBM)"],"cowos":["CoWoS packaging","CoWoS advanced packaging"],"osat":["Assembly & test","Outsourced assembly and test (OSAT)"],"grid":["Grid & interconnection","Grid capacity and interconnection"],"onsite":["On-site power","On-site generation"],"gpu":["Merchant GPUs","Merchant AI accelerators (GPUs)"],"asic":["Custom AI chips","Custom AI accelerators (ASICs)"],"cpu":["CPUs","Server CPUs"],"netsi":["Network silicon","Network silicon"],"bmc":["Server control chips","Baseboard management controllers (BMCs)"],"lasers":["Lasers","Lasers and photodetectors"],"optics":["Optical modules","Optical transceivers"],"fiber":["Fiber & cabling","Fiber, connectors and cables"],"china_chips":["China's AI chips","China's AI chips"],"electrical":["Switchgear & UPS","Switchgear, UPS and backup power"],"cooling":["Liquid cooling","Liquid cooling and thermal"],"servers":["AI servers & racks","AI servers and racks"],"netsys":["Cluster networks","Cluster networks"],"storage":["Storage","Storage systems"],"build":["Build & shells","Construction, electrical contracting and shells"],"campus":["AI campuses","AI data-center campuses"],"capital":["Capital & financing","Capital: equity, debt and vendor financing"],"hyper":["Hyperscalers","Hyperscale clouds"],"neo":["Neoclouds","Neoclouds"],"sovereign":["Gulf & sovereign AI","Gulf and sovereign AI"],"china_cloud":["China's AI clouds","China's AI clouds"],"labs":["Frontier labs","Frontier AI labs"],"users":["Users & businesses","End demand: people and businesses paying for AI"]}};
+const DATA = {"target":"github","rev":"","nav":{"supply":"64 links from mine to model, 31 chokepoints, 92 stocks","atlas":"The investment numbers: $1.71T of capex, 85 projects, the payback test","odds":"Set the odds on 27 things that could change 2027 and see what gets built"},"names":{"brand":"Chokepoint","chain":"The Chain","money":"The Money","odds":"The Odds"},"supplyUrl":"../","atlasUrl":"../money/","repoUrl":"https://github.com/Parthp6174/AI_Supply-Chain_Map","siteUrl":"https://parthp6174.github.io/AI_Supply-Chain_Map/","file":{"version":1,"asOf":"2026-10-06","status":"provisional","statusNote":"These starting numbers are first estimates: facts already on this site plus judgement. None has been researched on its own yet. Change any of them to match your own view.","period":{"label":"Calendar 2027","from":"2027-01-01","months":12},"supplyOutput":"campus","plan":"100 is the AI data-center capacity that today's plans would add in 2027: what buyers have budgeted and suppliers have scheduled, with the shortages already known. Each supply number is the share of that plan one link delivers. Buyers want more than the plan (see Unmet demand), so a fall in orders only cuts what gets built once it is bigger than that cushion. Supply above plan is not counted: outcomes stop at 100.","buyers":[{"id":"hyper","label":"Hyperscalers","share":0.7,"who":"Amazon, Alphabet, Microsoft, Meta and Oracle"},{"id":"neo","label":"Neoclouds","share":0.2,"who":"CoreWeave, Nebius, Lambda, Crusoe and others, building largely for the labs"},{"id":"sov","label":"Sovereign and Gulf","share":0.1,"who":"State-backed projects such as Stargate UAE and HUMAIN"}],"bases":{"judgement":"A first estimate by judgement, anchored on facts already on this site. Not yet researched.","sourced":"Taken from a named source.","market":"Implied by a market price or a forecasting market."},"groups":[{"id":"geo","label":"Geopolitics and trade rules"},{"id":"chips","label":"Chip supply"},{"id":"power","label":"Power"},{"id":"demand","label":"Demand and money"}],"stories":[{"id":"uschina","label":"US–China tension","blurb":"A Taiwan crisis, export controls and tariffs tend to arrive together."},{"id":"gulf","label":"The Gulf war","blurb":"The longer the war lasts, the more it hits helium, Gulf data centers and borrowing costs."},{"id":"chips","label":"Chip supply","blurb":"Wafers, packaging, memory and materials are planned against the same forecasts, often by the same few suppliers."},{"id":"power","label":"Power","blurb":"Turbines, transformers and grid connections share steel, copper, labour and regulators."},{"id":"demand","label":"AI demand and money","blurb":"Spending plans, lab revenue, funding and credit rise and fall with confidence in AI."}],"drivers":[{"id":"tw_blockade","group":"geo","story":"uschina","kind":"event","label":"Taiwan blockade","say":{"if":"China blockades Taiwan","of":"of a Taiwan blockade"},"question":"Will China blockade or quarantine Taiwan, stopping most commercial shipping for 30 days or more, starting before 31 Dec 2027?","resolves":"Yes if major news agencies report that most commercial shipping to and from Taiwan was stopped for 30 days or more.","deadline":"2027-12-31","p":0.03,"sev":1,"basis":"judgement","note":"The Chain rates this a tail risk. The PLA exercise Justice Mission 2025 (30 Dec 2025) rehearsed a blockade.","does":"Applies The Chain's Taiwan blockade scenario from the day it starts: leading-edge wafers, CoWoS packaging and part of substrates, memory and rack assembly stop leaving the island.","effects":[{"t":"scen","id":"taiwan","timing":"window"}]},{"id":"gulf_persist","group":"geo","story":"gulf","kind":"event","label":"Gulf war drags on","say":{"if":"the Gulf war drags on","of":"that the Gulf war drags on"},"question":"Will oil flows through the Strait of Hormuz still be below 75% of their pre-war level (about 20M barrels a day) on 30 Jun 2027?","resolves":"The June 2027 monthly average from the EIA or IEA: yes if it is below 15M barrels a day.","deadline":"2027-06-30","p":0.45,"sev":1,"basis":"judgement","note":"Flows were about 7.4M barrels a day in September 2026. The war began on 28 Feb 2026 and two ceasefires have broken down.","does":"If yes, sovereign buyers order 20% less than the plan through 2027. If no, they order 15% more, as insurers and investors return to the Gulf.","effects":[{"t":"dem","seg":"sov","m":0.8},{"t":"dem","seg":"sov","m":1.15,"on":"no"}]},{"id":"helium_cut","group":"geo","story":"gulf","kind":"event","label":"Helium shortage cuts chip output","say":{"if":"a helium shortage cuts chip output","of":"that a helium shortage cuts chip output"},"question":"Will a leading chipmaker (TSMC, Samsung, SK hynix or Micron) say that a helium shortage has cut its output, before 30 Jun 2027?","resolves":"Company statements, earnings calls or regulatory filings.","deadline":"2027-06-30","p":0.08,"sev":1,"basis":"judgement","note":"A third of world helium went offline when Ras Laffan was hit in March 2026. Fabs are running on priority allocations, and South Korean fabs' six-month stock window closed in July.","does":"From that day chip fabs lose about 3% of output (the helium part of The Chain's Gulf scenario).","effects":[{"t":"scen","id":"gulf","only":["helium"],"timing":"window"}]},{"id":"gulf_dc_hit","group":"geo","story":"gulf","kind":"event","label":"Strike on a Gulf data center","say":{"if":"a strike hits a Gulf data center","of":"of a strike on a Gulf data center"},"question":"Will a military strike damage or shut down an AI data-center campus in a Gulf state between now and 31 Dec 2027?","resolves":"An operator statement or a major news agency report of damage or a shutdown caused by a strike.","deadline":"2027-12-31","p":0.2,"sev":1,"basis":"judgement","note":"Drones knocked out two of three AWS zones in the UAE on 1 Mar 2026 and the IRGC threatened Stargate UAE on 3 Apr. War-risk insurance for Gulf data centers is up about 1,900%.","does":"From that day sovereign buyers order 40% less, and less compute reaches the labs from Gulf sites.","effects":[{"t":"dem","seg":"sov","m":0.6,"timing":"window"},{"t":"shock","node":"sovereign","s":0.3,"timing":"window"}]},{"id":"cn_minerals","group":"geo","story":"uschina","kind":"event","label":"China's mineral controls return","say":{"if":"China's mineral controls return","of":"that China's mineral controls return"},"question":"Will China's export controls on gallium, germanium, antimony or rare earths be back in force for US buyers at any point before 31 Mar 2027?","resolves":"MOFCOM announcements. The suspensions end on 10 Nov and 27 Nov 2026 unless they are extended.","starts":"2026-11-10","deadline":"2027-03-31","p":0.3,"sev":0.3,"basis":"judgement","note":"Both suspensions lapse in November 2026 unless extended. Severity starts at 0.3 of The Chain's worst case: the ban on gallium, germanium and antimony was in force from December 2024 until it was suspended in November 2025, and supply kept moving through third countries at higher prices.","does":"Applies The Chain's minerals scenario from the day controls return: gallium, rare earths, tungsten and indium go back behind licences. The hit lands hardest on lasers, through indium.","effects":[{"t":"scen","id":"minerals","timing":"window"}]},{"id":"us_chip_rules","group":"geo","story":"uschina","kind":"event","label":"Tighter US chip export rules","say":{"if":"the US tightens chip export rules","of":"of tighter US chip export rules"},"question":"Will the US impose new limits that cut AI chip sales to Gulf or other non-allied buyers (a new rule, or licences halted) before 31 Dec 2027?","resolves":"A Commerce Department (BIS) rule, or company filings reporting halted licences.","deadline":"2027-12-31","p":0.25,"sev":1,"basis":"judgement","note":"No specific rule is tracked on this site yet. Gulf buyers are the most exposed.","does":"From that day sovereign buyers order 35% less.","effects":[{"t":"dem","seg":"sov","m":0.65,"timing":"window"}]},{"id":"chip_tariff","group":"geo","story":"uschina","kind":"event","label":"Chip tariff exemptions end","say":{"if":"chip tariff exemptions end","of":"that chip tariff exemptions end"},"question":"Will the US end or narrow the Section 232 exemptions so that the 25% tariff applies to most imported AI chips or servers before 30 Jun 2027?","resolves":"A Federal Register notice or presidential proclamation.","deadline":"2027-06-30","p":0.15,"sev":1,"basis":"judgement","note":"A 25% tariff has applied since 15 Jan 2026, with exemptions.","does":"From that day all buyers order 5% less capacity, because the same budget buys fewer servers.","effects":[{"t":"dem","seg":"all","m":0.95,"timing":"window"}]},{"id":"jp_quake","group":"geo","story":"chips","kind":"event","label":"Earthquake hits Japan's materials makers","say":{"if":"an earthquake hits Japan's materials makers","of":"of an earthquake hitting Japan's materials makers"},"question":"Will an earthquake stop production for a month or more at a major Japanese maker of ABF film, T-glass, substrates, photoresist or wafers before 31 Dec 2027?","resolves":"Company disclosures from Ajinomoto, Nittobo, Ibiden, Shinko, JSR, TOK, Shin-Etsu or SUMCO.","deadline":"2027-12-31","p":0.04,"sev":0.5,"basis":"judgement","note":"The 2011 Tohoku quake stalled chip materials for months. Severity starts at 0.5 because The Chain's scenario assumes several makers are hit at once.","does":"Applies The Chain's Japan earthquake scenario from that day: ABF film, T-glass, substrates, resist, wafers and test equipment.","effects":[{"t":"scen","id":"japan","timing":"window"}]},{"id":"euv_halt","group":"geo","story":"chips","kind":"event","label":"EUV supply stops","say":{"if":"EUV supply stops","of":"that EUV supply stops"},"question":"Will ASML's EUV shipments or servicing to leading chipmakers stop for 60 days or more before 31 Dec 2027?","resolves":"ASML statements, or export-licence changes by the Dutch or US governments.","deadline":"2027-12-31","p":0.01,"sev":1,"basis":"judgement","note":"The Chain calls this unlikely, not impossible. ASML is the only supplier and is delivering.","does":"Applies The Chain's EUV scenario from that day: installed tools keep running but new capacity stops arriving.","effects":[{"t":"scen","id":"euv","timing":"window"}]},{"id":"foundry_ramp","group":"chips","story":"chips","kind":"range","label":"Leading-edge wafers","say":{"if":"leading-edge wafers hit their high case","subj":"leading-edge wafers","pl":true},"question":"What share of the leading-edge wafers (3nm and 2nm) that 2027 plans count on will foundries deliver?","watch":"TSMC's wafers a month at 3nm and 2nm, against the demand its customers report.","unit":"% of plan","low":98,"mid":105,"high":110,"min":50,"max":120,"basis":"judgement","note":"The Chain rates this step tight, not short: 3nm is heading from 180k to 210k wafers a month, and 2nm from 90k to 110k by mid-2027. Plans are sized to scarcer links, so the central case leaves some slack.","does":"Below 100, every AI accelerator is short by that share.","effects":[{"t":"ramp","node":"foundry"}]},{"id":"cowos_ramp","group":"chips","story":"chips","kind":"range","label":"CoWoS packaging","say":{"if":"CoWoS packaging hits its high case","subj":"CoWoS packaging"},"question":"What share of the CoWoS packaging that 2027 plans count on will be delivered?","watch":"TSMC's CoWoS wafers a month and allocation comments from Nvidia, Broadcom and AMD.","unit":"% of plan","low":92,"mid":100,"high":105,"min":50,"max":120,"basis":"judgement","note":"The narrowest point of the chip chain per The Chain: about 130k wafers a month by end-2026 and about 260k by end-2028. Plans are sized to that ramp, so any slip cuts output directly.","does":"Below 100, GPUs and custom accelerators are short by that share.","effects":[{"t":"ramp","node":"cowos"}]},{"id":"hbm_ramp","group":"chips","story":"chips","kind":"range","label":"HBM memory","say":{"if":"HBM memory hits its high case","subj":"HBM memory"},"question":"What share of the HBM memory that 2027 plans count on will the three makers deliver?","watch":"HBM bit shipments and allocation comments from SK hynix, Samsung and Micron.","unit":"% of plan","low":94,"mid":103,"high":108,"min":50,"max":120,"basis":"judgement","note":"Three suppliers, sold out, prices rising. The Chain rates it serious, one step below the scarcest links, so the central case leaves a little slack. The risk is HBM4 yields or qualification slipping.","does":"Below 100, fewer accelerators can be packaged, by that share.","effects":[{"t":"ramp","node":"hbm"}]},{"id":"substrate_ramp","group":"chips","story":"chips","kind":"range","label":"Package substrates","say":{"if":"package substrates hit their high case","subj":"package substrates","pl":true},"question":"What share of the ABF package substrates that 2027 plans count on will be delivered?","watch":"Capacity and lead-time comments from Ibiden, Shinko, Unimicron and AT&S.","unit":"% of plan","low":95,"mid":103,"high":108,"min":50,"max":120,"basis":"judgement","note":"Short now, rated serious by The Chain. Ibiden is spending ¥500B through FY2028 for 2.5 times the capacity, so the central case leaves a little slack; new lines take two to three years.","does":"Below 100, chip packaging is short by that share.","effects":[{"t":"ramp","node":"substrate"}]},{"id":"tglass_ramp","group":"chips","story":"chips","kind":"range","label":"T-glass cloth","say":{"if":"T-glass cloth hits its high case","subj":"T-glass cloth"},"question":"What share of the low-expansion glass cloth (T-glass) that 2027 plans count on will be delivered?","watch":"Nittobo's capacity additions and substrate makers' comments on glass cloth supply.","unit":"% of plan","low":90,"mid":99,"high":104,"min":50,"max":120,"basis":"judgement","note":"One maker, Nittobo, has about 90% of T-glass, and relief is not expected before mid-2027. A late ramp would leave the first half of 2027 short.","does":"Below 100, substrates are short by that share and high-speed boards by most of it.","effects":[{"t":"ramp","node":"glasscloth"}]},{"id":"inp_ramp","group":"chips","story":"chips","kind":"range","label":"InP wafers for lasers","say":{"if":"InP wafers hit their high case","subj":"InP wafers","pl":true},"question":"What share of the indium phosphide (InP) wafers that 2027 plans count on will be delivered?","watch":"Capacity announcements from AXT, Sumitomo Electric and JX, and laser allocation comments from Lumentum and Coherent.","unit":"% of plan","low":88,"mid":99,"high":105,"min":40,"max":120,"basis":"judgement","note":"The scarcest input in AI networking per The Chain. Six-inch capacity is meant to double by end-2027 and the shortage is expected to outlast 2027, so this has the widest downside of the chip links.","does":"Below 100, lasers, optical links and cluster networks are short by that share.","effects":[{"t":"ramp","node":"inp"}]},{"id":"cpo_volume","group":"chips","story":"chips","kind":"event","label":"Co-packaged optics in volume","say":{"if":"co-packaged optics reach volume","of":"of co-packaged optics in volume"},"question":"Will co-packaged optics account for 10% or more of the new AI cluster switch ports shipped in 2027?","resolves":"Shipment estimates from LightCounting or Dell'Oro, or Nvidia and Broadcom disclosures.","deadline":"2027-12-31","p":0.2,"sev":1,"basis":"judgement","note":"The Chain notes that the laser shortage is speeding up adoption.","does":"Cuts any InP shortfall by a quarter, because each link needs fewer lasers.","effects":[{"t":"ease","node":"inp","f":0.75}]},{"id":"turbine_ramp","group":"power","story":"power","kind":"range","label":"Gas turbines","say":{"if":"gas turbines hit their high case","subj":"gas turbines","pl":true},"question":"What share of the gas turbines that 2027 plans count on will be delivered?","watch":"Deliveries and backlog at GE Vernova, Siemens Energy and Mitsubishi Heavy.","unit":"% of plan","low":93,"mid":100,"high":104,"min":30,"max":120,"basis":"judgement","note":"Makers can build about 60 to 70 GW a year against about 110 GW of orders, and slots are sold into 2030-31. Units for 2027 are already scheduled, so the risk is factory slips, not allocation.","does":"Below 100, gas-fired power on the grid and on site is short. Other sources cover part of the gap.","effects":[{"t":"ramp","node":"turbines"}]},{"id":"xfmr_ramp","group":"power","story":"power","kind":"range","label":"Large transformers","say":{"if":"large transformers hit their high case","subj":"large transformers","pl":true},"question":"What share of the large transformers that 2027 plans count on will be delivered?","watch":"Lead-time surveys and deliveries at Hitachi Energy, Siemens Energy and HD Hyundai Electric.","unit":"% of plan","low":91,"mid":100,"high":105,"min":30,"max":120,"basis":"judgement","note":"Lead times run up to four years and prices are up about 80%. The Chain calls this the slowest item to order for any new campus.","does":"Below 100, grid connections are short by that share.","effects":[{"t":"ramp","node":"transformers"}]},{"id":"grid_ramp","group":"power","story":"power","kind":"range","label":"Grid connections","say":{"if":"grid connections hit their high case","subj":"grid connections","pl":true},"question":"What share of the grid connections that 2027 plans count on will utilities deliver in time?","watch":"Interconnection data from PJM, ERCOT and other grid operators, and campus energisation dates.","unit":"% of plan","low":89,"mid":99,"high":104,"min":30,"max":120,"basis":"judgement","note":"PJM's July 2026 capacity auction missed its supply target. Queues decide where campuses can go, and connection dates slip more often than they are beaten.","does":"Below 100, the grid-fed part of new campuses (about two thirds of their power) is short by that share.","effects":[{"t":"ramp","node":"grid"}]},{"id":"nuclear_restart","group":"power","story":"power","kind":"event","label":"Three Mile Island restart delivers","say":{"if":"the Three Mile Island restart delivers","of":"that the Three Mile Island restart delivers"},"question":"Will the Crane Clean Energy Center (the 835 MW Three Mile Island restart for Microsoft) be delivering power by 31 Dec 2027?","resolves":"Constellation statements or the reactor's NRC operating status.","deadline":"2027-12-31","p":0.5,"sev":1,"basis":"judgement","note":"The restart is under way (The Money). It is small against the gigawatts needed in 2027 and matters more as a signal for 2028 to 2030.","does":"Cuts any grid shortfall by 5% from the day it delivers.","effects":[{"t":"ease","node":"grid","f":0.95,"timing":"window"}]},{"id":"unmet_demand","group":"demand","story":"demand","kind":"range","label":"Unmet demand","say":{"if":"unmet demand hits its high case","subj":"unmet demand"},"question":"How much more AI capacity would buyers take in 2027 than today's plans deliver, if suppliers could build it?","watch":"Cloud backlogs at Microsoft, Oracle and CoreWeave, GPU rental prices, Nvidia lead times, and statements such as AWS saying capacity stays short of demand through 2027.","unit":"% above plan","low":3,"mid":15,"high":30,"min":0,"max":60,"basis":"judgement","note":"Every critical link in The Chain is sold out and AWS says capacity stays short of demand through 2027, which points to a real cushion. Its size is a judgement, and sceptics argue that part of it is double ordering.","does":"Lifts what all buyers want above the plan. A fall in orders only cuts what gets built once it is bigger than this cushion.","effects":[{"t":"demlvl","seg":"all","add":100}]},{"id":"capex_2027","group":"demand","story":"demand","kind":"range","label":"Hyperscaler spending plans for 2027","say":{"if":"hyperscaler spending plans hit their high case","subj":"hyperscaler spending plans","pl":true},"question":"What will Amazon, Alphabet, Microsoft, Meta and Oracle plan to spend on capital projects in 2027, as a percentage of their 2026 plans (about $840B together)?","resolves":"Their 2027 guidance as it stands at mid-2027 (second-quarter results), midpoints added up.","unit":"% of 2026 plans","low":115,"mid":130,"high":150,"min":60,"max":220,"basis":"judgement","note":"2026 plans: Amazon $220B, Alphabet $200B, Microsoft $190B, Meta $137.5B, Oracle $92.5B. Alphabet says 2027 will 'significantly increase' and AWS says capacity stays short of demand through 2027.","does":"Hyperscalers place 70% of orders. Their orders move one for one with this number, measured against its starting central case.","effects":[{"t":"demlvl","seg":"hyper","base":"mid"}]},{"id":"lab_revenue","group":"demand","story":"demand","kind":"range","label":"Lab revenue growth","say":{"if":"lab revenue hits its high case","subj":"lab revenue","unit":"(today = 100)"},"question":"Where will the combined annualised revenue of OpenAI and Anthropic stand at the end of 2027, taking today's level (about $135B) as 100?","resolves":"Company statements and filings on annualised revenue at the end of 2027.","unit":"index, today = 100","low":120,"mid":165,"high":230,"min":60,"max":400,"basis":"judgement","note":"The two labs have signed about $1.14T of compute commitments against about $135B of revenue. In The Money, OpenAI needs about 34% growth a year just to break even on its commitments.","does":"Weak revenue cuts what the labs can commit to. Neocloud orders move 0.3 for one with this number and hyperscaler orders 0.1 for one, measured against its starting central case.","effects":[{"t":"demlvl","seg":"neo","base":"mid","k":0.3},{"t":"demlvl","seg":"hyper","base":"mid","k":0.1}]},{"id":"sov_follow","group":"demand","story":"demand","kind":"range","label":"Sovereign projects that go ahead","say":{"if":"sovereign orders hit their high case","subj":"sovereign orders","pl":true},"question":"What share of the Gulf and other sovereign AI capacity announced for 2027 will actually be ordered?","resolves":"Project announcements and operator statements at the end of 2027.","unit":"% of announced","low":50,"mid":75,"high":95,"min":0,"max":110,"basis":"judgement","note":"Gulf projects sit inside the war's strike zone and insurers have pulled back. This is the follow-through apart from the war, strikes and export rules, which have their own entries.","does":"Sovereign buyers place 10% of orders. Their orders move one for one with this number, measured against its starting central case.","effects":[{"t":"demlvl","seg":"sov","base":"mid"}]},{"id":"digestion","group":"demand","story":"demand","kind":"event","label":"A pause in orders","say":{"if":"orders pause","of":"of a pause in orders"},"question":"Will Nvidia report a quarter-on-quarter fall in data-center revenue for any fiscal quarter ending in calendar 2027?","resolves":"Nvidia's quarterly results.","starts":"2027-01-01","deadline":"2027-12-31","p":0.12,"sev":1,"basis":"judgement","note":"Nvidia's Q2 FY2027 call pointed to about 70% growth in FY2028, which makes a pause unlikely but not impossible.","does":"All buyers order 12% less from that quarter on.","effects":[{"t":"dem","seg":"all","m":0.88,"timing":"window"}]},{"id":"openai_funding","group":"demand","story":"demand","kind":"event","label":"OpenAI raises $30B or more","say":{"if":"OpenAI raises $30B or more","of":"that OpenAI raises $30B or more"},"question":"Will OpenAI close new equity or debt funding of $30B or more between now and 30 Jun 2027?","resolves":"A company announcement or filings.","deadline":"2027-06-30","p":0.7,"sev":1,"basis":"judgement","note":"OpenAI's compute commitments run far ahead of its revenue (The Money), so it depends on raising outside money.","does":"If it does not, neoclouds order 15% less and hyperscalers 2% less through 2027, and less capital reaches the labs.","effects":[{"t":"dem","seg":"neo","m":0.85,"on":"no"},{"t":"dem","seg":"hyper","m":0.98,"on":"no"},{"t":"shock","node":"capital","s":0.1,"on":"no"}]},{"id":"credit_squeeze","group":"demand","story":"demand","kind":"event","label":"Credit squeeze on AI builders","say":{"if":"credit squeezes AI builders","of":"of a credit squeeze on AI builders"},"question":"Will S&P or Moody's cut Oracle to junk, or a large neocloud default on or restructure its debt, before 31 Dec 2027?","resolves":"Rating agency actions and company filings.","deadline":"2027-12-31","p":0.2,"sev":1,"basis":"judgement","note":"S&P has Oracle at BBB-, one notch above junk, with $117B of bonds outstanding. CoreWeave carries $35B of debt with $6.2B of principal due in 2027.","does":"From that day neoclouds order 45% less and hyperscalers 5% less (Oracle), and less capital reaches neoclouds, sovereign projects and labs.","effects":[{"t":"dem","seg":"neo","m":0.55,"timing":"window"},{"t":"dem","seg":"hyper","m":0.95,"timing":"window"},{"t":"shock","node":"capital","s":0.4,"timing":"window"}]}],"links":[{"a":"tw_blockade","b":"cn_minerals","rho":0.5,"why":"A confrontation over Taiwan would bring China's export levers with it."},{"a":"tw_blockade","b":"us_chip_rules","rho":0.4,"why":"A Taiwan crisis would come with tighter US technology controls."},{"a":"cn_minerals","b":"us_chip_rules","rho":0.4,"why":"Tit for tat: each side's controls have answered the other's."},{"a":"cn_minerals","b":"chip_tariff","rho":0.3,"why":"Both are moves in the same trade dispute."},{"a":"us_chip_rules","b":"chip_tariff","rho":0.2,"why":"A harder US line on chips tends to show up in both."},{"a":"gulf_persist","b":"helium_cut","rho":0.5,"why":"Helium stays short for as long as Ras Laffan is offline."},{"a":"gulf_persist","b":"gulf_dc_hit","rho":0.5,"why":"A longer war gives more time and reason for strikes on Gulf sites."},{"a":"gulf_persist","b":"credit_squeeze","rho":0.2,"why":"A long war keeps energy prices and borrowing costs high."},{"a":"tw_blockade","b":"credit_squeeze","rho":0.4,"why":"A blockade would be a financial shock as well as a supply shock."},{"a":"tw_blockade","b":"capex_2027","rho":-0.3,"why":"Buyers would cut spending plans if chips could not be had and markets fell."},{"a":"foundry_ramp","b":"cowos_ramp","rho":0.5,"why":"Both depend on TSMC's execution, tools and people."},{"a":"cowos_ramp","b":"hbm_ramp","rho":0.3,"why":"The same accelerator generations pace both ramps."},{"a":"cowos_ramp","b":"substrate_ramp","rho":0.3,"why":"Packaging lines and substrate lines are planned against the same forecasts."},{"a":"tglass_ramp","b":"substrate_ramp","rho":0.5,"why":"Substrate makers cannot ramp without glass cloth, and both sit in Japan."},{"a":"turbine_ramp","b":"xfmr_ramp","rho":0.4,"why":"Both are heavy electrical equipment with the same steel, copper and labour limits."},{"a":"xfmr_ramp","b":"grid_ramp","rho":0.5,"why":"Transformers are the slowest part of a new grid connection."},{"a":"turbine_ramp","b":"grid_ramp","rho":0.3,"why":"New gas plants add the supply that lets utilities connect large loads."},{"a":"nuclear_restart","b":"grid_ramp","rho":0.2,"why":"Both move with how fast regulators and utilities act."},{"a":"inp_ramp","b":"cpo_volume","rho":-0.2,"why":"The worse the laser shortage, the faster buyers move to co-packaged optics."},{"a":"unmet_demand","b":"capex_2027","rho":0.5,"why":"Buyers who cannot get enough capacity raise their spending plans."},{"a":"lab_revenue","b":"unmet_demand","rho":0.4,"why":"Fast lab growth is what keeps demand ahead of supply."},{"a":"unmet_demand","b":"digestion","rho":-0.5,"why":"A pause in orders is what a vanished cushion looks like."},{"a":"credit_squeeze","b":"unmet_demand","rho":-0.3,"why":"A credit squeeze removes the weakest buyers from the queue."},{"a":"digestion","b":"capex_2027","rho":-0.5,"why":"A pause in orders and lower spending plans come together."},{"a":"lab_revenue","b":"capex_2027","rho":0.5,"why":"Hyperscalers spend more when their biggest AI customers are growing."},{"a":"credit_squeeze","b":"capex_2027","rho":-0.4,"why":"Tight credit and lower spending plans come together."},{"a":"openai_funding","b":"capex_2027","rho":0.3,"why":"A funded OpenAI keeps its cloud commitments."},{"a":"capex_2027","b":"sov_follow","rho":0.3,"why":"Both rise and fall with confidence in AI demand."},{"a":"lab_revenue","b":"openai_funding","rho":0.6,"why":"Investors fund growth; slow revenue makes a large round harder."},{"a":"lab_revenue","b":"credit_squeeze","rho":-0.5,"why":"Weak lab revenue is what would put neocloud and Oracle debt at risk."},{"a":"lab_revenue","b":"digestion","rho":-0.4,"why":"Slow revenue is the likeliest cause of a pause in orders."},{"a":"openai_funding","b":"credit_squeeze","rho":-0.5,"why":"A failed round would hit the lenders and landlords who built for OpenAI."},{"a":"digestion","b":"credit_squeeze","rho":0.4,"why":"A pause in orders cuts the revenue that leveraged builders need."},{"a":"digestion","b":"openai_funding","rho":-0.3,"why":"Both reflect how much confidence there is in AI demand."}]},"chain":{"graph":{"nodes":[{"id":"quartz","inputs":[]},{"id":"gallium","inputs":[]},{"id":"indium","inputs":[]},{"id":"ree","inputs":[]},{"id":"tungsten","inputs":[]},{"id":"helium","inputs":[]},{"id":"copper","inputs":[]},{"id":"natgas","inputs":[]},{"id":"uranium","inputs":[]},{"id":"poly","inputs":[]},{"id":"resist","inputs":[]},{"id":"gases","inputs":[["helium",null,1.0,0.5],["tungsten",null,1.0,0.4]]},{"id":"chems","inputs":[["ree",null,0.0,0.0]]},{"id":"abf","inputs":[]},{"id":"glasscloth","inputs":[]},{"id":"goes","inputs":[]},{"id":"enrich","inputs":[["uranium",null,1.0,1.0]]},{"id":"wafers","inputs":[["poly",null,1.0,1.0],["quartz",null,1.0,0.5]]},{"id":"inp","inputs":[["indium",null,1.0,0.8]]},{"id":"substrate","inputs":[["abf",null,1.0,1.0],["glasscloth",null,1.0,1.0],["copper",null,1.0,0.3]]},{"id":"pcb","inputs":[["glasscloth",null,1.0,0.8],["copper",null,1.0,0.3]]},{"id":"litho","inputs":[]},{"id":"depetch","inputs":[["ree",null,0.0,0.0]]},{"id":"metrology","inputs":[]},{"id":"eda","inputs":[]},{"id":"bonders","inputs":[]},{"id":"testeq","inputs":[]},{"id":"dicing","inputs":[]},{"id":"turbines","inputs":[]},{"id":"transformers","inputs":[["goes",null,1.0,0.8],["copper",null,1.0,0.5]]},{"id":"foundry","inputs":[["wafers",null,1.0,1.0],["resist",null,1.0,1.0],["gases",null,1.0,0.2],["chems",null,1.0,0.5],["litho",null,1.0,0.25],["depetch",null,1.0,0.25],["metrology",null,1.0,0.25]]},{"id":"dram","inputs":[["wafers",null,1.0,1.0],["resist",null,1.0,1.0],["gases",null,1.0,0.2],["chems",null,1.0,0.5],["litho",null,1.0,0.25],["depetch",null,1.0,0.25],["metrology",null,1.0,0.25]]},{"id":"nand","inputs":[["wafers",null,1.0,1.0],["resist",null,1.0,1.0],["gases",null,1.0,0.2],["chems",null,1.0,0.5],["litho",null,1.0,0.15],["depetch",null,1.0,0.25]]},{"id":"china_fab","inputs":[["wafers",null,1.0,1.0],["resist",null,1.0,1.0],["gases",null,1.0,0.2],["chems",null,1.0,0.5],["litho",null,1.0,0.25],["depetch",null,1.0,0.25]]},{"id":"gaspower","inputs":[["turbines",null,1.0,1.0],["natgas",null,1.0,1.0]]},{"id":"nuclear","inputs":[["enrich",null,1.0,0.5]]},{"id":"hbm","inputs":[["dram",null,1.0,1.0],["bonders",null,1.0,0.5],["testeq",null,1.0,0.3],["dicing",null,1.0,0.3]]},{"id":"cowos","inputs":[["foundry",null,1.0,1.0],["hbm",null,1.0,1.0],["substrate",null,1.0,1.0],["testeq",null,1.0,0.3],["dicing",null,1.0,0.3]]},{"id":"osat","inputs":[["foundry",null,1.0,1.0],["substrate",null,1.0,1.0],["testeq",null,1.0,0.3]]},{"id":"grid","inputs":[["transformers",null,1.0,1.0],["gaspower","gen",0.4,1.0],["nuclear","gen",0.2,1.0]]},{"id":"onsite","inputs":[["natgas",null,1.0,1.0],["turbines","equip",0.5,1.0]]},{"id":"gpu","inputs":[["cowos",null,1.0,1.0],["eda",null,1.0,0.3]]},{"id":"asic","inputs":[["cowos",null,1.0,1.0],["eda",null,1.0,0.3]]},{"id":"cpu","inputs":[["osat",null,1.0,1.0],["eda",null,1.0,0.3]]},{"id":"netsi","inputs":[["osat",null,1.0,1.0],["eda",null,1.0,0.3]]},{"id":"bmc","inputs":[["osat",null,1.0,1.0]]},{"id":"lasers","inputs":[["inp",null,1.0,1.0],["gallium",null,1.0,0.4]]},{"id":"optics","inputs":[["lasers",null,1.0,1.0],["netsi",null,1.0,0.5],["pcb",null,1.0,0.5]]},{"id":"fiber","inputs":[["gallium",null,1.0,0.3],["copper",null,1.0,0.3]]},{"id":"china_chips","inputs":[["china_fab",null,1.0,1.0]]},{"id":"electrical","inputs":[["copper",null,1.0,0.3]]},{"id":"cooling","inputs":[["copper",null,1.0,0.2],["ree",null,0.0,0.0]]},{"id":"servers","inputs":[["gpu","accel",0.72,1.0],["asic","accel",0.28,1.0],["cpu",null,1.0,1.0],["dram",null,1.0,0.7],["pcb",null,1.0,1.0],["bmc",null,1.0,1.0],["netsi",null,1.0,0.8]]},{"id":"netsys","inputs":[["netsi",null,1.0,1.0],["optics",null,1.0,1.0],["fiber",null,1.0,1.0],["pcb",null,1.0,0.5]]},{"id":"storage","inputs":[["nand","flash",0.7,1.0]]},{"id":"build","inputs":[]},{"id":"campus","inputs":[["servers",null,1.0,1.0],["netsys",null,1.0,1.0],["storage",null,1.0,0.3],["build",null,1.0,1.0],["electrical",null,1.0,1.0],["cooling",null,1.0,1.0],["grid","power",0.65,1.0],["onsite","power",0.35,1.0]]},{"id":"capital","inputs":[]},{"id":"hyper","inputs":[["campus",null,1.0,1.0]]},{"id":"neo","inputs":[["campus",null,1.0,1.0],["capital",null,1.0,0.8]]},{"id":"sovereign","inputs":[["campus",null,1.0,1.0],["capital",null,1.0,0.5]]},{"id":"china_cloud","inputs":[["china_chips",null,1.0,1.0]]},{"id":"labs","inputs":[["hyper","compute",0.7,1.0],["neo","compute",0.2,1.0],["sovereign","compute",0.1,1.0],["capital",null,1.0,0.6]]},{"id":"users","inputs":[["labs","ai",0.6,1.0],["hyper","ai",0.4,1.0]]}],"other":{"grid|gen":0.4,"onsite|equip":0.5,"storage|flash":0.3},"outputs":[{"id":"accel","label":"AI accelerators","mix":[["gpu",0.72],["asic",0.28]]},{"id":"hbm","label":"HBM memory","mix":[["hbm",1.0]]},{"id":"optics","label":"Optical links","mix":[["optics",1.0]]},{"id":"servers","label":"AI servers and racks","mix":[["servers",1.0]]},{"id":"campus","label":"New campus capacity","mix":[["campus",1.0]]},{"id":"labs","label":"Compute reaching labs","mix":[["labs",1.0]]}]},"scen":{"taiwan":{"kind":"supply","h0":{"foundry":0.85,"cowos":0.9,"osat":0.4,"substrate":0.2,"wafers":0.1,"dram":0.15,"hbm":0.05,"bmc":0.3,"servers":0.3,"pcb":0.25},"h1":{"foundry":0.7,"cowos":0.65,"osat":0.2,"substrate":0.1,"wafers":0.05,"dram":0.1,"hbm":0.0,"bmc":0.1,"servers":0.1,"pcb":0.1}},"gulf":{"kind":"supply","h0":{"helium":0.33,"sovereign":0.5,"natgas":0.03,"capital":0.05},"h1":{"helium":0.25,"sovereign":0.35,"natgas":0.03,"capital":0.03}},"minerals":{"kind":"supply","h0":{"gallium":0.6,"ree":0.5,"tungsten":0.4,"indium":0.4},"h1":{"gallium":0.3,"ree":0.3,"tungsten":0.2,"indium":0.2}},"power":{"kind":"supply","h0":{"turbines":0.35,"transformers":0.3,"grid":0.2,"electrical":0.1},"h1":{"turbines":0.25,"transformers":0.2,"grid":0.2,"electrical":0.05}},"inp":{"kind":"supply","h0":{"inp":0.25,"lasers":0.05},"h1":{"inp":0.08,"lasers":0.0}},"hbm":{"kind":"supply","h0":{"hbm":0.25,"dram":0.05,"bonders":0.1},"h1":{"hbm":0.08,"dram":0.0,"bonders":0.0}},"japan":{"kind":"supply","h0":{"abf":0.4,"glasscloth":0.5,"substrate":0.3,"resist":0.3,"wafers":0.2,"testeq":0.3,"dicing":0.3,"metrology":0.2},"h1":{"abf":0.1,"glasscloth":0.15,"substrate":0.1,"resist":0.05,"wafers":0.05,"testeq":0.05,"dicing":0.05,"metrology":0.05}},"euv":{"kind":"supply","h0":{"litho":0.9},"h1":{"litho":1.0,"foundry":0.35,"dram":0.3}},"finance":{"kind":"demand","h0":{},"h1":{},"cut":[0.25,0.4]},"compound":{"kind":"compound","h0":{"foundry":0.85,"cowos":0.9,"osat":0.4,"substrate":0.2,"wafers":0.1,"dram":0.15,"hbm":0.05,"bmc":0.3,"servers":0.3,"pcb":0.25,"helium":0.33,"sovereign":0.5,"natgas":0.03,"capital":0.5,"gallium":0.6,"ree":0.5,"tungsten":0.4,"indium":0.4,"turbines":0.35,"transformers":0.3,"grid":0.2,"electrical":0.1},"h1":{"foundry":0.7,"cowos":0.65,"osat":0.2,"substrate":0.1,"wafers":0.05,"dram":0.1,"hbm":0,"bmc":0.1,"servers":0.1,"pcb":0.1,"helium":0.25,"sovereign":0.35,"natgas":0.03,"capital":0.4,"gallium":0.3,"ree":0.3,"tungsten":0.2,"indium":0.2,"turbines":0.25,"transformers":0.2,"grid":0.2,"electrical":0.05},"cut":[0.4,0.5]}}},"linkNames":{"quartz":["High-purity quartz","High-purity quartz"],"gallium":["Gallium & germanium","Gallium and germanium"],"indium":["Indium","Indium"],"ree":["Rare earths","Medium and heavy rare earths"],"tungsten":["Tungsten & moly","Tungsten and molybdenum"],"helium":["Helium","Helium"],"copper":["Copper","Copper"],"natgas":["Natural gas","Natural gas"],"uranium":["Uranium","Uranium ore"],"poly":["Polysilicon","Semiconductor-grade polysilicon"],"resist":["Photoresists","Photoresists"],"gases":["Specialty gases","Bulk and specialty gases"],"chems":["Process chemicals","Process chemicals, slurries and filters"],"abf":["ABF film","ABF build-up film"],"glasscloth":["Glass-fiber cloth","Low-expansion glass-fiber cloth (T-glass)"],"goes":["Electrical steel","Grain-oriented electrical steel (GOES)"],"enrich":["Uranium enrichment","Uranium enrichment"],"wafers":["300mm wafers","300mm silicon wafers"],"inp":["InP wafers","Indium phosphide (InP) wafers"],"substrate":["ABF substrates","FC-BGA (ABF) package substrates"],"pcb":["Boards & laminates","High-speed boards and laminates"],"litho":["EUV lithography","Lithography (EUV and DUV)"],"depetch":["Deposition & etch","Deposition, etch and clean tools"],"metrology":["Inspection","Inspection and metrology"],"eda":["Design software & IP","Chip-design software (EDA) and IP"],"bonders":["HBM bonders","HBM stacking bonders"],"testeq":["Test equipment","Automated test equipment (ATE)"],"dicing":["Dicing & grinding","Dicing and grinding"],"turbines":["Gas turbines","Heavy-duty gas turbines"],"transformers":["Transformers","Large power transformers"],"foundry":["Leading-edge foundry","Leading-edge logic foundry (3nm, 2nm)"],"dram":["DRAM fabs","DRAM fabs"],"nand":["NAND flash","NAND flash fabs"],"china_fab":["China's fabs","China's domestic fabs (SMIC, CXMT)"],"gaspower":["Gas-fired plants","Gas-fired power plants"],"nuclear":["Nuclear power","Nuclear power"],"hbm":["HBM stacks","High-bandwidth memory (HBM)"],"cowos":["CoWoS packaging","CoWoS advanced packaging"],"osat":["Assembly & test","Outsourced assembly and test (OSAT)"],"grid":["Grid & interconnection","Grid capacity and interconnection"],"onsite":["On-site power","On-site generation"],"gpu":["Merchant GPUs","Merchant AI accelerators (GPUs)"],"asic":["Custom AI chips","Custom AI accelerators (ASICs)"],"cpu":["CPUs","Server CPUs"],"netsi":["Network silicon","Network silicon"],"bmc":["Server control chips","Baseboard management controllers (BMCs)"],"lasers":["Lasers","Lasers and photodetectors"],"optics":["Optical modules","Optical transceivers"],"fiber":["Fiber & cabling","Fiber, connectors and cables"],"china_chips":["China's AI chips","China's AI chips"],"electrical":["Switchgear & UPS","Switchgear, UPS and backup power"],"cooling":["Liquid cooling","Liquid cooling and thermal"],"servers":["AI servers & racks","AI servers and racks"],"netsys":["Cluster networks","Cluster networks"],"storage":["Storage","Storage systems"],"build":["Build & shells","Construction, electrical contracting and shells"],"campus":["AI campuses","AI data-center campuses"],"capital":["Capital & financing","Capital: equity, debt and vendor financing"],"hyper":["Hyperscalers","Hyperscale clouds"],"neo":["Neoclouds","Neoclouds"],"sovereign":["Gulf & sovereign AI","Gulf and sovereign AI"],"china_cloud":["China's AI clouds","China's AI clouds"],"labs":["Frontier labs","Frontier AI labs"],"users":["Users & businesses","End demand: people and businesses paying for AI"]}};
 const $ = (s, r) => (r || document).querySelector(s);
 const $$ = (s, r) => [...(r || document).querySelectorAll(s)];
 const reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -1235,7 +1300,7 @@ const linkChanged = l => l.start == null ? l.rho !== 0 : Math.abs(l.rho - l.star
 const nLinksChanged = () => LINKS.filter(linkChanged).length;
 /** Two drivers with no link between them are independent, so supposing one cannot move the other; any difference
     would only be sampling noise and is not shown. */
-const isLinked = (a, b) => { const l = linkAt(a, b); return !!l && l.rho !== 0; };
+const isLinked = (a, b) => { const l = linkAt(a, b); return !!l && l.rho !== 0 && SCALE !== 0; };
 const live = id => Object.assign({}, BY[id], cur[id]);
 const rhoText = r => (r > 0 ? "+" : r < 0 ? "−" : "") + (Math.round(Math.abs(r) * 100) / 100);
 const rhoWord = r => !r ? "No link" : (Math.abs(r) >= 0.5 ? "Strong" : Math.abs(r) >= 0.3 ? "Moderate" : "Weak") + (r > 0 ? ", same way" : ", opposite ways");
@@ -1244,10 +1309,17 @@ const rowId = l => "lk-" + l.a + "--" + l.b;
 const tgt = (v, isEv) => isEv ? String(v * 100 < 9.95 ? Math.round(v * 1000) / 10 : Math.round(v * 100)) : num(v);
 let USED = {};      // when the links could not all hold together: the strength actually used for each pair
 let RES = {cur: null, ref: null, refKind: null}, R0 = null, matMode = "share";
+let SCALE = 1;      // the master link setting: every link at this many times its strength (0, 0.5, 1 or 1.5)
+let STRIP = {key: null, res: {}}, stripBusy = false;      // the results at each master setting, for the same numbers
 
 /* ---------------- the numbers behind the page: runs in a worker when it can ---------------- */
 function compute(a){
   const O = ODDS, R = O.simulate(MODEL, {n: a.n, seed: a.seed, beliefs: a.beliefs, given: a.given});
+  if (a.lite){      // just enough for the link-strength comparison
+    if (!R.n) return {n: 0, changed: R.corr.changed};
+    const below = {}; for (const t of [0.9, 0.8, 0.7, 0.6]) below[t] = O.probBelow(R.out.built, t);
+    return {n: R.n, mean: O.mean(R.out.built), p10: O.quantiles(R.out.built, [0.1])[0], below, changed: R.corr.changed};
+  }
   const q = arr => { const v = O.quantiles(arr, [0.05, 0.1, 0.25, 0.5, 0.75, 0.9, 0.95]); return {p05: v[0], p10: v[1], p25: v[2], p50: v[3], p75: v[4], p90: v[5], p95: v[6], mean: O.mean(arr)}; };
   const out = {n: R.n, asked: R.asked, tried: R.tried, chance: R.chance, unknown: R.unknown, corr: {changed: R.corr.changed, maxDiff: R.corr.maxDiff, worst: R.corr.worst}};
   if (R.corr.changed){
@@ -1285,14 +1357,19 @@ function runAll(args){
 }
 let busy = false, pending = null, timer = null;
 function schedule(){ clearTimeout(timer); timer = setTimeout(request, 60); }
+/** Every link at `k` times its strength, as the futures use it. */
+const scaled = k => LINKS.map(l => [l.a, l.b, clamp(Math.round(l.rho * k * 1000) / 1000, -0.95, 0.95)]);
+/** Everything that decides the results except the master link setting. */
+const stateKey = () => JSON.stringify([cur, LINKS.map(l => [l.a, l.b, l.rho]), given]);
 function request(){
   clearTimeout(timer);
-  const beliefs = {drivers: JSON.parse(JSON.stringify(cur)), corr: LINKS.map(l => [l.a, l.b, l.rho])}, sit = anyGiven();
+  const beliefs = {drivers: JSON.parse(JSON.stringify(cur)), corr: scaled(SCALE)}, sit = anyGiven();
   const args = [{n: N, seed: SEED, beliefs, given: Object.assign({}, given)}];
   if (sit) args.push({n: N, seed: SEED, beliefs, given: {}});
-  pending = {args, sit, changed: nChanged() + nLinksChanged() > 0};
+  pending = {args, sit, changed: nChanged() + nLinksChanged() > 0 || SCALE !== 1, key: stateKey(), scale: SCALE};
   pump();
 }
+const liteOf = r => r.n ? {n: r.n, mean: r.built.mean, p10: r.built.p10, below: r.below, changed: r.corr.changed} : {n: 0, changed: r.corr.changed};
 function pump(){
   if (busy || !pending) return;
   const job = pending; pending = null; busy = true;
@@ -1301,10 +1378,24 @@ function pump(){
     busy = false;
     if (!job.sit && !job.changed) R0 = res[0];
     RES = {cur: res[0], ref: job.sit ? res[1] : job.changed ? R0 : null, refKind: job.sit ? "nosit" : job.changed ? "start" : null};
+    if (STRIP.key !== job.key) STRIP = {key: job.key, res: {}};
+    STRIP.res[job.scale] = liteOf(res[0]);
     if (!pending) $("#results").classList.remove("busy");
     render();
-    pump();
+    pump(); pumpStrip();
   }).catch(err => { busy = false; fail("The numbers could not be worked out: " + err.message); });
+}
+/** In the background, once the results are on screen: the same numbers with every link at each master setting,
+    one run at a time, so a change to the numbers never waits long behind them. */
+function pumpStrip(){
+  if (stripBusy || busy || pending || STRIP.key !== stateKey()) return;
+  const s = SCALES.find(x => !(x.k in STRIP.res)); if (!s) return;
+  const key = STRIP.key; stripBusy = true;
+  runAll([{n: N, seed: SEED, beliefs: {drivers: JSON.parse(JSON.stringify(cur)), corr: scaled(s.k)}, given: Object.assign({}, given), lite: true}]).then(res => {
+    stripBusy = false;
+    if (STRIP.key === key) STRIP.res[s.k] = res[0];
+    renderMaster(); pump(); pumpStrip();
+  }).catch(() => { stripBusy = false; });
 }
 function fail(msg){ const e = $("#err"); e.textContent = msg; e.hidden = false; $("#lab-grid").hidden = true; }
 
@@ -1371,8 +1462,10 @@ function driverRow(d){
   if (ev) supMore.append(h("button", {type: "button", class: "ghost sm", "data-sup": "false", "aria-pressed": "false", text: "Suppose it does not happen"}));
   else supMore.append(h("button", {type: "button", class: "ghost sm", "data-sup": "low", "aria-pressed": "false", text: "Suppose the low case or worse"}),
                       h("button", {type: "button", class: "ghost sm", "data-sup": "high", "aria-pressed": "false", text: "Suppose the high case or better"}));
-  supMore.append(h("button", {type: "button", class: "ghost sm", "data-act": "links", onclick: () => { $("#lk-filter").value = id; applyFilter(); $("#lk-bar").scrollIntoView({behavior: reduceMotion ? "auto" : "smooth", block: "start"}); }}));
   more.append(supMore);
+  // its links, as tags; one at a time opens under the row to be changed there
+  const links = h("div", {class: "drv-links"}, h("span", {class: "dl-k"}), h("span", {class: "dl-chips"}),
+    h("button", {type: "button", class: "lchip add", "aria-expanded": "false", "aria-label": "Add a link to " + d.label, onclick: () => toggleInline(id, "add")}, h("span", {class: "ar", "aria-hidden": "true", text: "+"}), h("span", {class: "nm", text: "Add a link"})));
 
   const row = h("article", {class: "drv", id: "d-" + id, "data-id": id, "aria-labelledby": "l-" + id},
     h("div", {class: "drv-top"},
@@ -1382,6 +1475,7 @@ function driverRow(d){
       h("div", {class: "slw" + (ev ? "" : " rng")}, h("div", {class: "trk"}, h("i", {"data-v": "fill"}), h("u", {"data-v": "start"})), slider),
       btns),
     h("div", {class: "drv-note", "data-v": "note"}),
+    links, h("div", {class: "lk-in", hidden: true}),
     more);
 
   // the main slider: a chance, or the central case with low and high moving along
@@ -1463,15 +1557,13 @@ function sync(id, opt){
     if (!ev && Math.abs(rs.mid - c.mid) >= Math.max(0.5, (d.max - d.min) * 0.005)) bits.push(h("span", {}, "In this situation its central case is ", h("b", {text: num(rs.mid)})));
   }
   note.replaceChildren(...bits);
-  const nl = LINKS.filter(l => l.rho !== 0 && (l.a === id || l.b === id)).length;
-  $('[data-act="links"]', row).textContent = nl ? "Its links (" + nl + ")" : "Add a link";
 }
-function syncAll(){ for (const d of MODEL.drivers) sync(d.id); updateBar(); }
+function syncAll(){ for (const d of MODEL.drivers){ sync(d.id); syncChips(d.id); syncInline(d.id); } updateBar(); }
 function updateBar(){
-  const n = nChanged(), k = nLinksChanged(), g = Object.keys(given).length;
+  const n = nChanged(), k = nLinksChanged(), g = Object.keys(given).length, sc = SCALE !== 1 ? scaleSays() : null;
   const parts = [n ? (n === 1 ? "1 number" : n + " numbers") : null, k ? (k === 1 ? "1 link" : k + " links") : null].filter(Boolean);
-  $("#dchanged").textContent = parts.length ? parts.join(" and ") + " changed" : "These are the starting numbers";
-  $("#reset-all").disabled = !n && !k && !g;
+  $("#dchanged").textContent = parts.length ? parts.join(" and ") + " changed" + (sc ? "; " + sc : "") : sc ? sc.charAt(0).toUpperCase() + sc.slice(1) : "These are the starting numbers";
+  $("#reset-all").disabled = !n && !k && !g && SCALE === 1;
 }
 function buildDrivers(){
   const list = $("#dlist");
@@ -1486,6 +1578,7 @@ function buildDrivers(){
   $("#reset-all").addEventListener("click", () => {
     for (const d of MODEL.drivers) cur[d.id] = Object.assign({}, START[d.id]);
     for (const k of Object.keys(given)) delete given[k];
+    SCALE = 1; renderMaster();
     resetLinks();
     for (const d of MODEL.drivers) sync(d.id, {force: true});
     updateBar(); request();
@@ -1501,12 +1594,14 @@ function jumpTo(id){
 /* ---------------- results ---------------- */
 function render(){
   const r = RES.cur, ref = RES.ref && RES.ref.n ? RES.ref : null, sit = anyGiven();
-  // links that could not all hold together: what was used instead
+  // links that could not all hold together: what was used instead. At another master setting the repair is the
+  // setting's doing, and the master control says so instead.
   USED = {};
-  for (const u of r.corr.used || []) USED[linkKey(u[0], u[1])] = u[2];
-  const w = r.corr.changed ? r.corr.worst : null;
-  $("#lk-warn").hidden = !r.corr.changed;
-  if (r.corr.changed) $("#lk-warn-t").textContent = "These links cannot all be true at once, so the page used the closest set that can." + (w && BY[w[0]] && BY[w[1]] ? " The biggest change was to " + BY[w[0]].label + " and " + BY[w[1]].label + ", by " + (Math.round(r.corr.maxDiff * 100) / 100) + "." : "") + " Each adjusted row says what was used.";
+  const adj = r.corr.changed && SCALE === 1;
+  if (adj) for (const u of r.corr.used || []) USED[linkKey(u[0], u[1])] = u[2];
+  const w = adj ? r.corr.worst : null;
+  $("#lk-warn").hidden = !adj;
+  if (adj) $("#lk-warn-t").textContent = "These links cannot all be true at once, so the page used the closest set that can." + (w && BY[w[0]] && BY[w[1]] ? " The biggest change was to " + BY[w[0]].label + " and " + BY[w[1]].label + ", by " + (Math.round(r.corr.maxDiff * 100) / 100) + "." : "") + " Each adjusted row says what was used.";
   // the supposed situation
   $("#situ").hidden = !sit;
   if (sit){
@@ -1522,7 +1617,7 @@ function render(){
   if (none){
     $("#empty-t").replaceChildren(h("b", {text: r.tried ? "This situation is too rare to show." : "This cannot happen with your numbers."}),
       r.tried ? "It did not come up once in " + r.tried.toLocaleString("en-US") + " tries. Raise the chances involved, or suppose fewer things at once." : "One of the things you are supposing has a chance of zero, or of 100% when you suppose it does not happen.");
-    $("#mini").hidden = true; syncAll(); syncLinks(); return;
+    $("#mini").hidden = true; renderMaster(); syncAll(); syncLinks(); return;
   }
   // headline
   const b = r.built;
@@ -1536,8 +1631,10 @@ function render(){
   $("#t-mid").textContent = pct(b.p50); $("#t-low").textContent = pct(b.p10);
   $("#t-below").textContent = pct(r.below[$("#t-thr").value]);
   $("#t-tight").textContent = Math.round(r.tight.p50 * 100) + "%";
-  $("#hero-adj").hidden = !r.corr.changed;
-  renderHist(r, ref); renderLimits(r, ref); renderMatters(r); renderOutputs(r);
+  $("#hero-adj").hidden = !adj;
+  const hs = $("#hero-scale"); hs.hidden = SCALE === 1;
+  if (SCALE !== 1) hs.replaceChildren("Using " + scaleSays() + ". ", h("a", {href: "#master", text: "Change"}));
+  renderHist(r, ref); renderLimits(r, ref); renderMatters(r); renderOutputs(r); renderMaster();
   $("#mini-v").textContent = Math.round(b.mean * 100) + "% of plan";
   $("#mini-t").textContent = "average · 1-in-10 low " + pct(b.p10);
   $("#live").textContent = "On average " + Math.round(b.mean * 100) + "% of plan gets built. One time in ten, " + pct(b.p10) + " or less.";
@@ -1677,7 +1774,7 @@ function renderOutputs(r){
   }
   $("#outs").replaceChildren(...rows);
 }
-$("#t-thr").addEventListener("change", () => { if (RES.cur && RES.cur.n) $("#t-below").textContent = pct(RES.cur.below[$("#t-thr").value]); });
+$("#t-thr").addEventListener("change", () => { if (RES.cur && RES.cur.n) $("#t-below").textContent = pct(RES.cur.below[$("#t-thr").value]); renderMaster(); });
 for (const b of $$("#mat-seg button")) b.addEventListener("click", () => {
   matMode = b.getAttribute("data-m");
   $$("#mat-seg button").forEach(x => x.setAttribute("aria-pressed", String(x === b)));
@@ -1685,33 +1782,89 @@ for (const b of $$("#mat-seg button")) b.addEventListener("click", () => {
 });
 $("#situ-clear").addEventListener("click", () => { for (const k of Object.keys(given)) delete given[k]; syncAll(); request(); });
 
-/* ---------------- links: one editable row each, an add form, a filter and an overview grid ---------------- */
+/* ---------------- links: one control for all of them, stories of plain sentences, and each driver's own links ---------------- */
 function flash(el){ el.classList.add("flash"); setTimeout(() => el.classList.remove("flash"), 1600); }
+const STORIES = (FILE.stories || []).filter(s => s && s.id && s.id !== "other").concat([{id: "other", label: "Other links", blurb: "Links that start from something outside the stories above."}]);
+const storyOf = l => { const s = l.story || (BY[l.a] || {}).story; return STORIES.some(x => x.id === s) ? s : "other"; };
+/** How a driver reads in a sentence: what "it happens" means for it, and the thing whose number moves. Drivers
+    without plain words in the model file fall back on their label. */
+function sayOf(d){
+  const s = d.say || {};
+  if (d.kind === "event") return {if: s.if || "“" + d.label + "” happens", subj: "the chance " + (s.of || "of “" + d.label + "”"), pl: false};
+  return {if: s.if || "“" + d.label + "” hits its high case", subj: s.subj || "“" + d.label + "”", pl: !!s.pl};
+}
+/** The unit written after a quantity's last number in a sentence: "% of plan", or " (today = 100)". */
+function unitOf(d){ const u = d.say && d.say.unit != null ? d.say.unit : d.unit || ""; return /^%/.test(u) ? u : u ? " " + (/^\(/.test(u) ? u : "(" + u + ")") : ""; }
+/** A quantity's value where its unit follows separately: "130%" for a percentage unit, else the bare number. */
+const valText = (d, v) => num(v) + (/^%/.test(unitOf(d)) ? "%" : "");
+/** "If A happens, B goes from x to y." as text and bold numbers, for a link of strength `rho` read from A to B.
+    A quantity reads in whole numbers unless it moves by less than 1, and only its last number carries the unit. */
+function sentence(A, B, rho){
+  const a = sayOf(A), b = sayOf(B), rd = ODDS.reading(A, B, rho), head = ["If " + a.if + ", " + b.subj + " "];
+  let x, y, tail = "";
+  if (rd.unit === "chance"){ x = pct(rd.base); y = pct(rd.given); }
+  else {
+    const u = unitOf(B), p = /^%/.test(u), f = v => (Math.abs(rd.given - rd.base) < 1 ? num(v) : String(Math.round(v))) + (p ? "%" : "");
+    x = f(rd.base); y = f(rd.given); tail = p ? u.slice(1) : u;
+  }
+  if (x === y) return head.concat(b.pl ? "stay" : "stays", " at ", h("b", {text: x}), tail + ".");
+  return head.concat(b.pl ? "go" : "goes", " from ", h("b", {text: x}), " to ", h("b", {text: y}), tail + ".");
+}
+/** Five plain choices for a link's strength. A link between two choices (a fine-tuned +0.4) shows as the nearer word. */
+const STEPS = [-0.6, -0.3, 0, 0.3, 0.6];
+const stepAt = r => !r ? 2 : r > 0 ? (r >= 0.45 ? 4 : 3) : (r <= -0.45 ? 0 : 1);
+const stepWords = B => B.kind === "event" ? ["Much less likely", "Less likely", "No link", "More likely", "Much more likely"] : ["Much lower", "Lower", "No link", "Higher", "Much higher"];
+function stepsEl(pick){
+  const g = h("div", {class: "steps", role: "group"});
+  STEPS.forEach((v, i) => g.append(h("button", {type: "button", "data-step": String(i), "aria-pressed": "false", onclick: () => pick(i)})));
+  return g;
+}
+function setSteps(g, B, r, label){
+  const w = stepWords(B), at = stepAt(r);
+  g.setAttribute("aria-label", label);
+  $$("button", g).forEach((b, i) => { if (b.textContent !== w[i]) b.textContent = w[i]; b.setAttribute("aria-pressed", String(i === at)); });
+}
+/** Picking the word a link already shows keeps its exact strength. */
+function pickStep(l, i){ if (i !== stepAt(l.rho)) setRho(l, STEPS[i], {force: true}); }
+function setRho(l, v, opt){
+  l.rho = Math.abs(v) < 0.005 ? 0 : clamp(Math.round(v * 100) / 100, -0.95, 0.95); l.msg = null;
+  linksMoved(opt); schedule();
+}
+/** After any change to the links: every place that shows them. */
+function linksMoved(opt){ syncLinks(opt); syncStories(); renderGrid(); syncAll(); applyFilter(); }
+const SCALES = [{k: 0, label: "None", says: "no links at all"}, {k: 0.5, label: "Half", says: "every link at half strength"},
+                {k: 1, label: "As set", says: "every link as set"}, {k: 1.5, label: "Stronger", says: "every link 1.5 times as strong"}];
+const scaleSays = () => SCALES.find(x => x.k === SCALE).says;
+
+/* one row for each link, inside its story */
 function linkRow(l){
-  const a = BY[l.a], b = BY[l.b];
-  const cell = (from, to, dir) => h("div", {class: "lk-read", "data-dir": dir},
-    h("span", {class: "cap2", text: dir === "ab" ? "If the first happens, the second goes" : "If the second happens, the first goes"}),
-    h("span", {class: "who", text: to.label}),
-    h("span", {class: "to"}, to.kind === "event" ? "from a chance of " : "from a central case of ", h("b", {"data-v": "base"}),
-      h("span", {class: "tv"}, "to", h("input", {class: "nf", type: "number", inputmode: "decimal", step: "any", "data-f": "target",
-        "aria-label": "Where " + to.label + " lands if " + from.label + (from.kind === "event" ? " happens" : " comes in at its high case or better") + (to.kind === "event" ? ": chance in percent" : ": central case")}),
-        to.kind === "event" ? h("span", {class: "unit", text: "%"}) : null)),
-    from.kind === "range" ? h("span", {class: "why", text: "when it comes in at its high case or better"}) : null);
+  const a = BY[l.a], b = BY[l.b], id = rowId(l);
   const sl = h("input", {class: "sl", type: "range", min: -0.95, max: 0.95, step: "0.05", "data-f": "rhos", "aria-label": "Link strength: " + a.label + " and " + b.label});
   const nf = h("input", {class: "nf", type: "number", inputmode: "decimal", min: -0.95, max: 0.95, step: "0.01", "data-f": "rho", "aria-label": "Link strength, from -0.95 to 0.95: " + a.label + " and " + b.label});
-  const act = h("button", {type: "button", class: "ghost sm", "data-act": "remove"});
-  const row = h("div", {class: "lk", id: rowId(l), "data-a": l.a, "data-b": l.b},
-    h("div", {class: "lk-pair"}, h("span", {"data-n": "1", text: a.label}), h("span", {"data-n": "2", text: b.label}), h("span", {class: "why", text: l.why || "Added by you."}), h("div", {class: "drv-note", "data-v": "note"})),
+  const aim = (from, to, dir) => h("div", {class: "lk-read", "data-dir": dir},
+    h("span", {class: "cap2", text: dir === "ab" ? "Aim it" : "The other way round"}),
+    h("span", {class: "to"}, "If " + sayOf(from).if + ", " + sayOf(to).subj + " " + (sayOf(to).pl ? "go" : "goes") + " from ", h("b", {"data-v": "base"}), " to ",
+      h("span", {class: "tv"}, h("input", {class: "nf", type: "number", inputmode: "decimal", step: "any", "data-f": "target",
+        "aria-label": "Where " + to.label + " lands if " + sayOf(from).if + (to.kind === "event" ? ": chance in percent" : ": central case")}),
+        h("span", {class: "unit", text: to.kind === "event" ? "%" : unitOf(to).trim()}))));
+  const fineBtn = h("button", {type: "button", class: "ghost sm", "data-act": "fine", "aria-expanded": "false", "aria-controls": "f-" + id}, "Fine-tune", h("span", {class: "caret", "aria-hidden": "true", text: "›"}));
+  const fine = h("div", {class: "lk-fine", id: "f-" + id, hidden: true},
     h("div", {class: "lk-str"},
       h("div", {class: "lk-strtop"}, h("label", {class: "fld"}, h("span", {text: "strength"}), nf), h("span", {class: "lk-word", "data-v": "word"})),
-      h("div", {class: "slw lkw"}, h("div", {class: "trk"}, h("i", {"data-v": "fill"}), h("u", {style: "left:50%"}), h("u", {"data-v": "start"})), sl)),
-    cell(a, b, "ab"), cell(b, a, "ba"),
-    h("div", {class: "lk-act"}, act));
-  const after = opt => { syncLink(l, opt); renderGrid(); syncAll(); applyFilter(); };
-  const setRho = (v, opt) => { l.rho = Math.abs(v) < 0.005 ? 0 : clamp(Math.round(v * 100) / 100, -0.95, 0.95); l.msg = null; after(opt); schedule(); };
-  sl.addEventListener("input", () => setRho(+sl.value, {skip: sl}));
-  nf.addEventListener("input", () => { const v = parseFloat(nf.value); if (v === v) setRho(v, {skip: nf}); });
-  nf.addEventListener("change", () => { const v = parseFloat(nf.value); if (v === v) setRho(v, {force: true}); else syncLink(l, {force: true}); });
+      h("div", {class: "slw lkw"}, h("div", {class: "trk"}, h("i", {"data-v": "fill"}), h("u", {style: "left:50%"}), h("u", {"data-v": "start"})), sl),
+      h("p", {class: "cap", text: "From −0.95 (opposite ways) through 0 to +0.95 (the same way). The five words above set −0.6, −0.3, 0, +0.3 and +0.6."})),
+    h("div", {class: "reads"}, aim(a, b, "ab"), aim(b, a, "ba")));
+  const row = h("div", {class: "lk", id, "data-a": l.a, "data-b": l.b},
+    h("p", {class: "say", "data-v": "say"}),
+    h("p", {class: "why", text: l.why || "Added by you."}),
+    h("div", {class: "lk-ctl"}, stepsEl(i => pickStep(l, i)),
+      h("span", {class: "lk-btns"}, fineBtn, l.start == null ? h("button", {type: "button", class: "ghost sm", "data-act": "delete", onclick: () => deleteLink(l), text: "Delete"}) : null)),
+    h("div", {class: "drv-note", "data-v": "note"}),
+    fine);
+  fineBtn.addEventListener("click", () => openFine(l, fine.hidden));
+  sl.addEventListener("input", () => setRho(l, +sl.value, {skip: sl}));
+  nf.addEventListener("input", () => { const v = parseFloat(nf.value); if (v === v) setRho(l, v, {skip: nf}); });
+  nf.addEventListener("change", () => { const v = parseFloat(nf.value); if (v === v) setRho(l, v, {force: true}); else syncLink(l, {force: true}); });
   // "when the first happens, the second should land here": work out the strength that does it
   for (const c of $$(".lk-read", row)){
     const ab = c.getAttribute("data-dir") === "ab", f = $('[data-f="target"]', c);
@@ -1723,18 +1876,18 @@ function linkRow(l){
       l.rho = Math.abs(rho) < 0.005 ? 0 : rho;
       const got = ODDS.reading(A, B, l.rho).given, off = Math.abs(got - target) > (isEv ? 0.006 : Math.max(0.6, Math.abs(target) * 0.006));
       l.msg = off ? "A link can only take " + B.label + " as far as " + (isEv ? pct(got) : num(got)) + " here." : null;
-      after({force: true}); schedule();
+      linksMoved({force: true}); schedule();
     });
   }
-  act.addEventListener("click", () => {
-    l.msg = null;
-    if (l.start == null){ LINKS.splice(LINKS.indexOf(l), 1); row.remove(); renderGrid(); syncAll(); applyFilter(); }
-    else { l.rho = l.rho === 0 && l.start !== 0 ? l.start : 0; after({force: true}); }       // remove, or put back
-    request();
-  });
   return row;
 }
-/** Write one link's strength and both plain-number readings into its row (same rules as sync() for the fields). */
+function openFine(l, open){
+  const row = document.getElementById(rowId(l)); if (!row) return;
+  $(".lk-fine", row).hidden = !open; $('[data-act="fine"]', row).setAttribute("aria-expanded", String(open));
+  if (open) syncLink(l, {force: true});
+}
+/** Write one link into its row: the sentence and the word always, the exact numbers when Fine-tune is open. A
+    number field that is being typed in is left alone unless `opt.force` (same rules as sync() for the drivers). */
 function syncLink(l, opt){
   opt = opt || {};
   const row = document.getElementById(rowId(l)); if (!row) return;
@@ -1744,77 +1897,226 @@ function syncLink(l, opt){
     el.value = v;
   };
   const A = live(l.a), B = live(l.b), r = l.rho, ch = linkChanged(l), off = r === 0;
-  set($('[data-f="rho"]', row), String(r)); set($('[data-f="rhos"]', row), r);
-  $('[data-f="rhos"]', row).setAttribute("aria-valuetext", rhoText(r) + ", " + rhoWord(r).toLowerCase());
-  $('[data-v="word"]', row).textContent = rhoWord(r);
-  const fill = $('[data-v="fill"]', row), half = Math.abs(r) / 0.95 * 50;
-  fill.style.left = (r < 0 ? 50 - half : 50) + "%"; fill.style.width = half + "%"; fill.style.background = r < 0 ? "var(--neg)" : "var(--series)";
-  const st = $('[data-v="start"]', row);
-  st.hidden = l.start == null || !ch; if (l.start != null) st.style.left = (50 + l.start / 0.95 * 50) + "%";
-  for (const [dir, X, Y] of [["ab", A, B], ["ba", B, A]]){
-    const c = $('.lk-read[data-dir="' + dir + '"]', row), rd = ODDS.reading(X, Y, r), isEv = rd.unit === "chance";
-    $('[data-v="base"]', c).textContent = isEv ? pct(rd.base) : num(rd.base);
-    set($('[data-f="target"]', c), tgt(rd.given, isEv));
+  $('[data-v="say"]', row).replaceChildren(...sentence(A, B, r));
+  setSteps($(".steps", row), B, r, "If " + sayOf(A).if + ", " + B.label);
+  if (!$(".lk-fine", row).hidden){
+    set($('[data-f="rho"]', row), String(r)); set($('[data-f="rhos"]', row), r);
+    $('[data-f="rhos"]', row).setAttribute("aria-valuetext", rhoText(r) + ", " + rhoWord(r).toLowerCase());
+    $('[data-v="word"]', row).textContent = rhoWord(r);
+    const fill = $('[data-v="fill"]', row), half = Math.abs(r) / 0.95 * 50;
+    fill.style.left = (r < 0 ? 50 - half : 50) + "%"; fill.style.width = half + "%"; fill.style.background = r < 0 ? "var(--neg)" : "var(--series)";
+    const st = $('[data-v="start"]', row);
+    st.hidden = l.start == null || !ch; if (l.start != null) st.style.left = (50 + l.start / 0.95 * 50) + "%";
+    for (const [dir, X, Y] of [["ab", A, B], ["ba", B, A]]){
+      const c = $('.lk-read[data-dir="' + dir + '"]', row), rd = ODDS.reading(X, Y, r), isEv = rd.unit === "chance";
+      $('[data-v="base"]', c).textContent = isEv ? pct(rd.base) : valText(Y, rd.base);
+      set($('[data-f="target"]', c), tgt(rd.given, isEv));
+    }
   }
   row.classList.toggle("changed", ch); row.classList.toggle("off", off);
-  $('[data-act="remove"]', row).textContent = l.start != null && off && l.start !== 0 ? "Put back" : "Remove";
   const bits = [];
-  if (l.start == null && off) bits.push(h("span", {text: "Set a strength to make it count."}));
-  else if (l.start != null && ch) bits.push(h("span", {}, off ? "Removed. It started at " : "Started at ", h("b", {text: rhoText(l.start)}), " ",
-    off ? null : h("button", {type: "button", onclick: () => { l.rho = l.start; l.msg = null; syncLink(l, {force: true}); renderGrid(); syncAll(); applyFilter(); request(); }, text: "Reset"})));
+  if (l.start == null && off) bits.push(h("span", {text: "Pick how strong it is to make it count."}));
+  else if (l.start != null && ch) bits.push(h("span", {}, off ? "Removed. It started at " : "Started at ", h("b", {text: rhoText(l.start)}), " (" + stepWords(B)[stepAt(l.start)].toLowerCase() + ") ",
+    h("button", {type: "button", onclick: () => { l.rho = l.start; l.msg = null; linksMoved({force: true}); request(); }, text: "Reset"})));
   if (l.msg) bits.push(h("span", {text: l.msg}));
   const used = USED[linkKey(l.a, l.b)];
   if (used != null && Math.abs(used - r) >= 0.01) bits.push(h("span", {}, "Used ", h("b", {text: rhoText(used) || "0"}), " so that all the links fit together."));
   $('[data-v="note"]', row).replaceChildren(...bits);
 }
-function syncLinks(force){ for (const l of LINKS) syncLink(l, force ? {force: true} : null); }
+function syncLinks(opt){ for (const l of LINKS) syncLink(l, opt); }
+function syncStories(){
+  for (const st of STORIES){
+    const el = document.getElementById("st-" + st.id); if (!el) continue;
+    const ls = LINKS.filter(l => storyOf(l) === st.id), on = ls.filter(l => l.rho !== 0).length, ch = ls.filter(linkChanged).length;
+    $('[data-v="meta"]', el).textContent = on + (on === 1 ? " link" : " links") + (ch ? " · " + ch + " changed" : "");
+  }
+}
 function resetLinks(){
   for (let i = LINKS.length - 1; i >= 0; i--){
     const l = LINKS[i];
     if (l.start == null){ const row = document.getElementById(rowId(l)); if (row) row.remove(); LINKS.splice(i, 1); }
     else { l.rho = l.start; l.msg = null; }
   }
-  syncLinks(true); renderGrid(); applyFilter();
+  for (const k in INL) INL[k] = null;
+  linksMoved({force: true});
+}
+function deleteLink(l){
+  const i = LINKS.indexOf(l); if (i < 0) return;
+  LINKS.splice(i, 1);
+  const row = document.getElementById(rowId(l)); if (row) row.remove();
+  for (const k in INL) if (INL[k] === l) INL[k] = null;
+  linksMoved(); request();
+}
+/** A new link from `a` to `b` (or the one that is already there), filed under a's story, at no strength yet. */
+function addLink(a, b){
+  let l = linkAt(a, b);
+  if (!l){
+    l = {a, b, rho: 0, start: null, why: "", msg: null}; LINKS.push(l);
+    $(".st-body", document.getElementById("st-" + storyOf(l))).prepend(linkRow(l));
+    linksMoved({force: true});
+  }
+  return l;
 }
 function applyFilter(){
   const id = $("#lk-filter").value; let shown = 0;
-  for (const l of LINKS){ const row = document.getElementById(rowId(l)); if (!row) continue; const on = !id || l.a === id || l.b === id; row.hidden = !on; if (on) shown++; }
-  $("#lk-empty").hidden = shown > 0;
+  for (const st of STORIES){
+    const el = document.getElementById("st-" + st.id); if (!el) continue;
+    let n = 0;
+    for (const l of LINKS){
+      if (storyOf(l) !== st.id) continue;
+      const row = document.getElementById(rowId(l)); if (!row) continue;
+      const on = !id || l.a === id || l.b === id; row.hidden = !on; if (on) n++;
+    }
+    el.hidden = n === 0;
+    if (id && n) el.open = true;
+    shown += n;
+  }
+  $("#lk-empty").hidden = !id || shown > 0;
   const active = LINKS.filter(l => l.rho !== 0).length, k = nLinksChanged();
   $("#lk-count").textContent = active + (active === 1 ? " link" : " links") + " in all" + (k ? ", " + k + " changed by you" : "") + (id ? "; " + shown + " shown" : "");
 }
-function showLink(l){
+/** Go to a link's row: open its story (and Fine-tune, if asked), then put the keyboard on it. */
+function showLink(l, fine){
   $("#lk-filter").value = ""; applyFilter();
   const row = document.getElementById(rowId(l)); if (!row) return;
+  const st = row.closest("details"); if (st) st.open = true;
+  if (fine) openFine(l, true);
   row.scrollIntoView({behavior: reduceMotion ? "auto" : "smooth", block: "center"}); flash(row);
-  $('[data-f="rho"]', row).focus({preventScroll: true});
+  const f = fine ? $('[data-f="rho"]', row) : $('.steps [aria-pressed="true"]', row);
+  if (f) f.focus({preventScroll: true});
 }
 function syncAdd(){
   const a = $("#lk-a").value, b = $("#lk-b").value, btn = $("#lk-add button");
   btn.disabled = !a || !b || a === b; btn.textContent = a && b && a !== b && linkAt(a, b) ? "Show this link" : "Add link";
 }
+function driverOptions(sel, first, skip){
+  sel.append(h("option", {value: "", text: first}));
+  for (const g of FILE.groups){ const ds = MODEL.drivers.filter(d => d.group === g.id && d.id !== skip); if (ds.length) sel.append(h("optgroup", {label: g.label}, ds.map(d => h("option", {value: d.id, text: d.label})))); }
+  return sel;
+}
+
+/* each driver's own links, as tags on its row; one opens under the row to be changed there */
+const INL = {};
+function syncChips(id){
+  const row = document.getElementById("d-" + id); if (!row) return;
+  const box = $(".dl-chips", row), mine = LINKS.filter(l => l.a === id || l.b === id), old = new Map($$(".lchip", box).map(c => [c.getAttribute("data-k"), c]));
+  for (const l of mine){
+    const k = linkKey(l.a, l.b); let c = old.get(k);
+    if (c) old.delete(k);
+    else { c = h("button", {type: "button", class: "lchip", "data-k": k, "aria-expanded": "false", onclick: () => toggleInline(id, l)}, h("span", {class: "ar", "aria-hidden": "true"}), h("span", {class: "nm"})); box.append(c); }
+    const o = BY[l.a === id ? l.b : l.a], r = l.rho, at = stepAt(r), ar = c.firstChild;
+    ar.textContent = ["↓↓", "↓", "·", "↑", "↑↑"][at]; ar.className = "ar" + (r > 0 ? " pos" : r < 0 ? " neg" : "");
+    c.lastChild.textContent = o.label;
+    c.classList.toggle("off", !r); c.classList.toggle("changed", linkChanged(l));
+    c.setAttribute("aria-label", o.label + ": " + stepWords(o)[at].toLowerCase() + (linkChanged(l) ? ", changed by you" : "") + ". Change this link");
+    c.setAttribute("aria-expanded", String(INL[id] === l));
+  }
+  for (const c of old.values()) c.remove();
+  $(".dl-k", row).textContent = mine.some(l => l.rho !== 0) ? "Moves with" : "No links yet";
+}
+function toggleInline(id, what){
+  INL[id] = INL[id] === what ? null : what;
+  syncChips(id); syncInline(id);
+  if (INL[id] === "add"){ const s = $("#d-" + id + " .lk-in select"); if (s) s.focus(); }
+}
+function syncInline(id){
+  const row = document.getElementById("d-" + id); if (!row) return;
+  const box = $(".lk-in", row); let l = INL[id];
+  if (l && l !== "add" && !LINKS.includes(l)) l = INL[id] = null;
+  $(".lchip.add", row).setAttribute("aria-expanded", String(l === "add"));
+  if (!l){ box.hidden = true; box.replaceChildren(); box.removeAttribute("data-k"); return; }
+  box.hidden = false;
+  const close = () => h("button", {type: "button", class: "xbtn", "aria-label": "Close", onclick: () => { INL[id] = null; syncInline(id); syncChips(id); }, text: "×"});
+  if (l === "add"){
+    if (box.getAttribute("data-k") === "add") return;
+    box.setAttribute("data-k", "add");
+    const sel = driverOptions(h("select", {"aria-label": "Link " + BY[id].label + " with"}), "choose one", id);
+    const go = h("button", {type: "submit", class: "ghost sm", disabled: true, text: "Add link"});
+    sel.addEventListener("change", () => { go.disabled = !sel.value; go.textContent = sel.value && linkAt(id, sel.value) ? "Show this link" : "Add link"; });
+    box.replaceChildren(h("form", {onsubmit: e => {
+      e.preventDefault(); if (!sel.value) return;
+      INL[id] = addLink(id, sel.value); syncChips(id); syncInline(id);
+      const p = $('.steps [aria-pressed="true"]', box); if (p) p.focus();
+    }}, h("span", {text: "Link it with"}), sel, go, close()));
+    return;
+  }
+  const k = linkKey(l.a, l.b), A = live(id), B = live(l.a === id ? l.b : l.a);
+  if (box.getAttribute("data-k") !== k){
+    box.setAttribute("data-k", k);
+    box.replaceChildren(
+      h("p", {class: "say", "data-v": "say"}),
+      h("p", {class: "why", text: l.why || "Added by you."}),
+      h("div", {class: "lk-ctl"}, stepsEl(i => pickStep(l, i)),
+        h("span", {class: "lk-btns"},
+          h("button", {type: "button", class: "ghost sm", "data-act": "reset", onclick: () => { l.rho = l.start; l.msg = null; linksMoved({force: true}); request(); }, text: "Reset"}),
+          l.start == null ? h("button", {type: "button", class: "ghost sm", "data-act": "delete", onclick: () => deleteLink(l), text: "Delete"}) : null,
+          h("button", {type: "button", class: "ghost sm", "data-act": "fine", "aria-label": "Fine-tune this link under What moves together", onclick: () => showLink(l, true), text: "Fine-tune"}),
+          close())));
+  }
+  $('[data-v="say"]', box).replaceChildren(...sentence(A, B, l.rho));
+  setSteps($(".steps", box), B, l.rho, "If " + sayOf(A).if + ", " + B.label);
+  $('[data-act="reset"]', box).hidden = l.start == null || !linkChanged(l);
+}
+
+/* how strongly things move together: every link at once, with what each setting does to a bad year */
+function buildMaster(){
+  $("#ms-cols").replaceChildren(...SCALES.map(s => withTip(h("button", {type: "button", class: "ms-col", "data-k": String(s.k), "aria-pressed": String(s.k === SCALE), onclick: () => setScale(s.k)},
+    h("span", {class: "ms-v", text: "…"}), h("span", {class: "ms-bar", "aria-hidden": "true"}, h("i")), h("span", {class: "ms-l", text: s.label})), () => masterTip(s))));
+}
+function setScale(k){
+  if (k === SCALE) return;
+  SCALE = k; renderMaster(); syncAll(); request();
+}
+function masterTip(s){
+  const x = STRIP.res[s.k], thr = $("#t-thr").value;
+  return [h("div", {class: "tt", text: s.label + ": " + s.says}),
+    x && x.n ? tipRow("", "Ending below " + Math.round(thr * 100) + "% of plan", pct(x.below[thr])) : h("p", {text: x ? "This situation cannot happen." : "Working it out…"}),
+    x && x.n ? h("div", {class: "tr"}, h("span", {text: "Average built:"}), h("b", {text: pct(x.mean)})) : null,
+    h("p", {text: s.k === SCALE ? "The results use this now." : "Click to use this for the results."})].filter(Boolean);
+}
+function renderMaster(){
+  const thr = $("#t-thr").value, lab = Math.round(thr * 100) + "%";
+  const vals = SCALES.map(s => { const x = STRIP.res[s.k]; return x && x.n ? x.below[thr] : null; });
+  const top = Math.max(0.04, ...vals.filter(v => v != null)) * 1.1;
+  $("#ms-thr").textContent = lab;
+  $$("#ms-cols .ms-col").forEach((c, i) => {
+    const v = vals[i], s = SCALES[i], x = STRIP.res[s.k];
+    c.setAttribute("aria-pressed", String(s.k === SCALE));
+    $(".ms-v", c).textContent = v != null ? pct(v) : x ? "–" : "…";
+    $(".ms-bar i", c).style.height = v == null ? "0" : Math.max(1.5, v / top * 100) + "%";
+    c.setAttribute("aria-label", s.label + ", " + s.says + ": " + (v != null ? pct(v) + " chance of ending below " + lab + " of plan" : "not worked out yet") + (s.k === SCALE ? ". In use" : ""));
+  });
+  const v0 = vals[0], v1 = vals[2], where = anyGiven() ? " in this situation" : "", say = [];
+  if (v0 != null && v1 != null){
+    const both = "with your links as set, the chance of ending below " + lab + " of plan" + where + " is " + pct(v1) + ", against " + pct(v0) + " if nothing were linked.";
+    if (v1 > v0 * 1.08 + 0.002) say.push("Links bunch the bad things together: " + both);
+    else if (v1 < v0 * 0.92 - 0.002) say.push("Your links pair bad news with good, so a bad year gets less likely: " + both);
+    else say.push("Your links barely change the chance of a bad year: " + both);
+  }
+  if (SCALE !== 1) say.push("The results above use " + scaleSays() + ".");
+  const xs = STRIP.res[SCALE];
+  if (SCALE !== 1 && xs && xs.changed) say.push("At this strength some links cannot all be true at once, so the futures use the closest set that can.");
+  $("#ms-cap").textContent = say.join(" ");
+}
+
 function buildLinks(){
-  const options = (sel, first) => {
-    sel.append(h("option", {value: "", text: first}));
-    for (const g of FILE.groups){ const ds = MODEL.drivers.filter(d => d.group === g.id); if (ds.length) sel.append(h("optgroup", {label: g.label}, ds.map(d => h("option", {value: d.id, text: d.label})))); }
-  };
-  options($("#lk-filter"), "everything"); options($("#lk-a"), "choose one"); options($("#lk-b"), "choose another");
-  $("#lk-list").append(h("div", {class: "lk hd", "aria-hidden": "true"}, h("span", {text: "These two"}), h("span", {text: "Link"}), h("span", {text: "If the first happens, the second goes"}), h("span", {text: "If the second happens, the first goes"}), h("span")), ...LINKS.map(linkRow));
+  driverOptions($("#lk-filter"), "everything"); driverOptions($("#lk-a"), "choose one"); driverOptions($("#lk-b"), "choose another");
+  $("#stories").append(...STORIES.map(st => h("details", {class: "story", id: "st-" + st.id},
+    h("summary", {}, h("span", {class: "st-caret", "aria-hidden": "true", text: "›"}), h("span", {class: "st-name", text: st.label}), h("span", {class: "st-meta", "data-v": "meta"}), h("span", {class: "st-blurb", text: st.blurb || ""})),
+    h("div", {class: "st-body"}))));
+  for (const l of LINKS) $(".st-body", document.getElementById("st-" + storyOf(l))).append(linkRow(l));
   $("#lk-filter").addEventListener("change", applyFilter);
   $("#lk-a").addEventListener("change", syncAdd); $("#lk-b").addEventListener("change", syncAdd);
   $("#lk-add").addEventListener("submit", e => {
     e.preventDefault();
     const a = $("#lk-a").value, b = $("#lk-b").value;
     if (!a || !b || a === b) return;
-    let l = linkAt(a, b);
-    if (!l){
-      l = {a, b, rho: 0, start: null, why: "", msg: null}; LINKS.push(l);
-      $("#lk-list .lk.hd").after(linkRow(l)); syncLink(l, {force: true}); renderGrid(); syncAll();
-    }
-    syncAdd(); showLink(l);
+    const l = addLink(a, b);
+    syncAdd(); showLink(l, false);
   });
   $("#grid-scale").append(h("span", {text: "opposite"}), ...[-0.9, -0.5, -0.2, 0, 0.2, 0.5, 0.9].map(v => h("i", {style: "background:" + cellFill(v), title: v ? rhoText(v) : "no link"})), h("span", {text: "same way"}));
-  syncLinks(true); renderGrid(); applyFilter(); syncAdd();
+  buildMaster();
+  linksMoved({force: true}); syncAdd(); renderMaster();
 }
 const cellFill = r => !r ? "var(--wash)" : "color-mix(in srgb, " + (r > 0 ? "var(--series)" : "var(--neg)") + " " + Math.round(25 + 75 * Math.min(1, Math.abs(r) / 0.9)) + "%, var(--wash))";
 let gridCur = null, gridRefs = null;
@@ -1862,7 +2164,7 @@ function gridTip(c){
 function gridPick(c){
   const a = MODEL.drivers[c[0]].id, b = MODEL.drivers[c[1]].id, l = linkAt(a, b);
   hideTip();
-  if (l){ showLink(l); return; }
+  if (l){ showLink(l, true); return; }
   $("#lk-a").value = a; $("#lk-b").value = b; syncAdd();
   const f = $("#lk-add"); f.scrollIntoView({behavior: reduceMotion ? "auto" : "smooth", block: "center"}); flash(f);
   $("#lk-add button").focus({preventScroll: true});
@@ -1919,7 +2221,8 @@ function gridPick(c){
     new IntersectionObserver(es => { heroSeen = es[0].isIntersecting; mini.hidden = heroSeen || !RES.cur || !RES.cur.n; }, {threshold: 0}).observe($("#hero"));
   }
 })();
-window.ODDSLAB = {get res(){ return RES; }, get busy(){ return busy || !!pending; }, cur, given, links: LINKS, usingWorker: () => !!worker, compute, tgt, N, SEED, MODEL};
+window.ODDSLAB = {get res(){ return RES; }, get busy(){ return busy || !!pending; }, get strip(){ return STRIP; }, get stripBusy(){ return stripBusy; }, get scale(){ return SCALE; },
+  cur, given, links: LINKS, usingWorker: () => !!worker, compute, tgt, N, SEED, MODEL, STEPS};
 </script>
 
 

@@ -226,8 +226,87 @@ input.sl:focus-visible::-moz-range-thumb{box-shadow:0 0 0 1px var(--ink),0 0 0 4
 .caret{display:inline-block;transition:transform .15s;margin-left:4px}
 [aria-expanded="true"] > .caret{transform:rotate(90deg)}
 
-/* links: an overview grid of every pair, then one editable row per link */
-.grid-card{padding:16px 18px}
+/* links: one control for all of them, then stories of plain sentences; every driver row shows its own links */
+.master{padding:16px 18px;margin-bottom:22px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);gap:12px 32px;align-items:start}
+.master h3{font-size:var(--fs-md)}
+.master .cap{margin-top:4px;max-width:58ch}
+.ms-say{font-size:var(--fs-sm);color:var(--ink-2);margin:10px 0 0;max-width:58ch}
+.ms-cols{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:8px}
+.ms-col{display:grid;grid-template-rows:auto 56px auto;gap:5px;justify-items:center;border:1px solid var(--line);background:var(--surface);border-radius:var(--r);padding:8px 4px 7px;cursor:pointer;color:var(--ink-2);font-size:var(--fs-sm);min-width:0}
+.ms-col:hover{border-color:var(--faint);color:var(--ink)}
+.ms-col[aria-pressed="true"]{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink);color:var(--ink);font-weight:600}
+.ms-v{font-weight:600;font-variant-numeric:tabular-nums;color:var(--ink);font-size:var(--fs-md)}
+.ms-bar{position:relative;width:30px;height:56px}
+.ms-bar::after{content:"";position:absolute;left:-8px;right:-8px;bottom:0;height:1px;background:var(--line)}
+.ms-bar i{position:absolute;left:0;right:0;bottom:0;height:0;background:var(--series);border-radius:4px 4px 0 0;transition:height .2s}
+.ms-col[aria-pressed="true"] .ms-bar i{background:color-mix(in srgb,var(--series) 72%,var(--ink))}
+.ms-l{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.stories{display:grid;gap:10px}
+details.story{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);scroll-margin-top:16px}
+details.story>summary,details.grid-card>summary{list-style:none;cursor:pointer}
+details.story>summary::-webkit-details-marker,details.grid-card>summary::-webkit-details-marker{display:none}
+details.story>summary{display:grid;grid-template-columns:14px minmax(0,1fr) auto;gap:2px 10px;align-items:baseline;padding:12px 16px;border-radius:var(--r)}
+details.story>summary:hover .st-name{text-decoration:underline;text-decoration-color:var(--faint);text-underline-offset:3px}
+.st-caret{color:var(--muted);display:inline-block;transition:transform .15s}
+details[open]>summary .st-caret{transform:rotate(90deg)}
+.st-name{font-weight:600;font-size:var(--fs-lg);line-height:1.3}
+.st-meta{font-family:var(--font-mono);font-size:var(--fs-xs);color:var(--muted);white-space:nowrap}
+.st-blurb{grid-column:2/-1;font-size:var(--fs-sm);color:var(--ink-2);max-width:80ch}
+.st-body{display:grid;gap:8px;padding:2px 16px 16px}
+.lk{display:grid;gap:6px;background:var(--raised);border:1px solid var(--line);border-left:3px solid var(--line);border-radius:var(--r);padding:12px 14px;scroll-margin-top:16px}
+.lk.changed{border-left-color:var(--ink)}
+.lk.off .say{color:var(--muted)}
+.lk.flash,.lk-add.flash{outline:2px solid var(--focus);outline-offset:3px}
+.say{margin:0;font-size:var(--fs-md);line-height:1.45;max-width:80ch}
+.say b{font-variant-numeric:tabular-nums;font-weight:600}
+.lk .why,.lk-in .why{margin:0;color:var(--muted);font-size:var(--fs-xs);max-width:80ch}
+.lk-ctl{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;margin-top:4px}
+.lk-btns{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.steps{display:inline-grid;grid-auto-flow:column;border:1px solid var(--line);border-radius:var(--r);background:var(--surface);overflow:hidden;max-width:100%}
+.steps button{border:0;background:transparent;padding:5px 10px;font-size:var(--fs-xs);line-height:1.25;cursor:pointer;color:var(--ink-2)}
+.steps button+button{border-left:1px solid var(--line)}
+.steps button:hover{background:var(--wash);color:var(--ink)}
+.steps button[aria-pressed="true"]{background:var(--ink);color:var(--surface)}
+.steps button:focus-visible{outline-offset:-3px}
+.lk-fine{display:grid;grid-template-columns:250px minmax(0,1fr);gap:10px 26px;border-top:1px solid var(--grid);margin-top:6px;padding-top:12px;align-items:start}
+.lk-fine .reads{display:grid;gap:12px;min-width:0}
+.lk-str{display:grid;gap:0}
+.lk-str .cap{margin-top:2px}
+.lk-strtop{display:flex;align-items:flex-end;gap:8px}
+.lk-strtop .fld{justify-items:start}
+.lk-word{font-size:var(--fs-xs);color:var(--ink-2);padding-bottom:8px}
+.slw.lkw .trk u{top:-4px;bottom:-4px;background:var(--faint)}
+.slw.lkw .trk u[data-v="start"]{top:-6px;bottom:-6px;background:var(--ink-2)}
+.lk-read{font-size:var(--fs-sm);color:var(--ink-2);display:grid;gap:2px;min-width:0}
+.lk-read .cap2{font-size:var(--fs-xs);text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:600}
+.lk-read .to{line-height:2.1}
+.lk-read .tv{display:inline-flex;align-items:center;gap:4px;white-space:nowrap}
+.lk-read .to .nf{width:62px}
+.lk-read .to .unit{padding-bottom:0;max-width:none}
+.lk-read b{color:var(--ink);font-variant-numeric:tabular-nums}
+.drv-links{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:8px}
+.dl-k{font-size:var(--fs-xs);color:var(--muted);margin-right:2px}
+.dl-chips{display:contents}
+.lchip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:2px 10px 2px 8px;font-size:var(--fs-xs);line-height:1.35;color:var(--ink-2);cursor:pointer;max-width:100%;text-align:left}
+.lchip:hover{border-color:var(--faint);color:var(--ink)}
+.lchip[aria-expanded="true"]{border-color:var(--ink);color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
+.lchip .ar{font-weight:700;font-size:11.5px;letter-spacing:-.14em;min-width:1.2em;text-align:center;color:var(--muted)}
+.lchip .ar.pos{color:var(--series)}
+.lchip .ar.neg{color:var(--neg)}
+.lchip.off,.lchip.add{border-style:dashed}
+.lchip.off .nm{color:var(--muted)}
+.lchip.changed::after{content:"";width:6px;height:6px;border-radius:50%;background:var(--ink);flex:none}
+.lk-in{margin-top:8px;border:1px solid var(--line);border-radius:var(--r);background:var(--raised);padding:10px 12px;display:grid;gap:6px}
+.lk-in .say{font-size:var(--fs-sm)}
+.lk-in form{display:flex;flex-wrap:wrap;gap:6px 8px;align-items:center;font-size:var(--fs-sm)}
+.lk-in select,.lk-bar select{border:1px solid var(--line);border-radius:var(--r);background:var(--surface);padding:5px 8px;font-size:var(--fs-sm);max-width:100%}
+.lk-bar{display:flex;flex-wrap:wrap;gap:10px 22px;align-items:center;justify-content:space-between;margin:0 0 12px}
+.lk-bar label,.lk-add{font-size:var(--fs-sm);display:inline-flex;flex-wrap:wrap;align-items:center;gap:6px 8px;margin:0;border-radius:var(--r)}
+.lk-bar select{max-width:230px}
+.warnbox{border-left-color:var(--serious);max-width:none;margin:0 0 14px}
+.grid-card{padding:14px 18px;margin-top:18px}
+details.grid-card>summary{display:flex;align-items:baseline;gap:10px}
+details.grid-card[open]>summary{margin-bottom:8px}
 .grid-wrap{overflow:auto;margin-top:8px;padding-bottom:4px}
 #grid{display:block;color:var(--ink)}
 #grid:focus-visible{outline:2px solid var(--focus);outline-offset:4px}
@@ -242,43 +321,16 @@ input.sl:focus-visible::-moz-range-thumb{box-shadow:0 0 0 1px var(--ink),0 0 0 4
 .scale i{width:14px;height:14px;border-radius:3px;display:inline-block}
 .scale span{margin:0 3px}
 .dotk{width:7px;height:7px;border-radius:50%;background:var(--ink);display:inline-block}
-.lk-bar{display:flex;flex-wrap:wrap;gap:10px 22px;align-items:center;justify-content:space-between;margin:20px 0 12px}
-.lk-bar label,.lk-add{font-size:var(--fs-sm);display:inline-flex;flex-wrap:wrap;align-items:center;gap:6px 8px;margin:0;border-radius:var(--r)}
-.lk-bar select{border:1px solid var(--line);border-radius:var(--r);background:var(--surface);padding:5px 8px;font-size:var(--fs-sm);max-width:230px}
-.lk-list{display:grid;gap:8px}
-.lk{display:grid;grid-template-columns:minmax(0,1.15fr) 224px minmax(0,1fr) minmax(0,1fr) 84px;gap:6px 18px;align-items:start;background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--line);border-radius:var(--r);padding:10px 14px;scroll-margin-top:16px}
-.lk.hd{background:transparent;border-color:transparent;padding-block:0 2px;font-size:var(--fs-xs);text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:600;align-items:end}
-.lk.changed{border-left-color:var(--ink)}
-.lk.off .lk-pair [data-n],.lk.off .lk-read{color:var(--muted)}
-.lk.flash,.lk-add.flash{outline:2px solid var(--focus);outline-offset:3px}
-.lk-pair{display:grid;gap:1px;min-width:0}
-.lk-pair [data-n]{font-weight:600;line-height:1.3}
-.lk-pair [data-n]::before{content:attr(data-n) ". ";color:var(--muted);font-weight:400;font-variant-numeric:tabular-nums}
-.lk .why{display:block;color:var(--muted);font-size:var(--fs-xs);margin-top:2px;max-width:46ch}
-.lk-str{display:grid;gap:0}
-.lk-strtop{display:flex;align-items:flex-end;gap:8px}
-.lk-strtop .fld{justify-items:start}
-.lk-word{font-size:var(--fs-xs);color:var(--ink-2);padding-bottom:8px}
-.slw.lkw .trk u{top:-4px;bottom:-4px;background:var(--faint)}
-.slw.lkw .trk u[data-v="start"]{top:-6px;bottom:-6px;background:var(--ink-2)}
-.lk-read{font-size:var(--fs-sm);color:var(--ink-2);display:grid;gap:3px;min-width:0}
-.lk-read .cap2{display:none;font-size:var(--fs-xs);text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:600}
-.lk-read .to{display:flex;flex-wrap:wrap;align-items:center;gap:4px 6px}
-.lk-read .tv{display:inline-flex;align-items:center;gap:4px;white-space:nowrap}
-.lk-read .to .nf{width:62px}
-.lk-read .to .unit{padding-bottom:0}
-.lk-read b{color:var(--ink);font-variant-numeric:tabular-nums}
-.lk-act{display:flex;justify-content:flex-end}
-.warnbox{border-left-color:var(--serious);max-width:none;margin:0 0 14px}
-@media (max-width:1099px){
-  .lk{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
-  .lk.hd{display:none}
-  .lk-pair,.lk-str,.lk-act{grid-column:1/-1}
-  .lk-str{max-width:340px}
-  .lk-read .cap2{display:block}
-  .lk-act{justify-content:flex-start}
+@media (max-width:860px){ .master{grid-template-columns:minmax(0,1fr)} }
+@media (max-width:760px){ .lk-fine{grid-template-columns:minmax(0,1fr)} .lk-str{max-width:340px} }
+@media (max-width:620px){
+  .steps{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));grid-auto-flow:row;width:100%}
+  .steps button{padding:6px 3px;text-align:center}
+  .lk-bar select{max-width:100%}
+  details.story>summary{grid-template-columns:14px minmax(0,1fr)}
+  .st-meta{grid-column:2}
 }
-@media (max-width:620px){ .lk{grid-template-columns:minmax(0,1fr)} .lk-bar select{max-width:100%} }
+@media (pointer:coarse){ .lchip{min-height:36px} .steps button{min-height:40px} .lk-in select,.lk-bar select{min-height:40px} .ms-col{min-height:44px} }
 .method{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 36px}
 .method h3{margin:14px 0 6px}
 .method p,.method li{max-width:66ch;color:var(--ink-2);margin:0 0 8px}
@@ -347,6 +399,7 @@ footer{padding-block:48px 72px;font-size:var(--fs-xs);color:var(--muted)}
         <p class="sub">The average across all the futures.</p>
         <p class="delta" id="hero-d" hidden></p>
         <p class="cap" id="hero-adj" hidden>Your links could not all be true at once, so the closest set that can was used. <a href="#links">See what changed</a>.</p>
+        <p class="cap" id="hero-scale" hidden></p>
         <div class="tiles">
           <div class="tile"><span class="l">A typical future: half end above this, half below</span><span class="v" id="t-mid">–</span></div>
           <div class="tile"><span class="l">1 time in 10 it ends at or below</span><span class="v" id="t-low">–</span></div>
@@ -392,21 +445,32 @@ footer{padding-block:48px 72px;font-size:var(--fs-xs);color:var(--muted)}
 <section id="links" aria-labelledby="links-h">
   <div class="sec-head">
     <h2 id="links-h">What moves together</h2>
-    <p>A link says two things tend to go the same way (above zero) or opposite ways (below zero). Set its strength, or say where one thing should land when the other happens and the page works out the strength. Changing a chance does not move the things linked to it; supposing that it happens does.</p>
+    <p>Some things tend to happen together. Each link says in plain numbers what one thing does to another, and the links are grouped into stories. Pick how strong a link is, or use Fine-tune for the exact number. Every driver's row above shows its links too. Changing a chance does not move the things linked to it; supposing that it happens does.</p>
+  </div>
+  <div class="card master" id="master">
+    <div>
+      <h3>How strongly things move together</h3>
+      <p class="cap">One setting for every link at once. Your links stay as you set them below; this changes how strongly the futures use them.</p>
+      <p class="ms-say" id="ms-cap"></p>
+    </div>
+    <div>
+      <div class="k">Chance of ending below <span id="ms-thr">80%</span> of plan</div>
+      <div class="ms-cols" id="ms-cols" role="group" aria-label="How strongly things move together"></div>
+    </div>
   </div>
   <div class="notice warnbox" id="lk-warn" hidden><b>Adjusted</b><span id="lk-warn-t"></span></div>
-  <figure class="fig card grid-card">
-    <div class="rb-h"><h3>Every pair at a glance</h3>
-      <div class="legend"><span class="lg scale" id="grid-scale"></span><span class="lg"><span class="dotk"></span>changed by you</span></div></div>
-    <p class="cap">Rows and columns are the same list, numbered. A coloured square is a link: + the two go the same way, − opposite ways, stronger when darker. Click a square to change its link, or an empty one to add a link.</p>
-    <div class="grid-wrap"><svg id="grid" tabindex="0" role="img" aria-label="Grid of links between every pair of drivers. Use the arrow keys to move and Enter to change or add a link."></svg></div>
-  </figure>
   <div class="lk-bar" id="lk-bar">
     <label>Show links for <select id="lk-filter"></select> <span class="cap" id="lk-count"></span></label>
     <form class="lk-add" id="lk-add"><span>Add a link between</span><select id="lk-a" aria-label="First of the two"></select><span>and</span><select id="lk-b" aria-label="Second of the two"></select><button type="submit" class="ghost" disabled>Add link</button></form>
   </div>
-  <div class="lk-list" id="lk-list"></div>
-  <p class="cap" id="lk-empty" hidden>Nothing is linked to this one yet. Add a link above.</p>
+  <div class="stories" id="stories"></div>
+  <p class="cap" id="lk-empty" hidden>Nothing is linked to this one yet. Add a link above, or from its row.</p>
+  <details class="card grid-card" id="grid-box">
+    <summary><span class="st-caret" aria-hidden="true">›</span><h3>Every pair at a glance</h3></summary>
+    <div class="rb-h"><p class="cap">Rows and columns are the same list, numbered. A coloured square is a link: + the two go the same way, − opposite ways, stronger when darker. Click a square to change its link, or an empty one to add a link.</p>
+      <div class="legend"><span class="lg scale" id="grid-scale"></span><span class="lg"><span class="dotk"></span>changed by you</span></div></div>
+    <div class="grid-wrap"><svg id="grid" tabindex="0" role="img" aria-label="Grid of links between every pair of drivers. Use the arrow keys to move and Enter to change or add a link."></svg></div>
+  </details>
 </section>
 
 <section id="method" aria-labelledby="method-h">
@@ -426,7 +490,8 @@ footer{padding-block:48px 72px;font-size:var(--fs-xs);color:var(--muted)}
         <li>The headline is the <b>average</b> of all the futures, so it moves when something rare but severe becomes more likely. The <b>typical future</b> beside it barely moves in that case, which is why both are shown.</li>
         <li><b>How bad, if it happens</b> scales an event's effect: 1 is the standard case, 0.5 half of it.</li>
         <li><b>Suppose</b> keeps only the futures in which the thing happens. Everything linked to it shifts, and each affected row shows where it lands.</li>
-        <li>A <b>link</b> runs from −0.95 (opposite ways) through 0 (unrelated) to +0.95 (same way). For a quantity, "happens" means it comes in at its high case or better. Each thing keeps its own chance whatever its links are; links only change what tends to happen together.</li>
+        <li>A <b>link</b> runs from −0.95 (opposite ways) through 0 (unrelated) to +0.95 (same way). The five words set −0.6 (much less likely, or much lower), −0.3, 0 (no link), +0.3 and +0.6; Fine-tune sets anything in between. For a quantity, "happens" means it hits its high case or better, a 1-in-10 outcome. Each thing keeps its own chance whatever its links are; links only change what tends to happen together.</li>
+        <li><b>How strongly things move together</b> multiplies every link at once: none, half, as set, or 1.5 times as strong. Where links that strong cannot all be true at once, the futures use the closest set that can.</li>
       </ul>
     </div>
     <div>
@@ -517,7 +582,7 @@ const linkChanged = l => l.start == null ? l.rho !== 0 : Math.abs(l.rho - l.star
 const nLinksChanged = () => LINKS.filter(linkChanged).length;
 /** Two drivers with no link between them are independent, so supposing one cannot move the other; any difference
     would only be sampling noise and is not shown. */
-const isLinked = (a, b) => { const l = linkAt(a, b); return !!l && l.rho !== 0; };
+const isLinked = (a, b) => { const l = linkAt(a, b); return !!l && l.rho !== 0 && SCALE !== 0; };
 const live = id => Object.assign({}, BY[id], cur[id]);
 const rhoText = r => (r > 0 ? "+" : r < 0 ? "−" : "") + (Math.round(Math.abs(r) * 100) / 100);
 const rhoWord = r => !r ? "No link" : (Math.abs(r) >= 0.5 ? "Strong" : Math.abs(r) >= 0.3 ? "Moderate" : "Weak") + (r > 0 ? ", same way" : ", opposite ways");
@@ -526,10 +591,17 @@ const rowId = l => "lk-" + l.a + "--" + l.b;
 const tgt = (v, isEv) => isEv ? String(v * 100 < 9.95 ? Math.round(v * 1000) / 10 : Math.round(v * 100)) : num(v);
 let USED = {};      // when the links could not all hold together: the strength actually used for each pair
 let RES = {cur: null, ref: null, refKind: null}, R0 = null, matMode = "share";
+let SCALE = 1;      // the master link setting: every link at this many times its strength (0, 0.5, 1 or 1.5)
+let STRIP = {key: null, res: {}}, stripBusy = false;      // the results at each master setting, for the same numbers
 
 /* ---------------- the numbers behind the page: runs in a worker when it can ---------------- */
 function compute(a){
   const O = ODDS, R = O.simulate(MODEL, {n: a.n, seed: a.seed, beliefs: a.beliefs, given: a.given});
+  if (a.lite){      // just enough for the link-strength comparison
+    if (!R.n) return {n: 0, changed: R.corr.changed};
+    const below = {}; for (const t of [0.9, 0.8, 0.7, 0.6]) below[t] = O.probBelow(R.out.built, t);
+    return {n: R.n, mean: O.mean(R.out.built), p10: O.quantiles(R.out.built, [0.1])[0], below, changed: R.corr.changed};
+  }
   const q = arr => { const v = O.quantiles(arr, [0.05, 0.1, 0.25, 0.5, 0.75, 0.9, 0.95]); return {p05: v[0], p10: v[1], p25: v[2], p50: v[3], p75: v[4], p90: v[5], p95: v[6], mean: O.mean(arr)}; };
   const out = {n: R.n, asked: R.asked, tried: R.tried, chance: R.chance, unknown: R.unknown, corr: {changed: R.corr.changed, maxDiff: R.corr.maxDiff, worst: R.corr.worst}};
   if (R.corr.changed){
@@ -567,14 +639,19 @@ function runAll(args){
 }
 let busy = false, pending = null, timer = null;
 function schedule(){ clearTimeout(timer); timer = setTimeout(request, 60); }
+/** Every link at `k` times its strength, as the futures use it. */
+const scaled = k => LINKS.map(l => [l.a, l.b, clamp(Math.round(l.rho * k * 1000) / 1000, -0.95, 0.95)]);
+/** Everything that decides the results except the master link setting. */
+const stateKey = () => JSON.stringify([cur, LINKS.map(l => [l.a, l.b, l.rho]), given]);
 function request(){
   clearTimeout(timer);
-  const beliefs = {drivers: JSON.parse(JSON.stringify(cur)), corr: LINKS.map(l => [l.a, l.b, l.rho])}, sit = anyGiven();
+  const beliefs = {drivers: JSON.parse(JSON.stringify(cur)), corr: scaled(SCALE)}, sit = anyGiven();
   const args = [{n: N, seed: SEED, beliefs, given: Object.assign({}, given)}];
   if (sit) args.push({n: N, seed: SEED, beliefs, given: {}});
-  pending = {args, sit, changed: nChanged() + nLinksChanged() > 0};
+  pending = {args, sit, changed: nChanged() + nLinksChanged() > 0 || SCALE !== 1, key: stateKey(), scale: SCALE};
   pump();
 }
+const liteOf = r => r.n ? {n: r.n, mean: r.built.mean, p10: r.built.p10, below: r.below, changed: r.corr.changed} : {n: 0, changed: r.corr.changed};
 function pump(){
   if (busy || !pending) return;
   const job = pending; pending = null; busy = true;
@@ -583,10 +660,24 @@ function pump(){
     busy = false;
     if (!job.sit && !job.changed) R0 = res[0];
     RES = {cur: res[0], ref: job.sit ? res[1] : job.changed ? R0 : null, refKind: job.sit ? "nosit" : job.changed ? "start" : null};
+    if (STRIP.key !== job.key) STRIP = {key: job.key, res: {}};
+    STRIP.res[job.scale] = liteOf(res[0]);
     if (!pending) $("#results").classList.remove("busy");
     render();
-    pump();
+    pump(); pumpStrip();
   }).catch(err => { busy = false; fail("The numbers could not be worked out: " + err.message); });
+}
+/** In the background, once the results are on screen: the same numbers with every link at each master setting,
+    one run at a time, so a change to the numbers never waits long behind them. */
+function pumpStrip(){
+  if (stripBusy || busy || pending || STRIP.key !== stateKey()) return;
+  const s = SCALES.find(x => !(x.k in STRIP.res)); if (!s) return;
+  const key = STRIP.key; stripBusy = true;
+  runAll([{n: N, seed: SEED, beliefs: {drivers: JSON.parse(JSON.stringify(cur)), corr: scaled(s.k)}, given: Object.assign({}, given), lite: true}]).then(res => {
+    stripBusy = false;
+    if (STRIP.key === key) STRIP.res[s.k] = res[0];
+    renderMaster(); pump(); pumpStrip();
+  }).catch(() => { stripBusy = false; });
 }
 function fail(msg){ const e = $("#err"); e.textContent = msg; e.hidden = false; $("#lab-grid").hidden = true; }
 
@@ -653,8 +744,10 @@ function driverRow(d){
   if (ev) supMore.append(h("button", {type: "button", class: "ghost sm", "data-sup": "false", "aria-pressed": "false", text: "Suppose it does not happen"}));
   else supMore.append(h("button", {type: "button", class: "ghost sm", "data-sup": "low", "aria-pressed": "false", text: "Suppose the low case or worse"}),
                       h("button", {type: "button", class: "ghost sm", "data-sup": "high", "aria-pressed": "false", text: "Suppose the high case or better"}));
-  supMore.append(h("button", {type: "button", class: "ghost sm", "data-act": "links", onclick: () => { $("#lk-filter").value = id; applyFilter(); $("#lk-bar").scrollIntoView({behavior: reduceMotion ? "auto" : "smooth", block: "start"}); }}));
   more.append(supMore);
+  // its links, as tags; one at a time opens under the row to be changed there
+  const links = h("div", {class: "drv-links"}, h("span", {class: "dl-k"}), h("span", {class: "dl-chips"}),
+    h("button", {type: "button", class: "lchip add", "aria-expanded": "false", "aria-label": "Add a link to " + d.label, onclick: () => toggleInline(id, "add")}, h("span", {class: "ar", "aria-hidden": "true", text: "+"}), h("span", {class: "nm", text: "Add a link"})));
 
   const row = h("article", {class: "drv", id: "d-" + id, "data-id": id, "aria-labelledby": "l-" + id},
     h("div", {class: "drv-top"},
@@ -664,6 +757,7 @@ function driverRow(d){
       h("div", {class: "slw" + (ev ? "" : " rng")}, h("div", {class: "trk"}, h("i", {"data-v": "fill"}), h("u", {"data-v": "start"})), slider),
       btns),
     h("div", {class: "drv-note", "data-v": "note"}),
+    links, h("div", {class: "lk-in", hidden: true}),
     more);
 
   // the main slider: a chance, or the central case with low and high moving along
@@ -745,15 +839,13 @@ function sync(id, opt){
     if (!ev && Math.abs(rs.mid - c.mid) >= Math.max(0.5, (d.max - d.min) * 0.005)) bits.push(h("span", {}, "In this situation its central case is ", h("b", {text: num(rs.mid)})));
   }
   note.replaceChildren(...bits);
-  const nl = LINKS.filter(l => l.rho !== 0 && (l.a === id || l.b === id)).length;
-  $('[data-act="links"]', row).textContent = nl ? "Its links (" + nl + ")" : "Add a link";
 }
-function syncAll(){ for (const d of MODEL.drivers) sync(d.id); updateBar(); }
+function syncAll(){ for (const d of MODEL.drivers){ sync(d.id); syncChips(d.id); syncInline(d.id); } updateBar(); }
 function updateBar(){
-  const n = nChanged(), k = nLinksChanged(), g = Object.keys(given).length;
+  const n = nChanged(), k = nLinksChanged(), g = Object.keys(given).length, sc = SCALE !== 1 ? scaleSays() : null;
   const parts = [n ? (n === 1 ? "1 number" : n + " numbers") : null, k ? (k === 1 ? "1 link" : k + " links") : null].filter(Boolean);
-  $("#dchanged").textContent = parts.length ? parts.join(" and ") + " changed" : "These are the starting numbers";
-  $("#reset-all").disabled = !n && !k && !g;
+  $("#dchanged").textContent = parts.length ? parts.join(" and ") + " changed" + (sc ? "; " + sc : "") : sc ? sc.charAt(0).toUpperCase() + sc.slice(1) : "These are the starting numbers";
+  $("#reset-all").disabled = !n && !k && !g && SCALE === 1;
 }
 function buildDrivers(){
   const list = $("#dlist");
@@ -768,6 +860,7 @@ function buildDrivers(){
   $("#reset-all").addEventListener("click", () => {
     for (const d of MODEL.drivers) cur[d.id] = Object.assign({}, START[d.id]);
     for (const k of Object.keys(given)) delete given[k];
+    SCALE = 1; renderMaster();
     resetLinks();
     for (const d of MODEL.drivers) sync(d.id, {force: true});
     updateBar(); request();
@@ -783,12 +876,14 @@ function jumpTo(id){
 /* ---------------- results ---------------- */
 function render(){
   const r = RES.cur, ref = RES.ref && RES.ref.n ? RES.ref : null, sit = anyGiven();
-  // links that could not all hold together: what was used instead
+  // links that could not all hold together: what was used instead. At another master setting the repair is the
+  // setting's doing, and the master control says so instead.
   USED = {};
-  for (const u of r.corr.used || []) USED[linkKey(u[0], u[1])] = u[2];
-  const w = r.corr.changed ? r.corr.worst : null;
-  $("#lk-warn").hidden = !r.corr.changed;
-  if (r.corr.changed) $("#lk-warn-t").textContent = "These links cannot all be true at once, so the page used the closest set that can." + (w && BY[w[0]] && BY[w[1]] ? " The biggest change was to " + BY[w[0]].label + " and " + BY[w[1]].label + ", by " + (Math.round(r.corr.maxDiff * 100) / 100) + "." : "") + " Each adjusted row says what was used.";
+  const adj = r.corr.changed && SCALE === 1;
+  if (adj) for (const u of r.corr.used || []) USED[linkKey(u[0], u[1])] = u[2];
+  const w = adj ? r.corr.worst : null;
+  $("#lk-warn").hidden = !adj;
+  if (adj) $("#lk-warn-t").textContent = "These links cannot all be true at once, so the page used the closest set that can." + (w && BY[w[0]] && BY[w[1]] ? " The biggest change was to " + BY[w[0]].label + " and " + BY[w[1]].label + ", by " + (Math.round(r.corr.maxDiff * 100) / 100) + "." : "") + " Each adjusted row says what was used.";
   // the supposed situation
   $("#situ").hidden = !sit;
   if (sit){
@@ -804,7 +899,7 @@ function render(){
   if (none){
     $("#empty-t").replaceChildren(h("b", {text: r.tried ? "This situation is too rare to show." : "This cannot happen with your numbers."}),
       r.tried ? "It did not come up once in " + r.tried.toLocaleString("en-US") + " tries. Raise the chances involved, or suppose fewer things at once." : "One of the things you are supposing has a chance of zero, or of 100% when you suppose it does not happen.");
-    $("#mini").hidden = true; syncAll(); syncLinks(); return;
+    $("#mini").hidden = true; renderMaster(); syncAll(); syncLinks(); return;
   }
   // headline
   const b = r.built;
@@ -818,8 +913,10 @@ function render(){
   $("#t-mid").textContent = pct(b.p50); $("#t-low").textContent = pct(b.p10);
   $("#t-below").textContent = pct(r.below[$("#t-thr").value]);
   $("#t-tight").textContent = Math.round(r.tight.p50 * 100) + "%";
-  $("#hero-adj").hidden = !r.corr.changed;
-  renderHist(r, ref); renderLimits(r, ref); renderMatters(r); renderOutputs(r);
+  $("#hero-adj").hidden = !adj;
+  const hs = $("#hero-scale"); hs.hidden = SCALE === 1;
+  if (SCALE !== 1) hs.replaceChildren("Using " + scaleSays() + ". ", h("a", {href: "#master", text: "Change"}));
+  renderHist(r, ref); renderLimits(r, ref); renderMatters(r); renderOutputs(r); renderMaster();
   $("#mini-v").textContent = Math.round(b.mean * 100) + "% of plan";
   $("#mini-t").textContent = "average · 1-in-10 low " + pct(b.p10);
   $("#live").textContent = "On average " + Math.round(b.mean * 100) + "% of plan gets built. One time in ten, " + pct(b.p10) + " or less.";
@@ -959,7 +1056,7 @@ function renderOutputs(r){
   }
   $("#outs").replaceChildren(...rows);
 }
-$("#t-thr").addEventListener("change", () => { if (RES.cur && RES.cur.n) $("#t-below").textContent = pct(RES.cur.below[$("#t-thr").value]); });
+$("#t-thr").addEventListener("change", () => { if (RES.cur && RES.cur.n) $("#t-below").textContent = pct(RES.cur.below[$("#t-thr").value]); renderMaster(); });
 for (const b of $$("#mat-seg button")) b.addEventListener("click", () => {
   matMode = b.getAttribute("data-m");
   $$("#mat-seg button").forEach(x => x.setAttribute("aria-pressed", String(x === b)));
@@ -967,33 +1064,89 @@ for (const b of $$("#mat-seg button")) b.addEventListener("click", () => {
 });
 $("#situ-clear").addEventListener("click", () => { for (const k of Object.keys(given)) delete given[k]; syncAll(); request(); });
 
-/* ---------------- links: one editable row each, an add form, a filter and an overview grid ---------------- */
+/* ---------------- links: one control for all of them, stories of plain sentences, and each driver's own links ---------------- */
 function flash(el){ el.classList.add("flash"); setTimeout(() => el.classList.remove("flash"), 1600); }
+const STORIES = (FILE.stories || []).filter(s => s && s.id && s.id !== "other").concat([{id: "other", label: "Other links", blurb: "Links that start from something outside the stories above."}]);
+const storyOf = l => { const s = l.story || (BY[l.a] || {}).story; return STORIES.some(x => x.id === s) ? s : "other"; };
+/** How a driver reads in a sentence: what "it happens" means for it, and the thing whose number moves. Drivers
+    without plain words in the model file fall back on their label. */
+function sayOf(d){
+  const s = d.say || {};
+  if (d.kind === "event") return {if: s.if || "“" + d.label + "” happens", subj: "the chance " + (s.of || "of “" + d.label + "”"), pl: false};
+  return {if: s.if || "“" + d.label + "” hits its high case", subj: s.subj || "“" + d.label + "”", pl: !!s.pl};
+}
+/** The unit written after a quantity's last number in a sentence: "% of plan", or " (today = 100)". */
+function unitOf(d){ const u = d.say && d.say.unit != null ? d.say.unit : d.unit || ""; return /^%/.test(u) ? u : u ? " " + (/^\(/.test(u) ? u : "(" + u + ")") : ""; }
+/** A quantity's value where its unit follows separately: "130%" for a percentage unit, else the bare number. */
+const valText = (d, v) => num(v) + (/^%/.test(unitOf(d)) ? "%" : "");
+/** "If A happens, B goes from x to y." as text and bold numbers, for a link of strength `rho` read from A to B.
+    A quantity reads in whole numbers unless it moves by less than 1, and only its last number carries the unit. */
+function sentence(A, B, rho){
+  const a = sayOf(A), b = sayOf(B), rd = ODDS.reading(A, B, rho), head = ["If " + a.if + ", " + b.subj + " "];
+  let x, y, tail = "";
+  if (rd.unit === "chance"){ x = pct(rd.base); y = pct(rd.given); }
+  else {
+    const u = unitOf(B), p = /^%/.test(u), f = v => (Math.abs(rd.given - rd.base) < 1 ? num(v) : String(Math.round(v))) + (p ? "%" : "");
+    x = f(rd.base); y = f(rd.given); tail = p ? u.slice(1) : u;
+  }
+  if (x === y) return head.concat(b.pl ? "stay" : "stays", " at ", h("b", {text: x}), tail + ".");
+  return head.concat(b.pl ? "go" : "goes", " from ", h("b", {text: x}), " to ", h("b", {text: y}), tail + ".");
+}
+/** Five plain choices for a link's strength. A link between two choices (a fine-tuned +0.4) shows as the nearer word. */
+const STEPS = [-0.6, -0.3, 0, 0.3, 0.6];
+const stepAt = r => !r ? 2 : r > 0 ? (r >= 0.45 ? 4 : 3) : (r <= -0.45 ? 0 : 1);
+const stepWords = B => B.kind === "event" ? ["Much less likely", "Less likely", "No link", "More likely", "Much more likely"] : ["Much lower", "Lower", "No link", "Higher", "Much higher"];
+function stepsEl(pick){
+  const g = h("div", {class: "steps", role: "group"});
+  STEPS.forEach((v, i) => g.append(h("button", {type: "button", "data-step": String(i), "aria-pressed": "false", onclick: () => pick(i)})));
+  return g;
+}
+function setSteps(g, B, r, label){
+  const w = stepWords(B), at = stepAt(r);
+  g.setAttribute("aria-label", label);
+  $$("button", g).forEach((b, i) => { if (b.textContent !== w[i]) b.textContent = w[i]; b.setAttribute("aria-pressed", String(i === at)); });
+}
+/** Picking the word a link already shows keeps its exact strength. */
+function pickStep(l, i){ if (i !== stepAt(l.rho)) setRho(l, STEPS[i], {force: true}); }
+function setRho(l, v, opt){
+  l.rho = Math.abs(v) < 0.005 ? 0 : clamp(Math.round(v * 100) / 100, -0.95, 0.95); l.msg = null;
+  linksMoved(opt); schedule();
+}
+/** After any change to the links: every place that shows them. */
+function linksMoved(opt){ syncLinks(opt); syncStories(); renderGrid(); syncAll(); applyFilter(); }
+const SCALES = [{k: 0, label: "None", says: "no links at all"}, {k: 0.5, label: "Half", says: "every link at half strength"},
+                {k: 1, label: "As set", says: "every link as set"}, {k: 1.5, label: "Stronger", says: "every link 1.5 times as strong"}];
+const scaleSays = () => SCALES.find(x => x.k === SCALE).says;
+
+/* one row for each link, inside its story */
 function linkRow(l){
-  const a = BY[l.a], b = BY[l.b];
-  const cell = (from, to, dir) => h("div", {class: "lk-read", "data-dir": dir},
-    h("span", {class: "cap2", text: dir === "ab" ? "If the first happens, the second goes" : "If the second happens, the first goes"}),
-    h("span", {class: "who", text: to.label}),
-    h("span", {class: "to"}, to.kind === "event" ? "from a chance of " : "from a central case of ", h("b", {"data-v": "base"}),
-      h("span", {class: "tv"}, "to", h("input", {class: "nf", type: "number", inputmode: "decimal", step: "any", "data-f": "target",
-        "aria-label": "Where " + to.label + " lands if " + from.label + (from.kind === "event" ? " happens" : " comes in at its high case or better") + (to.kind === "event" ? ": chance in percent" : ": central case")}),
-        to.kind === "event" ? h("span", {class: "unit", text: "%"}) : null)),
-    from.kind === "range" ? h("span", {class: "why", text: "when it comes in at its high case or better"}) : null);
+  const a = BY[l.a], b = BY[l.b], id = rowId(l);
   const sl = h("input", {class: "sl", type: "range", min: -0.95, max: 0.95, step: "0.05", "data-f": "rhos", "aria-label": "Link strength: " + a.label + " and " + b.label});
   const nf = h("input", {class: "nf", type: "number", inputmode: "decimal", min: -0.95, max: 0.95, step: "0.01", "data-f": "rho", "aria-label": "Link strength, from -0.95 to 0.95: " + a.label + " and " + b.label});
-  const act = h("button", {type: "button", class: "ghost sm", "data-act": "remove"});
-  const row = h("div", {class: "lk", id: rowId(l), "data-a": l.a, "data-b": l.b},
-    h("div", {class: "lk-pair"}, h("span", {"data-n": "1", text: a.label}), h("span", {"data-n": "2", text: b.label}), h("span", {class: "why", text: l.why || "Added by you."}), h("div", {class: "drv-note", "data-v": "note"})),
+  const aim = (from, to, dir) => h("div", {class: "lk-read", "data-dir": dir},
+    h("span", {class: "cap2", text: dir === "ab" ? "Aim it" : "The other way round"}),
+    h("span", {class: "to"}, "If " + sayOf(from).if + ", " + sayOf(to).subj + " " + (sayOf(to).pl ? "go" : "goes") + " from ", h("b", {"data-v": "base"}), " to ",
+      h("span", {class: "tv"}, h("input", {class: "nf", type: "number", inputmode: "decimal", step: "any", "data-f": "target",
+        "aria-label": "Where " + to.label + " lands if " + sayOf(from).if + (to.kind === "event" ? ": chance in percent" : ": central case")}),
+        h("span", {class: "unit", text: to.kind === "event" ? "%" : unitOf(to).trim()}))));
+  const fineBtn = h("button", {type: "button", class: "ghost sm", "data-act": "fine", "aria-expanded": "false", "aria-controls": "f-" + id}, "Fine-tune", h("span", {class: "caret", "aria-hidden": "true", text: "›"}));
+  const fine = h("div", {class: "lk-fine", id: "f-" + id, hidden: true},
     h("div", {class: "lk-str"},
       h("div", {class: "lk-strtop"}, h("label", {class: "fld"}, h("span", {text: "strength"}), nf), h("span", {class: "lk-word", "data-v": "word"})),
-      h("div", {class: "slw lkw"}, h("div", {class: "trk"}, h("i", {"data-v": "fill"}), h("u", {style: "left:50%"}), h("u", {"data-v": "start"})), sl)),
-    cell(a, b, "ab"), cell(b, a, "ba"),
-    h("div", {class: "lk-act"}, act));
-  const after = opt => { syncLink(l, opt); renderGrid(); syncAll(); applyFilter(); };
-  const setRho = (v, opt) => { l.rho = Math.abs(v) < 0.005 ? 0 : clamp(Math.round(v * 100) / 100, -0.95, 0.95); l.msg = null; after(opt); schedule(); };
-  sl.addEventListener("input", () => setRho(+sl.value, {skip: sl}));
-  nf.addEventListener("input", () => { const v = parseFloat(nf.value); if (v === v) setRho(v, {skip: nf}); });
-  nf.addEventListener("change", () => { const v = parseFloat(nf.value); if (v === v) setRho(v, {force: true}); else syncLink(l, {force: true}); });
+      h("div", {class: "slw lkw"}, h("div", {class: "trk"}, h("i", {"data-v": "fill"}), h("u", {style: "left:50%"}), h("u", {"data-v": "start"})), sl),
+      h("p", {class: "cap", text: "From −0.95 (opposite ways) through 0 to +0.95 (the same way). The five words above set −0.6, −0.3, 0, +0.3 and +0.6."})),
+    h("div", {class: "reads"}, aim(a, b, "ab"), aim(b, a, "ba")));
+  const row = h("div", {class: "lk", id, "data-a": l.a, "data-b": l.b},
+    h("p", {class: "say", "data-v": "say"}),
+    h("p", {class: "why", text: l.why || "Added by you."}),
+    h("div", {class: "lk-ctl"}, stepsEl(i => pickStep(l, i)),
+      h("span", {class: "lk-btns"}, fineBtn, l.start == null ? h("button", {type: "button", class: "ghost sm", "data-act": "delete", onclick: () => deleteLink(l), text: "Delete"}) : null)),
+    h("div", {class: "drv-note", "data-v": "note"}),
+    fine);
+  fineBtn.addEventListener("click", () => openFine(l, fine.hidden));
+  sl.addEventListener("input", () => setRho(l, +sl.value, {skip: sl}));
+  nf.addEventListener("input", () => { const v = parseFloat(nf.value); if (v === v) setRho(l, v, {skip: nf}); });
+  nf.addEventListener("change", () => { const v = parseFloat(nf.value); if (v === v) setRho(l, v, {force: true}); else syncLink(l, {force: true}); });
   // "when the first happens, the second should land here": work out the strength that does it
   for (const c of $$(".lk-read", row)){
     const ab = c.getAttribute("data-dir") === "ab", f = $('[data-f="target"]', c);
@@ -1005,18 +1158,18 @@ function linkRow(l){
       l.rho = Math.abs(rho) < 0.005 ? 0 : rho;
       const got = ODDS.reading(A, B, l.rho).given, off = Math.abs(got - target) > (isEv ? 0.006 : Math.max(0.6, Math.abs(target) * 0.006));
       l.msg = off ? "A link can only take " + B.label + " as far as " + (isEv ? pct(got) : num(got)) + " here." : null;
-      after({force: true}); schedule();
+      linksMoved({force: true}); schedule();
     });
   }
-  act.addEventListener("click", () => {
-    l.msg = null;
-    if (l.start == null){ LINKS.splice(LINKS.indexOf(l), 1); row.remove(); renderGrid(); syncAll(); applyFilter(); }
-    else { l.rho = l.rho === 0 && l.start !== 0 ? l.start : 0; after({force: true}); }       // remove, or put back
-    request();
-  });
   return row;
 }
-/** Write one link's strength and both plain-number readings into its row (same rules as sync() for the fields). */
+function openFine(l, open){
+  const row = document.getElementById(rowId(l)); if (!row) return;
+  $(".lk-fine", row).hidden = !open; $('[data-act="fine"]', row).setAttribute("aria-expanded", String(open));
+  if (open) syncLink(l, {force: true});
+}
+/** Write one link into its row: the sentence and the word always, the exact numbers when Fine-tune is open. A
+    number field that is being typed in is left alone unless `opt.force` (same rules as sync() for the drivers). */
 function syncLink(l, opt){
   opt = opt || {};
   const row = document.getElementById(rowId(l)); if (!row) return;
@@ -1026,77 +1179,226 @@ function syncLink(l, opt){
     el.value = v;
   };
   const A = live(l.a), B = live(l.b), r = l.rho, ch = linkChanged(l), off = r === 0;
-  set($('[data-f="rho"]', row), String(r)); set($('[data-f="rhos"]', row), r);
-  $('[data-f="rhos"]', row).setAttribute("aria-valuetext", rhoText(r) + ", " + rhoWord(r).toLowerCase());
-  $('[data-v="word"]', row).textContent = rhoWord(r);
-  const fill = $('[data-v="fill"]', row), half = Math.abs(r) / 0.95 * 50;
-  fill.style.left = (r < 0 ? 50 - half : 50) + "%"; fill.style.width = half + "%"; fill.style.background = r < 0 ? "var(--neg)" : "var(--series)";
-  const st = $('[data-v="start"]', row);
-  st.hidden = l.start == null || !ch; if (l.start != null) st.style.left = (50 + l.start / 0.95 * 50) + "%";
-  for (const [dir, X, Y] of [["ab", A, B], ["ba", B, A]]){
-    const c = $('.lk-read[data-dir="' + dir + '"]', row), rd = ODDS.reading(X, Y, r), isEv = rd.unit === "chance";
-    $('[data-v="base"]', c).textContent = isEv ? pct(rd.base) : num(rd.base);
-    set($('[data-f="target"]', c), tgt(rd.given, isEv));
+  $('[data-v="say"]', row).replaceChildren(...sentence(A, B, r));
+  setSteps($(".steps", row), B, r, "If " + sayOf(A).if + ", " + B.label);
+  if (!$(".lk-fine", row).hidden){
+    set($('[data-f="rho"]', row), String(r)); set($('[data-f="rhos"]', row), r);
+    $('[data-f="rhos"]', row).setAttribute("aria-valuetext", rhoText(r) + ", " + rhoWord(r).toLowerCase());
+    $('[data-v="word"]', row).textContent = rhoWord(r);
+    const fill = $('[data-v="fill"]', row), half = Math.abs(r) / 0.95 * 50;
+    fill.style.left = (r < 0 ? 50 - half : 50) + "%"; fill.style.width = half + "%"; fill.style.background = r < 0 ? "var(--neg)" : "var(--series)";
+    const st = $('[data-v="start"]', row);
+    st.hidden = l.start == null || !ch; if (l.start != null) st.style.left = (50 + l.start / 0.95 * 50) + "%";
+    for (const [dir, X, Y] of [["ab", A, B], ["ba", B, A]]){
+      const c = $('.lk-read[data-dir="' + dir + '"]', row), rd = ODDS.reading(X, Y, r), isEv = rd.unit === "chance";
+      $('[data-v="base"]', c).textContent = isEv ? pct(rd.base) : valText(Y, rd.base);
+      set($('[data-f="target"]', c), tgt(rd.given, isEv));
+    }
   }
   row.classList.toggle("changed", ch); row.classList.toggle("off", off);
-  $('[data-act="remove"]', row).textContent = l.start != null && off && l.start !== 0 ? "Put back" : "Remove";
   const bits = [];
-  if (l.start == null && off) bits.push(h("span", {text: "Set a strength to make it count."}));
-  else if (l.start != null && ch) bits.push(h("span", {}, off ? "Removed. It started at " : "Started at ", h("b", {text: rhoText(l.start)}), " ",
-    off ? null : h("button", {type: "button", onclick: () => { l.rho = l.start; l.msg = null; syncLink(l, {force: true}); renderGrid(); syncAll(); applyFilter(); request(); }, text: "Reset"})));
+  if (l.start == null && off) bits.push(h("span", {text: "Pick how strong it is to make it count."}));
+  else if (l.start != null && ch) bits.push(h("span", {}, off ? "Removed. It started at " : "Started at ", h("b", {text: rhoText(l.start)}), " (" + stepWords(B)[stepAt(l.start)].toLowerCase() + ") ",
+    h("button", {type: "button", onclick: () => { l.rho = l.start; l.msg = null; linksMoved({force: true}); request(); }, text: "Reset"})));
   if (l.msg) bits.push(h("span", {text: l.msg}));
   const used = USED[linkKey(l.a, l.b)];
   if (used != null && Math.abs(used - r) >= 0.01) bits.push(h("span", {}, "Used ", h("b", {text: rhoText(used) || "0"}), " so that all the links fit together."));
   $('[data-v="note"]', row).replaceChildren(...bits);
 }
-function syncLinks(force){ for (const l of LINKS) syncLink(l, force ? {force: true} : null); }
+function syncLinks(opt){ for (const l of LINKS) syncLink(l, opt); }
+function syncStories(){
+  for (const st of STORIES){
+    const el = document.getElementById("st-" + st.id); if (!el) continue;
+    const ls = LINKS.filter(l => storyOf(l) === st.id), on = ls.filter(l => l.rho !== 0).length, ch = ls.filter(linkChanged).length;
+    $('[data-v="meta"]', el).textContent = on + (on === 1 ? " link" : " links") + (ch ? " · " + ch + " changed" : "");
+  }
+}
 function resetLinks(){
   for (let i = LINKS.length - 1; i >= 0; i--){
     const l = LINKS[i];
     if (l.start == null){ const row = document.getElementById(rowId(l)); if (row) row.remove(); LINKS.splice(i, 1); }
     else { l.rho = l.start; l.msg = null; }
   }
-  syncLinks(true); renderGrid(); applyFilter();
+  for (const k in INL) INL[k] = null;
+  linksMoved({force: true});
+}
+function deleteLink(l){
+  const i = LINKS.indexOf(l); if (i < 0) return;
+  LINKS.splice(i, 1);
+  const row = document.getElementById(rowId(l)); if (row) row.remove();
+  for (const k in INL) if (INL[k] === l) INL[k] = null;
+  linksMoved(); request();
+}
+/** A new link from `a` to `b` (or the one that is already there), filed under a's story, at no strength yet. */
+function addLink(a, b){
+  let l = linkAt(a, b);
+  if (!l){
+    l = {a, b, rho: 0, start: null, why: "", msg: null}; LINKS.push(l);
+    $(".st-body", document.getElementById("st-" + storyOf(l))).prepend(linkRow(l));
+    linksMoved({force: true});
+  }
+  return l;
 }
 function applyFilter(){
   const id = $("#lk-filter").value; let shown = 0;
-  for (const l of LINKS){ const row = document.getElementById(rowId(l)); if (!row) continue; const on = !id || l.a === id || l.b === id; row.hidden = !on; if (on) shown++; }
-  $("#lk-empty").hidden = shown > 0;
+  for (const st of STORIES){
+    const el = document.getElementById("st-" + st.id); if (!el) continue;
+    let n = 0;
+    for (const l of LINKS){
+      if (storyOf(l) !== st.id) continue;
+      const row = document.getElementById(rowId(l)); if (!row) continue;
+      const on = !id || l.a === id || l.b === id; row.hidden = !on; if (on) n++;
+    }
+    el.hidden = n === 0;
+    if (id && n) el.open = true;
+    shown += n;
+  }
+  $("#lk-empty").hidden = !id || shown > 0;
   const active = LINKS.filter(l => l.rho !== 0).length, k = nLinksChanged();
   $("#lk-count").textContent = active + (active === 1 ? " link" : " links") + " in all" + (k ? ", " + k + " changed by you" : "") + (id ? "; " + shown + " shown" : "");
 }
-function showLink(l){
+/** Go to a link's row: open its story (and Fine-tune, if asked), then put the keyboard on it. */
+function showLink(l, fine){
   $("#lk-filter").value = ""; applyFilter();
   const row = document.getElementById(rowId(l)); if (!row) return;
+  const st = row.closest("details"); if (st) st.open = true;
+  if (fine) openFine(l, true);
   row.scrollIntoView({behavior: reduceMotion ? "auto" : "smooth", block: "center"}); flash(row);
-  $('[data-f="rho"]', row).focus({preventScroll: true});
+  const f = fine ? $('[data-f="rho"]', row) : $('.steps [aria-pressed="true"]', row);
+  if (f) f.focus({preventScroll: true});
 }
 function syncAdd(){
   const a = $("#lk-a").value, b = $("#lk-b").value, btn = $("#lk-add button");
   btn.disabled = !a || !b || a === b; btn.textContent = a && b && a !== b && linkAt(a, b) ? "Show this link" : "Add link";
 }
+function driverOptions(sel, first, skip){
+  sel.append(h("option", {value: "", text: first}));
+  for (const g of FILE.groups){ const ds = MODEL.drivers.filter(d => d.group === g.id && d.id !== skip); if (ds.length) sel.append(h("optgroup", {label: g.label}, ds.map(d => h("option", {value: d.id, text: d.label})))); }
+  return sel;
+}
+
+/* each driver's own links, as tags on its row; one opens under the row to be changed there */
+const INL = {};
+function syncChips(id){
+  const row = document.getElementById("d-" + id); if (!row) return;
+  const box = $(".dl-chips", row), mine = LINKS.filter(l => l.a === id || l.b === id), old = new Map($$(".lchip", box).map(c => [c.getAttribute("data-k"), c]));
+  for (const l of mine){
+    const k = linkKey(l.a, l.b); let c = old.get(k);
+    if (c) old.delete(k);
+    else { c = h("button", {type: "button", class: "lchip", "data-k": k, "aria-expanded": "false", onclick: () => toggleInline(id, l)}, h("span", {class: "ar", "aria-hidden": "true"}), h("span", {class: "nm"})); box.append(c); }
+    const o = BY[l.a === id ? l.b : l.a], r = l.rho, at = stepAt(r), ar = c.firstChild;
+    ar.textContent = ["↓↓", "↓", "·", "↑", "↑↑"][at]; ar.className = "ar" + (r > 0 ? " pos" : r < 0 ? " neg" : "");
+    c.lastChild.textContent = o.label;
+    c.classList.toggle("off", !r); c.classList.toggle("changed", linkChanged(l));
+    c.setAttribute("aria-label", o.label + ": " + stepWords(o)[at].toLowerCase() + (linkChanged(l) ? ", changed by you" : "") + ". Change this link");
+    c.setAttribute("aria-expanded", String(INL[id] === l));
+  }
+  for (const c of old.values()) c.remove();
+  $(".dl-k", row).textContent = mine.some(l => l.rho !== 0) ? "Moves with" : "No links yet";
+}
+function toggleInline(id, what){
+  INL[id] = INL[id] === what ? null : what;
+  syncChips(id); syncInline(id);
+  if (INL[id] === "add"){ const s = $("#d-" + id + " .lk-in select"); if (s) s.focus(); }
+}
+function syncInline(id){
+  const row = document.getElementById("d-" + id); if (!row) return;
+  const box = $(".lk-in", row); let l = INL[id];
+  if (l && l !== "add" && !LINKS.includes(l)) l = INL[id] = null;
+  $(".lchip.add", row).setAttribute("aria-expanded", String(l === "add"));
+  if (!l){ box.hidden = true; box.replaceChildren(); box.removeAttribute("data-k"); return; }
+  box.hidden = false;
+  const close = () => h("button", {type: "button", class: "xbtn", "aria-label": "Close", onclick: () => { INL[id] = null; syncInline(id); syncChips(id); }, text: "×"});
+  if (l === "add"){
+    if (box.getAttribute("data-k") === "add") return;
+    box.setAttribute("data-k", "add");
+    const sel = driverOptions(h("select", {"aria-label": "Link " + BY[id].label + " with"}), "choose one", id);
+    const go = h("button", {type: "submit", class: "ghost sm", disabled: true, text: "Add link"});
+    sel.addEventListener("change", () => { go.disabled = !sel.value; go.textContent = sel.value && linkAt(id, sel.value) ? "Show this link" : "Add link"; });
+    box.replaceChildren(h("form", {onsubmit: e => {
+      e.preventDefault(); if (!sel.value) return;
+      INL[id] = addLink(id, sel.value); syncChips(id); syncInline(id);
+      const p = $('.steps [aria-pressed="true"]', box); if (p) p.focus();
+    }}, h("span", {text: "Link it with"}), sel, go, close()));
+    return;
+  }
+  const k = linkKey(l.a, l.b), A = live(id), B = live(l.a === id ? l.b : l.a);
+  if (box.getAttribute("data-k") !== k){
+    box.setAttribute("data-k", k);
+    box.replaceChildren(
+      h("p", {class: "say", "data-v": "say"}),
+      h("p", {class: "why", text: l.why || "Added by you."}),
+      h("div", {class: "lk-ctl"}, stepsEl(i => pickStep(l, i)),
+        h("span", {class: "lk-btns"},
+          h("button", {type: "button", class: "ghost sm", "data-act": "reset", onclick: () => { l.rho = l.start; l.msg = null; linksMoved({force: true}); request(); }, text: "Reset"}),
+          l.start == null ? h("button", {type: "button", class: "ghost sm", "data-act": "delete", onclick: () => deleteLink(l), text: "Delete"}) : null,
+          h("button", {type: "button", class: "ghost sm", "data-act": "fine", "aria-label": "Fine-tune this link under What moves together", onclick: () => showLink(l, true), text: "Fine-tune"}),
+          close())));
+  }
+  $('[data-v="say"]', box).replaceChildren(...sentence(A, B, l.rho));
+  setSteps($(".steps", box), B, l.rho, "If " + sayOf(A).if + ", " + B.label);
+  $('[data-act="reset"]', box).hidden = l.start == null || !linkChanged(l);
+}
+
+/* how strongly things move together: every link at once, with what each setting does to a bad year */
+function buildMaster(){
+  $("#ms-cols").replaceChildren(...SCALES.map(s => withTip(h("button", {type: "button", class: "ms-col", "data-k": String(s.k), "aria-pressed": String(s.k === SCALE), onclick: () => setScale(s.k)},
+    h("span", {class: "ms-v", text: "…"}), h("span", {class: "ms-bar", "aria-hidden": "true"}, h("i")), h("span", {class: "ms-l", text: s.label})), () => masterTip(s))));
+}
+function setScale(k){
+  if (k === SCALE) return;
+  SCALE = k; renderMaster(); syncAll(); request();
+}
+function masterTip(s){
+  const x = STRIP.res[s.k], thr = $("#t-thr").value;
+  return [h("div", {class: "tt", text: s.label + ": " + s.says}),
+    x && x.n ? tipRow("", "Ending below " + Math.round(thr * 100) + "% of plan", pct(x.below[thr])) : h("p", {text: x ? "This situation cannot happen." : "Working it out…"}),
+    x && x.n ? h("div", {class: "tr"}, h("span", {text: "Average built:"}), h("b", {text: pct(x.mean)})) : null,
+    h("p", {text: s.k === SCALE ? "The results use this now." : "Click to use this for the results."})].filter(Boolean);
+}
+function renderMaster(){
+  const thr = $("#t-thr").value, lab = Math.round(thr * 100) + "%";
+  const vals = SCALES.map(s => { const x = STRIP.res[s.k]; return x && x.n ? x.below[thr] : null; });
+  const top = Math.max(0.04, ...vals.filter(v => v != null)) * 1.1;
+  $("#ms-thr").textContent = lab;
+  $$("#ms-cols .ms-col").forEach((c, i) => {
+    const v = vals[i], s = SCALES[i], x = STRIP.res[s.k];
+    c.setAttribute("aria-pressed", String(s.k === SCALE));
+    $(".ms-v", c).textContent = v != null ? pct(v) : x ? "–" : "…";
+    $(".ms-bar i", c).style.height = v == null ? "0" : Math.max(1.5, v / top * 100) + "%";
+    c.setAttribute("aria-label", s.label + ", " + s.says + ": " + (v != null ? pct(v) + " chance of ending below " + lab + " of plan" : "not worked out yet") + (s.k === SCALE ? ". In use" : ""));
+  });
+  const v0 = vals[0], v1 = vals[2], where = anyGiven() ? " in this situation" : "", say = [];
+  if (v0 != null && v1 != null){
+    const both = "with your links as set, the chance of ending below " + lab + " of plan" + where + " is " + pct(v1) + ", against " + pct(v0) + " if nothing were linked.";
+    if (v1 > v0 * 1.08 + 0.002) say.push("Links bunch the bad things together: " + both);
+    else if (v1 < v0 * 0.92 - 0.002) say.push("Your links pair bad news with good, so a bad year gets less likely: " + both);
+    else say.push("Your links barely change the chance of a bad year: " + both);
+  }
+  if (SCALE !== 1) say.push("The results above use " + scaleSays() + ".");
+  const xs = STRIP.res[SCALE];
+  if (SCALE !== 1 && xs && xs.changed) say.push("At this strength some links cannot all be true at once, so the futures use the closest set that can.");
+  $("#ms-cap").textContent = say.join(" ");
+}
+
 function buildLinks(){
-  const options = (sel, first) => {
-    sel.append(h("option", {value: "", text: first}));
-    for (const g of FILE.groups){ const ds = MODEL.drivers.filter(d => d.group === g.id); if (ds.length) sel.append(h("optgroup", {label: g.label}, ds.map(d => h("option", {value: d.id, text: d.label})))); }
-  };
-  options($("#lk-filter"), "everything"); options($("#lk-a"), "choose one"); options($("#lk-b"), "choose another");
-  $("#lk-list").append(h("div", {class: "lk hd", "aria-hidden": "true"}, h("span", {text: "These two"}), h("span", {text: "Link"}), h("span", {text: "If the first happens, the second goes"}), h("span", {text: "If the second happens, the first goes"}), h("span")), ...LINKS.map(linkRow));
+  driverOptions($("#lk-filter"), "everything"); driverOptions($("#lk-a"), "choose one"); driverOptions($("#lk-b"), "choose another");
+  $("#stories").append(...STORIES.map(st => h("details", {class: "story", id: "st-" + st.id},
+    h("summary", {}, h("span", {class: "st-caret", "aria-hidden": "true", text: "›"}), h("span", {class: "st-name", text: st.label}), h("span", {class: "st-meta", "data-v": "meta"}), h("span", {class: "st-blurb", text: st.blurb || ""})),
+    h("div", {class: "st-body"}))));
+  for (const l of LINKS) $(".st-body", document.getElementById("st-" + storyOf(l))).append(linkRow(l));
   $("#lk-filter").addEventListener("change", applyFilter);
   $("#lk-a").addEventListener("change", syncAdd); $("#lk-b").addEventListener("change", syncAdd);
   $("#lk-add").addEventListener("submit", e => {
     e.preventDefault();
     const a = $("#lk-a").value, b = $("#lk-b").value;
     if (!a || !b || a === b) return;
-    let l = linkAt(a, b);
-    if (!l){
-      l = {a, b, rho: 0, start: null, why: "", msg: null}; LINKS.push(l);
-      $("#lk-list .lk.hd").after(linkRow(l)); syncLink(l, {force: true}); renderGrid(); syncAll();
-    }
-    syncAdd(); showLink(l);
+    const l = addLink(a, b);
+    syncAdd(); showLink(l, false);
   });
   $("#grid-scale").append(h("span", {text: "opposite"}), ...[-0.9, -0.5, -0.2, 0, 0.2, 0.5, 0.9].map(v => h("i", {style: "background:" + cellFill(v), title: v ? rhoText(v) : "no link"})), h("span", {text: "same way"}));
-  syncLinks(true); renderGrid(); applyFilter(); syncAdd();
+  buildMaster();
+  linksMoved({force: true}); syncAdd(); renderMaster();
 }
 const cellFill = r => !r ? "var(--wash)" : "color-mix(in srgb, " + (r > 0 ? "var(--series)" : "var(--neg)") + " " + Math.round(25 + 75 * Math.min(1, Math.abs(r) / 0.9)) + "%, var(--wash))";
 let gridCur = null, gridRefs = null;
@@ -1144,7 +1446,7 @@ function gridTip(c){
 function gridPick(c){
   const a = MODEL.drivers[c[0]].id, b = MODEL.drivers[c[1]].id, l = linkAt(a, b);
   hideTip();
-  if (l){ showLink(l); return; }
+  if (l){ showLink(l, true); return; }
   $("#lk-a").value = a; $("#lk-b").value = b; syncAdd();
   const f = $("#lk-add"); f.scrollIntoView({behavior: reduceMotion ? "auto" : "smooth", block: "center"}); flash(f);
   $("#lk-add button").focus({preventScroll: true});
@@ -1201,5 +1503,6 @@ function gridPick(c){
     new IntersectionObserver(es => { heroSeen = es[0].isIntersecting; mini.hidden = heroSeen || !RES.cur || !RES.cur.n; }, {threshold: 0}).observe($("#hero"));
   }
 })();
-window.ODDSLAB = {get res(){ return RES; }, get busy(){ return busy || !!pending; }, cur, given, links: LINKS, usingWorker: () => !!worker, compute, tgt, N, SEED, MODEL};
+window.ODDSLAB = {get res(){ return RES; }, get busy(){ return busy || !!pending; }, get strip(){ return STRIP; }, get stripBusy(){ return stripBusy; }, get scale(){ return SCALE; },
+  cur, given, links: LINKS, usingWorker: () => !!worker, compute, tgt, N, SEED, MODEL, STEPS};
 </script>

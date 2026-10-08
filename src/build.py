@@ -315,7 +315,7 @@ def load_odds(problems, lenient):
     try:
         with open(path, encoding="utf-8") as f:
             o = json.load(f)
-        bad = []
+        bad, soft = [], []
         nodes = {n["id"] for n in D.NODES}; scen = {s["id"] for s in D.SCEN}; ids = [d["id"] for d in o["drivers"]]
         for d in o["drivers"]:
             for e in d["effects"]:
@@ -323,17 +323,24 @@ def load_odds(problems, lenient):
                 if "node" in e and e["node"] not in nodes: bad.append(f"{d['id']}: unknown link '{e['node']}'")
         for l in o["links"]:
             if l["a"] not in ids or l["b"] not in ids: bad.append(f"link {l['a']} - {l['b']}: unknown driver")
+        # a story the page does not know only moves that link to "Other links", so the page still works
+        stories = {s["id"] for s in o.get("stories", [])}
+        for d in o["drivers"]:
+            if stories and d.get("story") not in stories: soft.append(f"{d['id']}: unknown story '{d.get('story')}'")
+        for l in o["links"]:
+            if l.get("story") is not None and l["story"] not in stories: soft.append(f"link {l['a']} - {l['b']}: unknown story '{l['story']}'")
         if len(set(ids)) != len(ids): bad.append("a driver id is used twice")
         for k in ("asOf", "period", "groups", "buyers", "statusNote", "plan"):
             if k not in o: bad.append(f"'{k}' is missing")
     except (OSError, ValueError, KeyError, TypeError) as e:
-        o, bad = None, [f"could not be read ({type(e).__name__}: {e})"]
+        o, bad, soft = None, [f"could not be read ({type(e).__name__}: {e})"], []
+    if (bad or soft) and not lenient:
+        raise BuildError("data/odds.json: " + "; ".join((bad + soft)[:6]) + "\nRun: node tests/test_engine.mjs")
     if bad:
-        msg = "data/odds.json: " + "; ".join(bad[:6])
-        if not lenient:
-            raise BuildError(msg + "\nRun: node tests/test_engine.mjs")
-        problems.append(msg + ". The Odds shows an error until this is fixed.")
+        problems.append("data/odds.json: " + "; ".join(bad[:6]) + ". The Odds shows an error until this is fixed.")
         return None
+    if soft:
+        problems.append("data/odds.json: " + "; ".join(soft[:6]) + ". The Odds lists those links under Other links until this is fixed.")
     return o
 
 
