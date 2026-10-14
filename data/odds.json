@@ -2,7 +2,7 @@
   "version": 1,
   "asOf": "2026-10-14",
   "status": "provisional",
-  "statusNote": "Geopolitics and trade rules were researched on 8 Oct 2026, with sources in each row's About panel. The other numbers, including the things that could go right added on 14 Oct 2026, are still first estimates: facts already on this site plus judgement. Change any of them to match your own view.",
+  "statusNote": "Geopolitics and trade rules (8 Oct 2026) and chip supply (14 Oct 2026) were researched, with sources in each row's About panel. Power, demand and money, and the spare capacity of each link are still first estimates: facts already on this site plus judgement. Change any of them to match your own view.",
   "period": {"label": "Calendar 2027", "from": "2027-01-01", "months": 12},
   "supplyOutput": "campus",
   "plan": "100 is the AI data-center capacity that today's plans would add in 2027: what buyers have budgeted and suppliers have scheduled, with the shortages already known. Each supply number is the share of that plan one link delivers. A link can beat the plan by as much as its range says or, if no range moves it, by its spare capacity (see room). Buyers want more than the plan (see Unmet demand), so a fall in orders only cuts what gets built once it is bigger than that cushion. More than the plan gets built only when every link on the way beats it too.",
@@ -197,9 +197,14 @@
       "say": {"if": "leading-edge wafers hit their high case", "subj": "leading-edge wafers", "pl": true},
       "question": "What share of the leading-edge wafers (3nm and 2nm) that 2027 plans count on will foundries deliver?",
       "watch": "TSMC's wafers a month at 3nm and 2nm, against the demand its customers report.",
-      "unit": "% of plan", "low": 98, "mid": 105, "high": 110, "min": 50, "max": 120, "basis": "judgement",
-      "note": "The Chain rates this step tight, not short: 3nm is heading from 180k to 210k wafers a month, and 2nm from 90k to 110k by mid-2027. Plans are sized to scarcer links, so the central case leaves some slack.",
+      "unit": "% of plan", "low": 98, "mid": 105, "high": 110, "min": 50, "max": 120, "basis": "researched",
+      "note": "TSMC raised its 2026 capex to $60-64 billion in July (from $52-56 billion), runs its most advanced lines above full use, and says 'it will be a long time before we can meet customer demand'. Its 2nm capacity is now seen at about 120,000 wafers a month by end-2026, up from 90,000 to 100,000, after its biggest customers raised 2nm bookings 10-20%; third-quarter revenue rose 51%. The plan is sized to scarcer links, so the central case leaves slack.",
       "does": "Below 100, every AI accelerator is short by that share.",
+      "checked": "2026-10-14",
+      "src": [
+        {"t": "BigGo Finance on TSMC's second-quarter results: 2026 capex raised to $60-64 billion (16 Jul 2026)", "u": "https://finance.biggo.com/news/5784aaf1-fcbc-4f76-8856-491b9e7175f6"},
+        {"t": "Daily Silicon: TSMC Q3 revenue up 51%, 2nm capacity about 120K by end-2026; Rubin keeps 12-high HBM4 (11 Oct 2026)", "u": "https://www.vlsi.kr/en/daily-silicon-2026-10-11-en/"}
+      ],
       "effects": [{"t": "ramp", "node": "foundry"}]
     },
     {
@@ -207,9 +212,15 @@
       "say": {"if": "CoWoS packaging hits its high case", "subj": "CoWoS packaging"},
       "question": "What share of the CoWoS packaging that 2027 plans count on will be delivered?",
       "watch": "TSMC's CoWoS wafers a month and allocation comments from Nvidia, Broadcom and AMD.",
-      "unit": "% of plan", "low": 92, "mid": 100, "high": 105, "min": 50, "max": 120, "basis": "judgement",
-      "note": "The narrowest point of the chip chain per The Chain: about 130k wafers a month by end-2026 and about 260k by end-2028. Plans are sized to that ramp, so any slip cuts output directly.",
+      "unit": "% of plan", "low": 94, "mid": 102, "high": 107, "min": 50, "max": 120, "basis": "researched",
+      "note": "Estimates of CoWoS capacity keep rising: end-2026 went from about 95,000 to 105,000 wafers a month (JPMorgan, Nov 2025) to 120,000-130,000 now, and UBS (22 Sep 2026) raised its end-2027 industry figure from 260,000 to 270,000, with TSMC at 180,000 and ASE growing from 20,000 to 70,000. Demand still ran about 20% ahead in mid-2026, narrowing to about 10% by year-end. The central case sits a little above the plan because TSMC has raised its CoWoS targets several times.",
       "does": "Below 100, GPUs and custom accelerators are short by that share.",
+      "checked": "2026-10-14",
+      "src": [
+        {"t": "TrendForce: CoWoS supply-demand gap seen narrowing from 20% to 10% by end-2026 (15 Jun 2026)", "u": "https://www.trendforce.com/news/2026/06/15/news-tsmc-cowos-supply-demand-gap-reportedly-seen-narrowing-from-20-to-10-by-end-2026-as-capacity-expands/"},
+        {"t": "UBS via KuCoin: industry CoWoS capacity for end-2027 raised to 270,000 wafers a month (23 Sep 2026)", "u": "https://www.kucoin.com/news/flash/ubs-report-cowos-capacity-raised-to-270kwpm-asic-and-cpu-to-drive-expansion"},
+        {"t": "BigGo Finance: TSMC's CoWoS capacity to double to 260,000 wafers by 2028; Intel and OSATs take spillover (13 Sep 2026)", "u": "https://finance.biggo.com/news/adcec901-53b3-453f-bf00-8373ebb1bb97"}
+      ],
       "effects": [{"t": "ramp", "node": "cowos"}]
     },
     {
@@ -217,9 +228,14 @@
       "say": {"if": "HBM memory hits its high case", "subj": "HBM memory"},
       "question": "What share of the HBM memory that 2027 plans count on will the three makers deliver?",
       "watch": "HBM bit shipments and allocation comments from SK hynix, Samsung and Micron.",
-      "unit": "% of plan", "low": 94, "mid": 103, "high": 108, "min": 50, "max": 120, "basis": "judgement",
-      "note": "Three suppliers, sold out, prices rising. The Chain rates it serious, one step below the scarcest links, so the central case leaves a little slack. The risk is HBM4 yields or qualification slipping.",
+      "unit": "% of plan", "low": 96, "mid": 103, "high": 108, "min": 50, "max": 120, "basis": "researched",
+      "note": "All three makers are qualified and in production for Nvidia's Rubin (Jensen Huang, 5 Jun 2026), and SK hynix says HBM4 yields are near HBM3E levels. Supply is sold: Micron has contracted most of its 2027 HBM, TrendForce expects 2027 HBM prices to rise 121%, and HBM is taking about 30% of DRAM wafers in 2027, up from 20%. With qualification no longer a risk, the low case moves up; the risks left are 12-high yields and DRAM wafers.",
       "does": "Below 100, fewer accelerators can be packaged, by that share.",
+      "checked": "2026-10-14",
+      "src": [
+        {"t": "Tech Times: Jensen Huang confirms all three HBM4 suppliers in production for Vera Rubin (5 Jun 2026)", "u": "https://www.techtimes.com/articles/317855/20260605/nvidia-vera-rubin-hbm4-jensen-huang-confirms-all-three-suppliers-production-q3-ship.htm"},
+        {"t": "Seoul Economic Daily: HBM prices to more than double next year as shortage persists (1 Oct 2026)", "u": "https://en.sedaily.com/finance/2026/10/01/hbm-prices-to-more-than-double-next-year-as-shortage"}
+      ],
       "effects": [{"t": "ramp", "node": "hbm"}]
     },
     {
@@ -227,9 +243,13 @@
       "say": {"if": "package substrates hit their high case", "subj": "package substrates", "pl": true},
       "question": "What share of the ABF package substrates that 2027 plans count on will be delivered?",
       "watch": "Capacity and lead-time comments from Ibiden, Shinko, Unimicron and AT&S.",
-      "unit": "% of plan", "low": 95, "mid": 103, "high": 108, "min": 50, "max": 120, "basis": "judgement",
-      "note": "Short now, rated serious by The Chain. Ibiden is spending ¥500B through FY2028 for 2.5 times the capacity, so the central case leaves a little slack; new lines take two to three years.",
+      "unit": "% of plan", "low": 92, "mid": 99, "high": 104, "min": 50, "max": 120, "basis": "researched",
+      "note": "Substrate makers in Taiwan, Japan and Korea report orders running to 2029-2030 and expect shortages to worsen through 2027-2028, as AI packages grow and CPUs and network chips compete for the same substrates (DigiTimes, Aug 2026). Ibiden, Unimicron, Kinsus, Nan Ya PCB and Samsung Electro-Mechanics are all expanding, but new lines take two to three years, so most of it arrives after 2027. Moved just below the plan: substrates, not chips, may now cut some 2027 builds.",
       "does": "Below 100, chip packaging is short by that share.",
+      "checked": "2026-10-14",
+      "src": [
+        {"t": "Troy Technical, from DigiTimes: ABF substrate shortages projected through 2028 (23 Aug 2026)", "u": "https://troy-technical.com/2026/08/23/abf-substrate-shortages-projected-through-2028-amid-ai-boom-taiwanese-japanese-korean-manufacturers-secure-orders-until-2030/"}
+      ],
       "effects": [{"t": "ramp", "node": "substrate"}]
     },
     {
@@ -237,9 +257,15 @@
       "say": {"if": "T-glass cloth hits its high case", "subj": "T-glass cloth"},
       "question": "What share of the low-expansion glass cloth (T-glass) that 2027 plans count on will be delivered?",
       "watch": "Nittobo's capacity additions and substrate makers' comments on glass cloth supply.",
-      "unit": "% of plan", "low": 90, "mid": 99, "high": 104, "min": 50, "max": 120, "basis": "judgement",
-      "note": "One maker, Nittobo, has about 90% of T-glass, and relief is not expected before mid-2027. A late ramp would leave the first half of 2027 short.",
+      "unit": "% of plan", "low": 93, "mid": 99, "high": 103, "min": 50, "max": 120, "basis": "researched",
+      "note": "Nittobo makes most production-grade T-glass, and Taiwanese reporting in June 2026 put its new capacity no earlier than 2028; both Nittobo and Taiwan Glass expect high-end glass fabric to stay short through 2027. With little new capacity due in 2027, deliveries should track what is already scheduled, so the range narrows; the risk is slips at existing lines or cloth diverted to other boards.",
       "does": "Below 100, substrates are short by that share and high-speed boards by most of it.",
+      "checked": "2026-10-14",
+      "src": [
+        {"t": "BigGo Finance: Taiwan Glass adds NT$2 billion as the high-end glass fabric shortage runs through end-2027 (13 Jun 2026)", "u": "https://finance.biggo.com/news/dnwev54BOLsyMWM0ykt-"},
+        {"t": "Summary of DigiTimes: high-end fiberglass cloth shortages to persist through 2027 (23 Jun 2026)", "u": "https://lcdproduct.com/high-end-fiberglass-cloth-supply-tightens-shortages-to-persist-through-2027/"},
+        {"t": "TrendForce: what glass fiber fabric is and why T-glass is critical for AI servers (24 Nov 2025)", "u": "https://www.trendforce.com/news/2025/11/24/news-what-is-glass-fiber-fabric-and-why-is-t-glass-critical-for-ai-servers-a-deep-dive/"}
+      ],
       "effects": [{"t": "ramp", "node": "glasscloth"}]
     },
     {
@@ -247,9 +273,16 @@
       "say": {"if": "InP wafers hit their high case", "subj": "InP wafers", "pl": true},
       "question": "What share of the indium phosphide (InP) wafers that 2027 plans count on will be delivered?",
       "watch": "Capacity announcements from AXT, Sumitomo Electric and JX, and laser allocation comments from Lumentum and Coherent.",
-      "unit": "% of plan", "low": 88, "mid": 99, "high": 105, "min": 40, "max": 120, "basis": "judgement",
-      "note": "The scarcest input in AI networking per The Chain. Six-inch capacity is meant to double by end-2027 and the shortage is expected to outlast 2027, so this has the widest downside of the chip links.",
+      "unit": "% of plan", "low": 89, "mid": 101, "high": 107, "min": 40, "max": 120, "basis": "researched",
+      "note": "Supply is growing faster than planned: Coherent doubled its six-inch InP capacity a quarter early and plans to double it again by end-2027, Lumentum expects about 50% more supply year on year, and AXT raised its end-2027 InP capacity target from $70 million to $130 million a quarter. Demand still runs more than 30% ahead (Lumentum, May to July 2026). About a third of InP wafers come from AXT's plants in China, whose export permits were delayed in late 2025 and again in May 2026, so permits are the main downside.",
       "does": "Below 100, lasers, optical links and cluster networks are short by that share.",
+      "checked": "2026-10-14",
+      "src": [
+        {"t": "Tom's Hardware: Lumentum CEO says the indium phosphide shortage will become worse than memory (31 Jul 2026)", "u": "https://www.tomshardware.com/tech-industry/semiconductors/lumentum-ceo-says-the-indium-phosphide-shortage-will-become-worse-than-memory"},
+        {"t": "Semiconductor Today: AXT returns to profit on record InP revenue; export permits and capacity plans (4 Aug 2026)", "u": "https://www.semiconductor-today.com/news_items/2026/aug/axt-040826.shtml"},
+        {"t": "BigGo Finance: indium phosphide prices up 250% under China's export controls (12 Jun 2026)", "u": "https://finance.biggo.com/news/wJmwuZ4BjNmBQNsNWJcg"},
+        {"t": "TrendForce: InP shortage emerges as AI optical interconnect bottleneck (6 Aug 2026)", "u": "https://www.trendforce.com/news/2026/08/06/news-inp-shortage-emerges-as-ai-optical-interconnect-bottleneck/"}
+      ],
       "effects": [{"t": "ramp", "node": "inp"}]
     },
     {
@@ -257,9 +290,15 @@
       "say": {"if": "co-packaged optics reach volume", "of": "of co-packaged optics in volume"},
       "question": "Will co-packaged optics account for 10% or more of the new AI cluster switch ports shipped in 2027?",
       "resolves": "Shipment estimates from LightCounting or Dell'Oro, or Nvidia and Broadcom disclosures.",
-      "deadline": "2027-12-31", "p": 0.2, "sev": 1, "side": "up", "basis": "judgement",
-      "note": "The Chain notes that the laser shortage is speeding up adoption.",
+      "deadline": "2027-12-31", "p": 0.25, "sev": 1, "side": "up", "basis": "researched",
+      "note": "Nvidia began shipping its Spectrum-X co-packaged switch to select partners in July 2026, and Broadcom's 51.2T Bailly switch is in volume manufacturing with Delta and Micas. TrendForce expects the volume ramp in 2027-2028, held back by optical-engine yields and by competition for the same advanced packaging as AI chips. Nvidia says its photonic switches need four times fewer lasers per port, though each is a harder-to-make high-power laser.",
       "does": "If yes, optics need fewer lasers, which works like 5% more InP wafers: it softens a shortage and adds to a good year.",
+      "checked": "2026-10-14",
+      "src": [
+        {"t": "TrendForce: NVIDIA and Broadcom begin volume ramp of CPO switches; optical engines and packaging the bottlenecks (27 Jul 2026)", "u": "https://www.trendforce.com/presscenter/news/20260727-13151.html"},
+        {"t": "Tom's Hardware: Lumentum CEO says the indium phosphide shortage will become worse than memory (31 Jul 2026)", "u": "https://www.tomshardware.com/tech-industry/semiconductors/lumentum-ceo-says-the-indium-phosphide-shortage-will-become-worse-than-memory"},
+        {"t": "LightCounting: Optics for AI clusters (January 2026)", "u": "https://lightcounting.com/newsletter/en/january-2026-optics-for-ai-clusters-366"}
+      ],
       "effects": [{"t": "lift", "node": "inp", "f": 1.05}]
     },
 
@@ -268,32 +307,51 @@
       "say": {"if": "a second T-glass maker ships in volume", "of": "that a second T-glass maker ships in volume"},
       "question": "Will a maker other than Nittobo ship low-expansion glass cloth (T-glass) for AI chip substrates in volume before 30 Jun 2027?",
       "resolves": "Statements by substrate or glass-cloth makers, or industry reports such as TrendForce's, that a second source is qualified and shipping.",
-      "deadline": "2027-06-30", "p": 0.3, "sev": 1, "side": "up", "basis": "judgement",
-      "note": "A first estimate, not yet researched. Nittobo makes about 90% of T-glass and the plan counts only on its own expansion. Other glass-fiber makers are working to qualify low-expansion cloth; one shipping in volume in time for 2027 would give the tightest link in the chip chain a second source.",
+      "deadline": "2027-06-30", "p": 0.25, "sev": 1, "side": "up", "basis": "researched",
+      "note": "Nittobo makes most production-grade T-glass and is not expected to add capacity before 2028. Taiwan Glass, second in high-end glass fabric with about 40%, certified low-expansion fabric in 2024 and ships it to laminate makers, with a second generation heading for mass production and a NT$2 billion expansion due in 2027. For this to happen, substrate makers would have to qualify it, or another maker's cloth, for chip packages within months.",
       "does": "If yes, glass cloth for substrates and boards rises 12% above what it would otherwise be, from the day it ships to the end of 2027.",
+      "checked": "2026-10-14",
+      "src": [
+        {"t": "BigGo Finance: Taiwan Glass adds NT$2 billion as the high-end glass fabric shortage runs through end-2027 (13 Jun 2026)", "u": "https://finance.biggo.com/news/dnwev54BOLsyMWM0ykt-"},
+        {"t": "TrendForce: what glass fiber fabric is and why T-glass is critical for AI servers (24 Nov 2025)", "u": "https://www.trendforce.com/news/2025/11/24/news-what-is-glass-fiber-fabric-and-why-is-t-glass-critical-for-ai-servers-a-deep-dive/"},
+        {"t": "Summary of DigiTimes: high-end fiberglass cloth shortages to persist through 2027 (23 Jun 2026)", "u": "https://lcdproduct.com/high-end-fiberglass-cloth-supply-tightens-shortages-to-persist-through-2027/"}
+      ],
       "effects": [{"t": "lift", "node": "glasscloth", "f": 1.12, "timing": "window"}]
     },
 
     {
       "id": "cowos_alt", "group": "chips", "story": "chips", "kind": "event", "label": "Packaging beyond TSMC's CoWoS lines",
-      "say": {"if": "packaging beyond TSMC's CoWoS lines adds volume", "of": "that packaging beyond TSMC's CoWoS lines adds volume"},
-      "question": "Will advanced packaging outside TSMC's own CoWoS lines (at ASE, Amkor, Intel and others) ramp in volume for AI accelerators before 30 Jun 2027, on top of what plans count on today?",
-      "resolves": "Company statements and industry estimates of 2027 advanced-packaging capacity (TrendForce, Yole).",
-      "deadline": "2027-06-30", "p": 0.35, "sev": 1, "side": "up", "basis": "judgement",
-      "note": "A first estimate, not yet researched. TSMC already hands some packaging steps to ASE and Amkor, and Intel offers its EMIB packaging as an alternative. The plan counts on TSMC's own CoWoS ramp; extra volume elsewhere would come on top of it.",
-      "does": "If yes, packaging capacity for AI accelerators rises 8% above what it would otherwise be, from the day it ramps. Wafers, memory and substrates still have to keep up.",
-      "effects": [{"t": "lift", "node": "cowos", "f": 1.08, "timing": "window"}]
+      "say": {"if": "packaging beyond TSMC reaches 100,000 wafers a month", "of": "that packaging beyond TSMC reaches 100,000 wafers a month"},
+      "question": "Will packaging lines outside TSMC (ASE, Amkor, Intel and others) reach 100,000 CoWoS-equivalent wafers a month for AI chips before 30 Jun 2027?",
+      "resolves": "Analyst estimates (UBS, TrendForce) and company statements on 2.5D packaging capacity.",
+      "deadline": "2027-06-30", "p": 0.25, "sev": 1, "side": "up", "basis": "researched",
+      "note": "The plan already counts on packaging outside TSMC growing: UBS (22 Sep 2026) expects ASE to go from 20,000 to 70,000 CoWoS-equivalent wafers a month by end-2027 and Amkor to hold about 20,000, and analysts put Intel's EMIB-T at 15,000 to 20,000 equivalent in 2027, with Google's next TPU moving to it in the second half. Reaching 100,000 by mid-2027 would be well ahead of that.",
+      "does": "If yes, packaging capacity for AI accelerators rises 10% above what it would otherwise be, from the day it happens. Wafers, memory and substrates still have to keep up.",
+      "checked": "2026-10-14",
+      "src": [
+        {"t": "UBS via KuCoin: industry CoWoS capacity for end-2027 raised to 270,000 wafers a month (23 Sep 2026)", "u": "https://www.kucoin.com/news/flash/ubs-report-cowos-capacity-raised-to-270kwpm-asic-and-cpu-to-drive-expansion"},
+        {"t": "Tech Times: EMIB vs CoWoS, Google and Amazon back Intel for inference (11 Sep 2026)", "u": "https://www.techtimes.com/articles/327312/20260911/emib-vs-cowos-google-amazon-back-intel-inference-nvidia-keeps-training-tsmc.htm"},
+        {"t": "BigGo Finance: TSMC's CoWoS capacity to double to 260,000 wafers by 2028; Intel and OSATs take spillover (13 Sep 2026)", "u": "https://finance.biggo.com/news/adcec901-53b3-453f-bf00-8373ebb1bb97"}
+      ],
+      "effects": [{"t": "lift", "node": "cowos", "f": 1.1, "timing": "window"}]
     },
 
     {
-      "id": "hbm_samsung", "group": "chips", "story": "chips", "kind": "event", "label": "Samsung HBM4 in volume for Nvidia",
-      "say": {"if": "Samsung ships HBM4 in volume for Nvidia", "of": "that Samsung ships HBM4 in volume for Nvidia"},
-      "question": "Will Samsung ship HBM4 in volume for Nvidia's next-generation GPUs before 31 Mar 2027?",
-      "resolves": "Samsung or Nvidia statements, or reliable reports of volume shipments.",
-      "deadline": "2027-03-31", "p": 0.5, "sev": 1, "side": "up", "basis": "judgement",
-      "note": "A first estimate, not yet researched. Samsung has the most DRAM capacity but has trailed SK hynix in qualifying HBM for Nvidia. This assumes the plan counts on little Samsung HBM4, which part 6b will check.",
-      "does": "If yes, HBM supply rises 6% above what it would otherwise be, from the day volume starts. DRAM wafers still have to keep up.",
-      "effects": [{"t": "lift", "node": "hbm", "f": 1.06, "timing": "window"}]
+      "id": "hbm_samsung", "group": "chips", "story": "chips", "kind": "event", "label": "Samsung takes a bigger share of HBM",
+      "say": {"if": "Samsung's HBM share reaches 40%", "of": "that Samsung's HBM share reaches 40%"},
+      "question": "Will Samsung's share of HBM revenue reach 40% or more in any quarter before 30 Jun 2027, as estimated by Counterpoint Research or TrendForce?",
+      "resolves": "Quarterly HBM market-share estimates from Counterpoint Research or TrendForce.",
+      "deadline": "2027-06-30", "p": 0.3, "sev": 1, "side": "up", "basis": "researched",
+      "note": "Samsung's share of HBM revenue jumped from 21% to 33% between the first and second quarters of 2026 (Counterpoint), after Nvidia qualified all three makers for Rubin, and its HBM4E reportedly passed Nvidia's tests in late September. Analysts already give Samsung about 25-30% of Rubin's HBM4, so that much is in the plan. A 40% share would mean Samsung turning more of its large DRAM capacity to HBM than planned.",
+      "does": "If yes, HBM supply rises 5% above what it would otherwise be, from the quarter it happens. DRAM wafers still have to keep up.",
+      "checked": "2026-10-14",
+      "src": [
+        {"t": "Seoul Economic Daily: HBM prices to more than double next year as shortage persists (1 Oct 2026)", "u": "https://en.sedaily.com/finance/2026/10/01/hbm-prices-to-more-than-double-next-year-as-shortage"},
+        {"t": "Tech Times: Jensen Huang confirms all three HBM4 suppliers in production for Vera Rubin (5 Jun 2026)", "u": "https://www.techtimes.com/articles/317855/20260605/nvidia-vera-rubin-hbm4-jensen-huang-confirms-all-three-suppliers-production-q3-ship.htm"},
+        {"t": "Intelligent Living: Samsung's HBM4E reportedly passes Nvidia's tests (12 Oct 2026)", "u": "https://www.intelligentliving.co/samsung-hbm4e-passes-nvidia-tests/"},
+        {"t": "WinBuzzer: Samsung reportedly still awaits an Nvidia HBM4 volume order (17 Jul 2026)", "u": "https://winbuzzer.com/2026/07/17/samsung-reportedly-awaits-nvidia-hbm4-volume-order-xcxwbn/"}
+      ],
+      "effects": [{"t": "lift", "node": "hbm", "f": 1.05, "timing": "window"}]
     },
 
     {

@@ -373,6 +373,12 @@ const TOY = {
     if (!String(d.question || "").trim().endsWith("?")) bad.push(d.id + ": the question should end with a question mark");
     if (d.kind === "event" && !/^\d{4}-\d\d-\d\d$/.test(d.deadline || "")) bad.push(d.id + ": needs a deadline date");
     if (d.kind === "event" && d.starts && !(d.starts < d.deadline)) bad.push(d.id + ": starts must be before the deadline");
+    // a question that names its own date ("before 30 Jun 2027", "by 31 Dec 2027") must agree with the deadline
+    const named = /\b(?:before|by|on) (\d{1,2}) (Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]* (\d{4})/.exec(d.question || "");
+    if (d.kind === "event" && named){
+      const iso = named[3] + "-" + String("JanFebMarAprMayJunJulAugSepOctNovDec".indexOf(named[2]) / 3 + 1).padStart(2, "0") + "-" + named[1].padStart(2, "0");
+      if (iso !== d.deadline) bad.push(d.id + ": the question says " + named[0].trim() + " but the deadline is " + d.deadline);
+    }
     if (d.kind === "range" && (!d.unit || d.min == null || d.max == null)) bad.push(d.id + ": needs unit, min and max");
     if (!Array.isArray(d.effects) || !d.effects.length) bad.push(d.id + ": needs at least one effect");
   }
