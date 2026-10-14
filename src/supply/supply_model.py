@@ -66,8 +66,9 @@ def outputs(A):
 
 def export_graph(expected=False):
     """The chain and the scenarios as plain data for the JavaScript engine (src/common/odds_engine.js).
-    With expected=True each scenario also carries this module's own results, so tests can compare the two."""
-    graph = dict(nodes=[dict(id=n["id"], inputs=[list(x) for x in n["inputs"]]) for n in D.NODES],
+    Each link carries its chokepoint state (short, tight, adequate, or "none"), which sets its default spare capacity
+    on The Odds. With expected=True each scenario also carries this module's own results, so tests can compare."""
+    graph = dict(nodes=[dict(id=n["id"], inputs=[list(x) for x in n["inputs"]], state=(n.get("choke") or {}).get("state") or "none") for n in D.NODES],
                  other={f"{i}|{g}": v for (i, g), v in D.GROUP_OTHER.items()},
                  outputs=[dict(id=o["id"], label=o["label"], mix=[list(m) for m in o["mix"]]) for o in D.OUTPUTS])
     scen = {}

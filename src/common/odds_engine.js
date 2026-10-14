@@ -339,13 +339,15 @@ function check(model){
       if ((d.min != null && !(d.min <= d.low)) || (d.max != null && !(d.max >= d.high))) out.push(d.id + ": min and max must enclose the low and high cases");
     } else out.push(d.id + ": kind must be 'event' or 'range'");
     if (d.sev != null && !(d.sev >= 0)) out.push(d.id + ": severity cannot be negative");
+    if (d.side != null && d.side !== "up" && d.side !== "down") out.push(d.id + ": side must be 'up' or 'down'");
     for (const e of d.effects || []){
       if (e.t === "scen"){ if (!model.scen || !model.scen[e.id]) out.push(d.id + ": unknown scenario '" + e.id + "'"); }
-      else if (e.t === "shock" || e.t === "ramp" || e.t === "ease"){ if (!nodes.has(e.node)) out.push(d.id + ": unknown link '" + e.node + "'"); }
+      else if (e.t === "shock" || e.t === "ramp" || e.t === "ease" || e.t === "lift"){ if (!nodes.has(e.node)) out.push(d.id + ": unknown link '" + e.node + "'"); }
       else if (e.t === "dem" || e.t === "demlvl"){ if (!segs.has(e.seg)) out.push(d.id + ": unknown buyer group '" + e.seg + "'"); }
       else out.push(d.id + ": unknown effect type '" + e.t + "'");
       if ((e.t === "ramp" || e.t === "demlvl") && d.kind !== "range") out.push(d.id + ": '" + e.t + "' needs a range driver");
-      if ((e.t === "scen" || e.t === "shock" || e.t === "dem" || e.t === "ease") && d.kind !== "event") out.push(d.id + ": '" + e.t + "' needs an event driver");
+      if ((e.t === "scen" || e.t === "shock" || e.t === "dem" || e.t === "ease" || e.t === "lift") && d.kind !== "event") out.push(d.id + ": '" + e.t + "' needs an event driver");
+      if (e.t === "lift" && !(e.f > 0 && e.f <= 5)) out.push(d.id + ": 'lift' needs f above 0 (what the link's capacity is multiplied by; above 1 adds capacity)");
       if (e.t === "shock" && !share(e.s)) out.push(d.id + ": a shock is a lost share between 0 and 1");
       if (e.t === "ease" && !share(e.f)) out.push(d.id + ": 'ease' needs f between 0 and 1 (the share of the shortfall that remains)");
       if (e.t === "dem" && !(e.m >= 0)) out.push(d.id + ": 'dem' needs m of 0 or more (what the group's orders are multiplied by)");
@@ -356,6 +358,11 @@ function check(model){
       if (e.dur != null && !(e.dur > 0)) out.push(d.id + ": dur must be a number of months above 0");
     }
   }
+  for (const k of Object.keys(model.room || {})){
+    if (!nodes.has(k)) out.push("room: unknown link '" + k + "'");
+    else if (!(model.room[k] >= 1 && model.room[k] <= 3)) out.push("room for '" + k + "' must be between 1 (no spare capacity) and 3");
+  }
+  if (model.otherRoom != null && !(model.otherRoom >= 1 && model.otherRoom <= 3)) out.push("otherRoom must be between 1 and 3");
   const seen = new Set();
   for (const [a, b, r] of model.corr || []){
     const k = a < b ? a + "|" + b : b + "|" + a;
@@ -391,10 +398,18 @@ function assemble(file, chain){
     o.effects = (d.effects || []).map(e => e.base === "mid" ? Object.assign({}, e, {base: d.mid}) : e);
     return o;
   });
+  // spare capacity: a link named in room.links gets that number, any other link the number for its state on The
+  // Chain (short, tight, adequate, or "none" when it is not rated). A link moved by a range has no room of its own:
+  // its range says how far above or below the plan it can go.
+  const R = file.room || {}, byState = R.byState || {}, own = R.links || {}, room = {};
+  for (const n of chain.graph.nodes){
+    const v = own[n.id] != null ? own[n.id] : byState[n.state || "none"];
+    if (typeof v === "number") room[n.id] = v;
+  }
   return {graph: chain.graph, scen: chain.scen, drivers, corr: (file.links || []).map(l => [l.a, l.b, l.rho]),
           demand: {segments: Object.fromEntries((file.buyers || []).map(b => [b.id, b.share]))},
           period: {start: Math.max(0, months(file.asOf, file.period.from)), len: file.period.months},
-          supplyOutput: file.supplyOutput || "campus"};
+          supplyOutput: file.supplyOutput || "campus", room, otherRoom: typeof R.otherSuppliers === "number" ? R.otherSuppliers : 1};
 }
 
 /* ---------------------------------------------------------------- the supply chain (weakest link) */
@@ -420,17 +435,25 @@ function compileGraph(graph){
   const outputs = (graph.outputs || []).map(o => ({id: o.id, label: o.label, mix: o.mix.map(([id, w]) => [at.get(id), w])}));
   return {ids, at, order, groups, outputs, n: ids.length};
 }
-/** Delivered share for every link, given each link's own availability (1 = unharmed). `A` and `lim` are filled:
-    lim[i] is the input that limits link i, or -1 when the link's own availability (or nothing) is the limit. */
-function runChain(G, own, A, lim){
+/** Delivered share for every link, given each link's own capacity (`own`: 1 = the plan, above 1 = spare capacity,
+    below 1 = a shortfall). A link delivers the lesser of its own capacity and, for each group of inputs, the
+    weighted share those inputs allow. Below the plan an input's shortfall passes through at its rate p (a link that
+    can work around part of a shortage loses less). Above the plan an input's surplus allows (surplus / p) more, so
+    an input the link barely depends on barely holds it back on the way up either. Suppliers outside the model
+    ("other" in a group) deliver `oth` (default 1, the plan). With every number at or below 1 this is exactly the
+    stress model in src/supply/supply_model.py.
+    `A` and `lim` are filled: lim[i] is the input that limits link i, or -1 when the link's own capacity (or its
+    suppliers outside the model) is the limit. */
+function runChain(G, own, A, lim, oth){
+  const o = oth == null ? 1 : oth;
   for (const i of G.order){
-    let m = 1, who = -1;
+    let m = Infinity, who = -1;
     for (const g of G.groups[i]){
-      let sum = g.other, worst = -1, worstLoss = 0;
+      let sum = g.other * o, worst = -1, drag = g.other > 0 ? g.other * (1 - o) : -Infinity;
       for (const it of g.items){
-        const loss = it.p * (1 - A[it.s]);
-        sum += it.w * (1 - loss);
-        if (it.w * loss > worstLoss){ worstLoss = it.w * loss; worst = it.s; }
+        const a = A[it.s], eff = a < 1 ? 1 - it.p * (1 - a) : 1 + (a - 1) / Math.max(it.p, 0.05);
+        sum += it.w * eff;
+        if (it.w * (1 - eff) > drag){ drag = it.w * (1 - eff); worst = it.s; }
       }
       const val = sum / g.tw;
       if (val < m){ m = val; who = worst; }
@@ -440,7 +463,7 @@ function runChain(G, own, A, lim){
   }
   return A;
 }
-/** Follow the limiting inputs from link `i` back to the link whose own shortfall is the cause. */
+/** Follow the limiting inputs from link `i` back to the link whose own capacity is the cause. */
 function rootCause(lim, i){ let k = i, guard = 0; while (lim[k] >= 0 && guard++ < 1000) k = lim[k]; return k; }
 /** One-off run for a plain set of shocks ({linkId: lost share}); returns {links: {id: delivered}, outputs: {id: delivered}}. */
 function chainOnce(graph, shocks){
@@ -462,10 +485,13 @@ function chainOnce(graph, shocks){
    and each effect is one of
      {t: "scen", id, only?, skip?}   event: the scenario's first-12-month shocks times severity (all of them, only some, or all but some)
      {t: "shock", node, s}            event: the link loses share s times severity
-     {t: "ease", node, f}             event: the link's shortfall is multiplied by f
+     {t: "ease", node, f}             event: the link's shortfall below the plan is multiplied by f
+     {t: "lift", node, f}             event: the link's capacity is multiplied by f times severity (f above 1 adds capacity)
      {t: "dem", seg, m}               event: the buyer group's orders are multiplied by m (seg "all" = every group)
-     {t: "ramp", node, base?, k?, add?}     range: the link delivers level(value), at most 1
+     {t: "ramp", node, base?, k?, add?}     range: the link's capacity is level(value): below 1 short of the plan, above 1 beyond it
      {t: "demlvl", seg, base?, k?, add?}    range: the buyer group's orders are multiplied by level(value)
+   model.room = {linkId: capacity} is the spare capacity of links no range moves (1 = none, 1.1 = 10% above the
+   plan); model.otherRoom is the same for suppliers outside the model. Links without either deliver at most the plan.
    Event effects also take
      on: "no"            apply when the event does not happen
      timing: "full"      the whole period (default)
@@ -482,8 +508,10 @@ function chainOnce(graph, shocks){
      without one), drivers, values: {driverId: Float32Array},
      out: {outputId | demand | built | tight: Float32Array}, binding: Int16Array, linkIds,
      corr: {changed, maxDiff, worst, matrix}, unknown (entries in `given` that could not be used)}.
-    binding: -1 on plan, -2 demand is the limit, -3 the chain delivers its full plan but buyers want more than
-    plan, otherwise the index (into linkIds) of the link whose own shortfall limits supply.
+    binding: -2 demand is the limit (buyers order less than the chain can supply), otherwise the index (into
+    linkIds) of the link whose own capacity limits supply, above or below the plan. -3 when that link has no spare
+    capacity in the model and delivers exactly its plan (the plan itself is the limit); -1 only for a model without
+    a supply output.
     "built" is the capacity actually added: the lesser of what the chain can supply (output `model.supplyOutput`,
     default "campus") and what buyers order. "tight" is demand divided by supply (above 1 = shortage). */
 function simulate(model, opts){
@@ -496,6 +524,12 @@ function simulate(model, opts){
   const segNames = Object.keys((model.demand || {}).segments || {}), segW = segNames.map(s => model.demand.segments[s]);
   const segAt = new Map(segNames.map((s, i) => [s, i]));
   const supplyOut = G.outputs.find(o => o.id === (model.supplyOutput || "campus")) || G.outputs[G.outputs.length - 1];
+  // each link's capacity before anything happens: its spare capacity, or 1 (the plan) for a link a range moves
+  const cap = new Float64Array(G.n).fill(1), ranged = new Uint8Array(G.n), noRoom = new Uint8Array(G.n);
+  for (const d of drivers) for (const e of d.effects || []) if (e.t === "ramp" && G.at.has(e.node)) ranged[G.at.get(e.node)] = 1;
+  for (const k of Object.keys(model.room || {})) if (G.at.has(k) && !ranged[G.at.get(k)]) cap[G.at.get(k)] = Math.max(1, Math.min(3, model.room[k]));
+  for (let i = 0; i < G.n; i++) noRoom[i] = !ranged[i] && cap[i] === 1 ? 1 : 0;
+  const oth = Math.max(1, Math.min(3, model.otherRoom || 1));
   // thresholds and pre-resolved effects
   const isEvent = drivers.map(d => d.kind === "event");
   const thr = drivers.map(d => d.kind === "event" ? (d.p <= 0 ? Infinity : d.p >= 1 ? -Infinity : normInv(1 - d.p)) : 0);
@@ -558,12 +592,12 @@ function simulate(model, opts){
     }
     if (!match) continue;
     for (; a < m; a++) draw(a);
-    own.fill(1); ease.fill(1); seg.fill(1);
+    own.set(cap); ease.fill(1); seg.fill(1);
     for (let i = 0; i < m; i++){
       const d = drivers[i], start = u2(), v = vals[i], yes = isEvent[i] && v === 1;   // one timing draw per driver per future, used or not
       values[d.id][r] = v;
       for (const e of fx[i]){
-        if (e.t === "ramp"){ own[e.i] *= Math.min(1, Math.max(0, level(v, e))); continue; }
+        if (e.t === "ramp"){ own[e.i] *= Math.max(0, level(v, e)); continue; }
         if (e.t === "demlvl"){ const k = Math.max(0, level(v, e)); if (e.g < 0) for (let g = 0; g < seg.length; g++) seg[g] *= k; else seg[e.g] *= k; continue; }
         if ((e.on === "no") === yes) continue;                    // effect fires on "yes" unless marked on: "no"
         let frac = 1;
@@ -574,25 +608,24 @@ function simulate(model, opts){
         if (e.t === "scen"){ for (const [k, s] of e.list) own[k] *= 1 - Math.min(1, s * d.sev * frac); }
         else if (e.t === "shock") own[e.i] *= 1 - Math.min(1, e.s * d.sev * frac);
         else if (e.t === "ease") ease[e.i] *= 1 - (1 - e.f) * frac;
+        else if (e.t === "lift") own[e.i] *= Math.max(0, 1 + (e.f - 1) * d.sev * frac);
         else if (e.t === "dem"){ const k = Math.max(0, 1 - (1 - e.m) * d.sev * frac); if (e.g < 0) for (let g = 0; g < seg.length; g++) seg[g] *= k; else seg[e.g] *= k; }
       }
     }
-    for (let i = 0; i < G.n; i++) if (ease[i] !== 1) own[i] = 1 - (1 - own[i]) * ease[i];
-    runChain(G, own, A, lim);
+    for (let i = 0; i < G.n; i++) if (ease[i] !== 1 && own[i] < 1) own[i] = 1 - (1 - own[i]) * ease[i];
+    runChain(G, own, A, lim, oth);
     for (const o of G.outputs){ let s = 0; for (const [i, w] of o.mix) s += A[i] * w; out[o.id][r] = s; }
     let dem = segNames.length ? 0 : 1;
     for (let g = 0; g < seg.length; g++) dem += segW[g] * seg[g];
     const sup = supplyOut ? out[supplyOut.id][r] : 1;
     out.demand[r] = dem; out.built[r] = Math.min(sup, dem); out.tight[r] = dem / Math.max(sup, 0.01);
-    let b;
-    if (sup < dem - 1e-9){
-      if (sup >= 1 - 1e-9) b = -3;
-      else {                                                       // blame the link that takes most off the supply output
-        let node = -1, worst = 0;
-        for (const [i, w] of supplyOut.mix){ const loss = w * (1 - A[i]); if (loss > worst){ worst = loss; node = i; } }
-        b = node < 0 ? -1 : rootCause(lim, node);
-      }
-    } else b = dem < 1 - 1e-9 ? -2 : -1;
+    let b = -2;                                                    // buyers order no more than the chain can supply
+    if (sup < dem - 1e-9){                                         // supply is the limit: blame the link that holds the
+      let node = -1, worst = -Infinity;                            // supply output back most, traced to its cause
+      if (supplyOut) for (const [i, w] of supplyOut.mix){ const drag = w * (1 - A[i]); if (drag > worst){ worst = drag; node = i; } }
+      if (node < 0) b = -1;
+      else { const k = rootCause(lim, node); b = noRoom[k] && Math.abs(own[k] - 1) < 1e-12 ? -3 : k; }
+    }
     binding[r] = b;
     r++;
   }
@@ -647,8 +680,8 @@ function summary(a){
   return {mean: mean(a), p05: q[0], p10: q[1], p50: q[2], p90: q[3], p95: q[4]};
 }
 /** How often each thing is the limit on what gets built: [{id, share, avgBuilt}], most frequent first.
-    id is a link id, "demand" (buyers order less than the chain can supply), "plan" (the chain delivers its full
-    plan but buyers want more) or "none" (on plan). */
+    id is a link id (its own capacity is the limit, above or below the plan), "demand" (buyers order less than the
+    chain can supply), "plan" (a link with no spare capacity in the model delivers exactly its plan) or "none". */
 function bindingTable(res){
   const acc = new Map();
   for (let r = 0; r < res.n; r++){

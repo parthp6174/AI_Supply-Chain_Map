@@ -324,6 +324,17 @@ def load_odds(problems, lenient):
                 if "node" in e and e["node"] not in nodes: bad.append(f"{d['id']}: unknown link '{e['node']}'")
         for l in o["links"]:
             if l["a"] not in ids or l["b"] not in ids: bad.append(f"link {l['a']} - {l['b']}: unknown driver")
+        # spare capacity: the links named must exist and the numbers sit between 1 (none) and 3; a wrong entry is
+        # left out (that link then follows its state on The Chain)
+        room = o.get("room") or {}
+        for k, v in list((room.get("links") or {}).items()):
+            if k not in nodes or not isinstance(v, (int, float)) or not 1 <= v <= 3:
+                soft.append(f"room for '{k}': needs a link of The Chain and a number between 1 and 3 (left out)")
+                del room["links"][k]
+        for k, v in list((room.get("byState") or {}).items()):
+            if not isinstance(v, (int, float)) or not 1 <= v <= 3:
+                soft.append(f"room for state '{k}': needs a number between 1 and 3 (left out)")
+                del room["byState"][k]
         # a story the page does not know only moves that link to "Other links", so the page still works
         stories = {s["id"] for s in o.get("stories", [])}
         for d in o["drivers"]:

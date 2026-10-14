@@ -266,6 +266,44 @@ const TOY = {
   check("check() catches thirteen further kinds of mistake", O.check(B).length === 13, O.check(B));
 }
 
+// ---- spare capacity: beating the plan, and what holds the way up back
+{
+  const cl = x => JSON.parse(JSON.stringify(x));
+  const U = cl(TOY); U.corr = []; U.demand = {segments: {big: 1}}; U.scen = {};
+  U.drivers = [{id: "orders", kind: "range", low: 160, mid: 170, high: 180, min: 150, max: 200, effects: [{t: "demlvl", seg: "big"}]}];      // buyers always want more than the chain can make
+  const run = (room, drivers, extra) => { const M = cl(U); M.room = room || {}; Object.assign(M, extra || {}); if (drivers) M.drivers = M.drivers.concat(drivers); return O.simulate(M, {n: 4000, seed: 9}); };
+  const R0 = run({});
+  check("no spare capacity anywhere: supply stops at the plan, and the plan itself is named as the limit", Math.max(...R0.out.site) === 1 && O.bindingTable(R0)[0].id === "plan" && O.bindingTable(R0)[0].share === 1);
+  const R1 = run({ore: 1.3, part: 1.25, plant: 1.1, site: 1.4});
+  check("with spare capacity the chain beats the plan, as far as its tightest link allows", R1.out.site.every(v => close(v, 1.1, 1e-6)) && R1.out.built.every(v => close(v, 1.1, 1e-6)));
+  check("and the link with the least room is named as the limit on the way up", O.bindingTable(R1)[0].id === "plant" && O.bindingTable(R1)[0].share === 1, O.bindingTable(R1));
+  const R2 = run({ore: 1.3, part: 1.05, plant: 1.1, site: 1.4});
+  check("the limit is traced through the chain: a part with little room, not the site it feeds", O.bindingTable(R2)[0].id === "part" && R2.out.site.every(v => close(v, 1.05, 1e-6)), O.bindingTable(R2));
+  const ramp = [{id: "plant_ramp", kind: "range", low: 95, mid: 104, high: 108, min: 50, max: 120, effects: [{t: "ramp", node: "plant"}]}];
+  const R3 = run({ore: 1.3, part: 1.25, plant: 1.5, site: 1.4}, ramp);
+  let rOk = true;
+  for (let i = 0; i < 4000; i++) rOk = rOk && close(R3.out.site[i], Math.min(1.25, R3.values.plant_ramp[i] / 100), 1e-6);
+  check("a range is no longer capped at the plan, and replaces the link's own room", rOk && Math.max(...R3.out.site) > 1.07 && O.probBelow(R3.out.site, 1) > 0.1);
+  const lift = [{id: "second", kind: "event", p: 1, sev: 0.5, effects: [{t: "lift", node: "plant", f: 1.2}]}];
+  const R4 = run({ore: 1.3, part: 1.25, plant: 1.0, site: 1.4}, lift);
+  check("a lift adds capacity, scaled by its size, up to what the next link allows", R4.out.site.every(v => close(v, 1.1, 1e-6)));
+  const R5 = run({ore: 1.3, part: 1.25, plant: 1.0, site: 1.4}, [{id: "second", kind: "event", p: 1, effects: [{t: "lift", node: "plant", f: 1.5}]}]);
+  check("and stops at the next link's room", R5.out.site.every(v => close(v, 1.25, 1e-6)) && O.bindingTable(R5)[0].id === "part");
+  const R6 = run({ore: 1.3, part: 1.25, plant: 1.2, site: 1.4}, [{id: "fix", kind: "event", p: 1, effects: [{t: "ease", node: "plant", f: 0.5}]}]);
+  check("'ease' only softens a shortfall: a link above the plan is left as it is", R6.out.site.every(v => close(v, 1.2, 1e-6)));
+  const R7 = run({ore: 1.3, part: 1.25, plant: 1.2, site: 1.4}, [{id: "hit", kind: "event", p: 1, effects: [{t: "shock", node: "plant", s: 0.25}]}]);
+  check("a shock takes its share of the whole capacity, spare part included", R7.out.site.every(v => close(v, 0.9, 1e-6)));
+  // an input the link barely depends on (p = 0.25) barely holds it back on the way up either
+  const P = cl(U); P.graph.nodes[1].inputs = [["ore", null, 1, 0.25]]; P.room = {ore: 1.05, part: 1.5, plant: 1.5, site: 1.5};
+  const R8 = O.simulate(P, {n: 200, seed: 1});
+  check("on the way up an input's surplus allows surplus / p more", R8.out.site.every(v => close(v, 1.2, 1e-6)), R8.out.site[0]);
+  const G = O.compileGraph(U.graph), A = new Float64Array(G.n), lim = new Int32Array(G.n), own = Float64Array.from([1.3, 1.25, 1.1, 1.4]);
+  O.runChain(G, own, A, lim, 1.0);
+  check("runChain fills the limiting input of each link on the way up", lim[G.at.get("site")] === G.at.get("plant") && lim[G.at.get("part")] === -1 && close(A[G.at.get("site")], 1.1, 1e-12));
+  const bad = cl(U); bad.room = {nowhere: 1.2, site: 0.8}; bad.otherRoom = 0.5; bad.drivers.push({id: "x", kind: "event", p: 0.5, side: "sideways", effects: [{t: "lift", node: "plant", f: 0}]}, {id: "y", kind: "range", low: 1, mid: 2, high: 3, effects: [{t: "lift", node: "plant", f: 1.1}]});
+  check("check() catches mistakes in spare capacity and lifts", O.check(bad).length === 6, O.check(bad));
+}
+
 // ---- a supply output made of several links (accelerators = GPUs + custom chips)
 {
   const M = {graph: FX.graph, scen: FX.scen, period: {start: 0, len: 12}, demand: {segments: {}}, corr: [], supplyOutput: "accel",
@@ -377,7 +415,16 @@ const TOY = {
   let finite = true;
   for (const k in R.out) for (let i = 0; i < N; i++) if (!(R.out[k][i] >= 0 && R.out[k][i] < 50)) finite = false;
   check("every outcome is a sensible number in every future", finite && R.n === N);
-  check("baseline: most of the plan gets built, with a real downside", sb.p50 > 0.85 && sb.p50 < 0.98 && sb.p10 > 0.6 && sb.p10 < sb.p50 - 0.03 && sb.p95 <= 1 && O.probBelow(R.out.built, 0.6) < 0.06, sb);
+  check("baseline: most of the plan gets built, with a real downside", sb.p50 > 0.85 && sb.p50 < 0.98 && sb.p10 > 0.6 && sb.p10 < sb.p50 - 0.03 && sb.p95 < 1.1 && O.probBelow(R.out.built, 0.6) < 0.06, sb);
+  let beat = 0, maxB = 0; for (let i = 0; i < N; i++){ if (R.out.built[i] > 1) beat++; if (R.out.built[i] > maxB) maxB = R.out.built[i]; }
+  check("baseline: the plan is beaten in some futures, by less than spare capacity allows", beat / N > 0.005 && beat / N < 0.3 && maxB > 1.02 && maxB < 1.2, [beat / N, maxB]);
+  const up = O.subset(R, r => R.out.built[r] > 1), upLim = O.bindingTable(up), ranged = new Set(M.drivers.flatMap(d => d.effects.filter(e => e.t === "ramp").map(e => e.node)));
+  check("when the plan is beaten, the limit is a link a range moves (not a fixed assumption)", upLim.filter(x => ranged.has(x.id) || x.id === "demand").reduce((a, x) => a + x.share, 0) > 0.95, upLim.slice(0, 6));
+  const wmUp = O.whatMatters(R, "built"), ups = M.drivers.filter(d => d.side === "up");
+  check("every thing that could go right helps (or is neutral) when it happens (" + ups.length + " of them)", ups.length >= 4 && ups.every(d => wmUp.find(w => w.id === d.id).swing > -0.002), ups.map(d => [d.id, +(100 * wmUp.find(w => w.id === d.id).swing).toFixed(2)]));
+  const allUp = O.simulate(M, {n: 3000, seed: 5, given: Object.fromEntries(ups.map(d => [d.id, true]))});
+  let beatUp = 0; for (let i = 0; i < allUp.n; i++) if (allUp.out.built[i] > 1) beatUp++;
+  check("supposing every thing that could go right happens raises the chance of beating the plan", allUp.n === 3000 && beatUp / allUp.n > 2 * beat / N && O.mean(allUp.out.built) > O.mean(R.out.built), [beatUp / allUp.n, beat / N]);
   check("baseline: buyers want more than the plan in the central case", sd.p50 > 1 && sd.p50 < 1.4, sd);
   const calm = {drivers: {}};
   for (const d of file.drivers) calm.drivers[d.id] = d.kind === "event" ? {p: d.effects.every(e => e.on === "no") ? 1 : 0} : {low: d.mid, high: d.mid};
@@ -394,7 +441,8 @@ const TOY = {
   const tw = O.simulate(M, {n: 20000, seed: 3, given: {tw_blockade: true}});
   check("supposing a Taiwan blockade cuts the build-out sharply and raises the linked risks", O.mean(tw.out.built) < O.mean(R.out.built) - 0.2 && O.mean(tw.values.cn_minerals) > byId.cn_minerals.p + 0.2 && O.mean(tw.values.credit_squeeze) > byId.credit_squeeze.p + 0.15, [O.mean(tw.out.built), O.mean(tw.values.cn_minerals)]);
   const pc = v => (100 * v).toFixed(0) + "%";
-  console.log("INFO baseline built: central " + pc(sb.p50) + " of plan, 1-in-10 low " + pc(sb.p10) + ", 1-in-10 high " + pc(sb.p90) + "; chance below 80%: " + pc(O.probBelow(R.out.built, 0.8)));
+  console.log("INFO baseline built: average " + pc(sb.mean) + ", central " + pc(sb.p50) + " of plan, 1-in-10 low " + pc(sb.p10) + ", 1-in-10 high " + pc(sb.p90) + "; chance below 80%: " + pc(O.probBelow(R.out.built, 0.8)) + "; chance of beating the plan: " + (100 * beat / N).toFixed(1) + "% (with everything that could go right: " + (100 * beatUp / allUp.n).toFixed(0) + "%)");
+  console.log("INFO limits when the plan is beaten: " + upLim.slice(0, 6).map(b => b.id + " " + pc(b.share)).join(", "));
   console.log("INFO most frequent limits: " + bt.slice(0, 6).map(b => b.id + " " + pc(b.share)).join(", "));
   console.log("INFO biggest swings: " + wm.slice().sort((a, b) => Math.abs(b.swing) - Math.abs(a.swing)).slice(0, 6).map(w => w.id + " " + (100 * w.swing).toFixed(0)).join(", "));
 }

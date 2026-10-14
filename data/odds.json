@@ -1,11 +1,17 @@
 {
   "version": 1,
-  "asOf": "2026-10-08",
+  "asOf": "2026-10-14",
   "status": "provisional",
-  "statusNote": "Geopolitics and trade rules were researched on 8 Oct 2026, with sources in each row's About panel. The other numbers are still first estimates: facts already on this site plus judgement. Change any of them to match your own view.",
+  "statusNote": "Geopolitics and trade rules were researched on 8 Oct 2026, with sources in each row's About panel. The other numbers, including the things that could go right added on 14 Oct 2026, are still first estimates: facts already on this site plus judgement. Change any of them to match your own view.",
   "period": {"label": "Calendar 2027", "from": "2027-01-01", "months": 12},
   "supplyOutput": "campus",
-  "plan": "100 is the AI data-center capacity that today's plans would add in 2027: what buyers have budgeted and suppliers have scheduled, with the shortages already known. Each supply number is the share of that plan one link delivers. Buyers want more than the plan (see Unmet demand), so a fall in orders only cuts what gets built once it is bigger than that cushion. Supply above plan is not counted: outcomes stop at 100.",
+  "plan": "100 is the AI data-center capacity that today's plans would add in 2027: what buyers have budgeted and suppliers have scheduled, with the shortages already known. Each supply number is the share of that plan one link delivers. A link can beat the plan by as much as its range says or, if no range moves it, by its spare capacity (see room). Buyers want more than the plan (see Unmet demand), so a fall in orders only cuts what gets built once it is bigger than that cushion. More than the plan gets built only when every link on the way beats it too.",
+  "room": {
+    "note": "Spare capacity: how far above the plan a link could deliver in 2027 if everything around it goes right. A link moved by a range has none of its own: its range says how far it can go. Other links follow their state on The Chain, and two that The Chain does not rate get their own number because their waits are long: construction crews and the switchgear and backup power inside each building. Suppliers outside the model (other generators and on-site equipment) can do 10% more. All of these are first estimates.",
+    "byState": {"short": 1.08, "tight": 1.10, "adequate": 1.15, "none": 1.20},
+    "links": {"build": 1.10, "electrical": 1.10},
+    "otherSuppliers": 1.10
+  },
   "buyers": [
     {"id": "hyper", "label": "Hyperscalers", "share": 0.7, "who": "Amazon, Alphabet, Microsoft, Meta and Oracle"},
     {"id": "neo", "label": "Neoclouds", "share": 0.2, "who": "CoreWeave, Nebius, Lambda, Crusoe and others, building largely for the labs"},
@@ -251,10 +257,43 @@
       "say": {"if": "co-packaged optics reach volume", "of": "of co-packaged optics in volume"},
       "question": "Will co-packaged optics account for 10% or more of the new AI cluster switch ports shipped in 2027?",
       "resolves": "Shipment estimates from LightCounting or Dell'Oro, or Nvidia and Broadcom disclosures.",
-      "deadline": "2027-12-31", "p": 0.2, "sev": 1, "basis": "judgement",
+      "deadline": "2027-12-31", "p": 0.2, "sev": 1, "side": "up", "basis": "judgement",
       "note": "The Chain notes that the laser shortage is speeding up adoption.",
-      "does": "Cuts any InP shortfall by a quarter, because each link needs fewer lasers.",
-      "effects": [{"t": "ease", "node": "inp", "f": 0.75}]
+      "does": "If yes, optics need fewer lasers, which works like 5% more InP wafers: it softens a shortage and adds to a good year.",
+      "effects": [{"t": "lift", "node": "inp", "f": 1.05}]
+    },
+
+    {
+      "id": "tglass_new", "group": "chips", "story": "chips", "kind": "event", "label": "A second T-glass maker ships in volume",
+      "say": {"if": "a second T-glass maker ships in volume", "of": "that a second T-glass maker ships in volume"},
+      "question": "Will a maker other than Nittobo ship low-expansion glass cloth (T-glass) for AI chip substrates in volume before 30 Jun 2027?",
+      "resolves": "Statements by substrate or glass-cloth makers, or industry reports such as TrendForce's, that a second source is qualified and shipping.",
+      "deadline": "2027-06-30", "p": 0.3, "sev": 1, "side": "up", "basis": "judgement",
+      "note": "A first estimate, not yet researched. Nittobo makes about 90% of T-glass and the plan counts only on its own expansion. Other glass-fiber makers are working to qualify low-expansion cloth; one shipping in volume in time for 2027 would give the tightest link in the chip chain a second source.",
+      "does": "If yes, glass cloth for substrates and boards rises 12% above what it would otherwise be, from the day it ships to the end of 2027.",
+      "effects": [{"t": "lift", "node": "glasscloth", "f": 1.12, "timing": "window"}]
+    },
+
+    {
+      "id": "cowos_alt", "group": "chips", "story": "chips", "kind": "event", "label": "Packaging beyond TSMC's CoWoS lines",
+      "say": {"if": "packaging beyond TSMC's CoWoS lines adds volume", "of": "that packaging beyond TSMC's CoWoS lines adds volume"},
+      "question": "Will advanced packaging outside TSMC's own CoWoS lines (at ASE, Amkor, Intel and others) ramp in volume for AI accelerators before 30 Jun 2027, on top of what plans count on today?",
+      "resolves": "Company statements and industry estimates of 2027 advanced-packaging capacity (TrendForce, Yole).",
+      "deadline": "2027-06-30", "p": 0.35, "sev": 1, "side": "up", "basis": "judgement",
+      "note": "A first estimate, not yet researched. TSMC already hands some packaging steps to ASE and Amkor, and Intel offers its EMIB packaging as an alternative. The plan counts on TSMC's own CoWoS ramp; extra volume elsewhere would come on top of it.",
+      "does": "If yes, packaging capacity for AI accelerators rises 8% above what it would otherwise be, from the day it ramps. Wafers, memory and substrates still have to keep up.",
+      "effects": [{"t": "lift", "node": "cowos", "f": 1.08, "timing": "window"}]
+    },
+
+    {
+      "id": "hbm_samsung", "group": "chips", "story": "chips", "kind": "event", "label": "Samsung HBM4 in volume for Nvidia",
+      "say": {"if": "Samsung ships HBM4 in volume for Nvidia", "of": "that Samsung ships HBM4 in volume for Nvidia"},
+      "question": "Will Samsung ship HBM4 in volume for Nvidia's next-generation GPUs before 31 Mar 2027?",
+      "resolves": "Samsung or Nvidia statements, or reliable reports of volume shipments.",
+      "deadline": "2027-03-31", "p": 0.5, "sev": 1, "side": "up", "basis": "judgement",
+      "note": "A first estimate, not yet researched. Samsung has the most DRAM capacity but has trailed SK hynix in qualifying HBM for Nvidia. This assumes the plan counts on little Samsung HBM4, which part 6b will check.",
+      "does": "If yes, HBM supply rises 6% above what it would otherwise be, from the day volume starts. DRAM wafers still have to keep up.",
+      "effects": [{"t": "lift", "node": "hbm", "f": 1.06, "timing": "window"}]
     },
 
     {
@@ -292,10 +331,21 @@
       "say": {"if": "the Three Mile Island restart delivers", "of": "that the Three Mile Island restart delivers"},
       "question": "Will the Crane Clean Energy Center (the 835 MW Three Mile Island restart for Microsoft) be delivering power by 31 Dec 2027?",
       "resolves": "Constellation statements or the reactor's NRC operating status.",
-      "deadline": "2027-12-31", "p": 0.5, "sev": 1, "basis": "judgement",
+      "deadline": "2027-12-31", "p": 0.5, "sev": 1, "side": "up", "basis": "judgement",
       "note": "The restart is under way (The Money). It is small against the gigawatts needed in 2027 and matters more as a signal for 2028 to 2030.",
-      "does": "Cuts any grid shortfall by 5% from the day it delivers.",
-      "effects": [{"t": "ease", "node": "grid", "f": 0.95, "timing": "window"}]
+      "does": "From the day it delivers, power for data centers rises 2%: one campus's worth against the gigawatts 2027 needs.",
+      "effects": [{"t": "lift", "node": "grid", "f": 1.02, "timing": "window"}]
+    },
+
+    {
+      "id": "power_fast", "group": "power", "story": "power", "kind": "event", "label": "Power arrives faster than scheduled",
+      "say": {"if": "power arrives faster than scheduled", "of": "that power arrives faster than scheduled"},
+      "question": "Will a faster route to power (fast-track rules for large loads, connections that cut use at peak times, or generation built on site) open for US data centers before 30 Jun 2027 and connect them sooner than utilities' current schedules?",
+      "resolves": "Grid operators' and utilities' reports on data-center connections in 2027.",
+      "deadline": "2027-06-30", "p": 0.35, "sev": 1, "side": "up", "basis": "judgement",
+      "note": "A first estimate, not yet researched. Utilities and grid operators are testing faster routes for data centers: connecting them if they agree to cut use at peak times, letting them bring their own generation, and studying requests in batches. Transformers still have to keep up.",
+      "does": "If yes, grid connections rise 6% above what they would otherwise be, from the day the faster route opens. The transformers they need still have to be there.",
+      "effects": [{"t": "lift", "node": "grid", "f": 1.06, "timing": "window"}]
     },
 
     {

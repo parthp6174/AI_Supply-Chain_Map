@@ -136,6 +136,7 @@ h3{font-size:var(--fs-lg);margin:0;line-height:1.3;text-wrap:balance}
 #hist .gl{stroke:var(--grid);stroke-width:1}
 #hist .ax{stroke:var(--line);stroke-width:1}
 #hist .med{stroke:var(--ink);stroke-width:1}
+#hist .plan{stroke:var(--muted);stroke-width:1;stroke-dasharray:3 3}
 #hist text{font-family:var(--font-sans);font-size:11px;fill:var(--muted)}
 #hist text.lab{fill:var(--ink);font-weight:600}
 #hist .hit{fill:transparent}
@@ -165,6 +166,8 @@ button.row:hover{background:var(--wash)}
 .oplot::before{content:"";position:absolute;left:0;right:0;top:50%;height:1px;background:var(--grid)}
 .oplot i{position:absolute;top:50%;height:2px;margin-top:-1px;background:var(--series);border-radius:1px}
 .oplot b{position:absolute;top:50%;width:10px;height:10px;margin:-5px 0 0 -5px;border-radius:50%;background:var(--series);box-shadow:0 0 0 2px var(--surface)}
+.oplot u{position:absolute;top:0;bottom:0;width:0;border-left:1px dashed var(--muted)}
+.uptag{display:inline-block;margin-left:8px;padding:0 7px;border-radius:999px;font-size:var(--fs-xs);font-weight:500;line-height:1.5;color:var(--good-ink);border:1px solid color-mix(in srgb,var(--good-ink) 40%,var(--line));vertical-align:2px;white-space:nowrap}
 .tip{position:fixed;z-index:30;pointer-events:none;background:var(--raised);border:1px solid var(--line);border-radius:var(--r);box-shadow:0 6px 24px rgba(0,0,0,.14);padding:8px 10px;font-size:var(--fs-sm);line-height:1.4;max-width:270px}
 .tip .tt{font-weight:600;margin-bottom:2px}
 .tip .tr{display:flex;align-items:center;gap:7px;color:var(--ink-2)}
@@ -415,7 +418,9 @@ footer{padding-block:48px 72px;font-size:var(--fs-xs);color:var(--muted)}
         <p class="cap" id="hero-scale" hidden></p>
         <div class="tiles">
           <div class="tile"><span class="l">A typical future: half end above this, half below</span><span class="v" id="t-mid">–</span></div>
+          <div class="tile"><span class="l">Chance of beating the plan</span><span class="v" id="t-beat">–</span></div>
           <div class="tile"><span class="l">1 time in 10 it ends at or below</span><span class="v" id="t-low">–</span></div>
+          <div class="tile"><span class="l">1 time in 10 it ends at or above</span><span class="v" id="t-high">–</span></div>
           <div class="tile"><span class="l"><label for="t-thr">Chance of ending below</label> <select id="t-thr"><option value="0.9">90%</option><option value="0.8" selected>80%</option><option value="0.7">70%</option><option value="0.6">60%</option></select> of plan</span><span class="v" id="t-below">–</span></div>
           <div class="tile"><span class="l">What buyers want, against what can be built</span><span class="v" id="t-tight">–</span></div>
         </div>
@@ -430,7 +435,7 @@ footer{padding-block:48px 72px;font-size:var(--fs-xs);color:var(--muted)}
       </div>
       <div class="rb live" id="b-lim">
         <div class="rb-h"><h3>What holds it back</h3><div class="legend" id="lim-lg"></div></div>
-        <p class="cap" style="margin:-4px 0 10px">Share of futures in which each thing is the limit on what gets built, traced back to where the shortfall starts.</p>
+        <p class="cap" style="margin:-4px 0 10px">Share of futures in which each thing is the limit on what gets built, traced back to where it starts. Above the plan, that is the link that runs out of room first.</p>
         <div class="rows" id="lim"></div>
       </div>
       <div class="rb live" id="b-mat">
@@ -440,7 +445,7 @@ footer{padding-block:48px 72px;font-size:var(--fs-xs);color:var(--muted)}
       </div>
       <div class="rb live" id="b-out">
         <div class="rb-h"><h3>Down the chain</h3></div>
-        <p class="cap" style="margin:-4px 0 8px">How much of the plan each stage can deliver. The line runs from the 1-in-10 low to the 1-in-10 high; the dot is the central case.</p>
+        <p class="cap" style="margin:-4px 0 8px">How much of the plan each stage can deliver. The line runs from the 1-in-10 low to the 1-in-10 high, the dot is the central case and the dashed mark is the plan.</p>
         <div id="outs"></div>
       </div>
     </aside>
@@ -502,7 +507,8 @@ footer{padding-block:48px 72px;font-size:var(--fs-xs);color:var(--muted)}
         <li>A <b>chance</b> is how likely the answer to the question is yes, by its deadline.</li>
         <li>For a quantity, <b>low</b> is the level undercut 1 time in 10, <b>central</b> has an even chance either side, and <b>high</b> is beaten 1 time in 10.</li>
         <li>The headline is the <b>average</b> of all the futures, so it moves when something rare but severe becomes more likely. The <b>typical future</b> beside it barely moves in that case, which is why both are shown.</li>
-        <li><b>How bad, if it happens</b> scales an event's effect: 1 is the standard case, 0.5 half of it.</li>
+        <li><b>How bad, if it happens</b> (or <b>how big</b>, for things that could go right) scales an event's effect: 1 is the standard case, 0.5 half of it.</li>
+        <li><b>Beating the plan</b> takes every link on the way: the build-out goes only as far as the link that runs out of room first. Things that could go right, such as a second source for a scarce material, are marked on their rows; one of them alone often just moves the limit to the next link.</li>
         <li><b>Suppose</b> keeps only the futures in which the thing happens. Everything linked to it shifts, and each affected row shows where it lands.</li>
         <li>A <b>link</b> runs from −0.95 (opposite ways) through 0 (unrelated) to +0.95 (same way). The five words set −0.6 (much less likely, or much lower), −0.3, 0 (no link), +0.3 and +0.6; Fine-tune sets anything in between. For a quantity, "happens" means it hits its high case or better, a 1-in-10 outcome. Each thing keeps its own chance whatever its links are; links only change what tends to happen together.</li>
         <li><b>Market odds</b> come from Polymarket and are read by the scheduled refresh every few hours. A price is what traders pay for a contract worth $1 if the thing happens, so 3.4% means they put it at about 3.4%. Most markets ask a nearby question rather than this page's own: a solid outline marks a close fit, which you can use with one click, and a dashed one a related market. Each About panel says how the market differs. Long-dated bets on rare events tend to read high, because betting against them ties money up until the end.</li>
@@ -514,12 +520,12 @@ footer{padding-block:48px 72px;font-size:var(--fs-xs);color:var(--muted)}
       <ul>
         <li>Stockpiles and delivery times. A shortfall cuts what is built in the same year.</li>
         <li>Timing detail. An event is equally likely to start on any day between now, or its earliest possible date, and its deadline.</li>
-        <li>Supply above the plan. A link that delivers more than planned is counted as delivering the plan.</li>
+        <li>Uncertain spare capacity. A link that no number on this page moves can deliver a fixed amount above the plan: 8% if The Chain rates it short, 10% if tight, 15% if adequate and 20% otherwise (10% for construction crews and for the switchgear and backup power in each building).</li>
         <li>Workarounds. A shortfall in a scarce input passes down the chain exactly as in The Chain's stress model.</li>
       </ul>
       <h3>Where the starting numbers come from</h3>
       <p id="method-basis"></p>
-      <p>Your changes stay on this page and are gone when you reload. Saving sets of numbers is planned.</p>
+      <p>Your changes stay on this page and are gone when you reload. Downloading a scenario is planned.</p>
     </div>
   </div>
 </section>
@@ -582,7 +588,9 @@ for (const d of MODEL.drivers){
 const isChanged = id => Object.keys(START[id]).some(k => Math.abs(cur[id][k] - START[id][k]) > 1e-9);
 const nChanged = () => MODEL.drivers.filter(d => isChanged(d.id)).length;
 const anyGiven = () => Object.keys(given).length > 0;
-const usesSev = d => d.kind === "event" && d.effects.some(e => e.t === "scen" || e.t === "shock" || e.t === "dem");
+const usesSev = d => d.kind === "event" && d.effects.some(e => e.t === "scen" || e.t === "shock" || e.t === "dem" || e.t === "lift");
+/** Something that could go right: its size slider reads "how big", and its row carries a tag. */
+const isUp = d => d.side === "up";
 /** Which drivers act on each chain link (so a limit can be traced to the numbers that move it). */
 const MOVERS = {};
 for (const d of MODEL.drivers) for (const e of d.effects){
@@ -628,7 +636,9 @@ function compute(a){
   if (!R.n) return out;
   out.built = q(R.out.built); out.demand = q(R.out.demand); out.tight = q(R.out.tight);
   out.below = {}; for (const t of [0.9, 0.8, 0.7, 0.6]) out.below[t] = O.probBelow(R.out.built, t);
-  out.hist = O.histogram(R.out.built, 0, 1, 100).map(c => c / R.n);
+  let beat = 0; for (let i = 0; i < R.n; i++) if (R.out.built[i] > 1 + 1e-6) beat++;
+  out.beat = beat / R.n;
+  out.hist = O.histogram(R.out.built, 0, 1.2, 120).map(c => c / R.n);
   out.outputs = {}; for (const o of MODEL.graph.outputs) out.outputs[o.id] = q(R.out[o.id]);
   out.limits = O.bindingTable(R);
   out.matters = O.whatMatters(R, "built");
@@ -755,9 +765,9 @@ function driverRow(d){
   if (usesSev(d)){
     const sid = "sev-" + id;
     more.append(h("div", {class: "sevrow"},
-      h("label", {for: sid}, "How bad, if it happens", h("output", {"data-o": "sev"})),
+      h("label", {for: sid}, isUp(d) ? "How big, if it happens" : "How bad, if it happens", h("output", {"data-o": "sev"})),
       h("div", {class: "slw"}, h("div", {class: "trk"}, h("i", {"data-v": "sevfill"}), h("u", {"data-v": "sevstart"})), h("input", {class: "sl", id: sid, type: "range", min: 0, max: 2, step: "0.1", "data-f": "sev"})),
-      h("p", {class: "cap", text: "1 is the standard case described above. 0.5 is half as bad, 2 twice as bad."})));
+      h("p", {class: "cap", text: isUp(d) ? "1 is the standard case described above. 0.5 is half as big, 2 twice as big." : "1 is the standard case described above. 0.5 is half as bad, 2 twice as bad."})));
   }
   const supMore = h("div", {class: "drv-btns", style: "justify-content:flex-start"});
   if (ev) supMore.append(h("button", {type: "button", class: "ghost sm", "data-sup": "false", "aria-pressed": "false", text: "Suppose it does not happen"}));
@@ -770,7 +780,7 @@ function driverRow(d){
 
   const row = h("article", {class: "drv", id: "d-" + id, "data-id": id, "aria-labelledby": "l-" + id},
     h("div", {class: "drv-top"},
-      h("div", {}, h("h4", {class: "drv-l", id: "l-" + id, text: d.label}), h("p", {class: "drv-q", text: d.question})),
+      h("div", {}, h("h4", {class: "drv-l", id: "l-" + id}, d.label, isUp(d) ? h("span", {class: "uptag", text: "could go right"}) : null), h("p", {class: "drv-q", text: d.question})),
       fields),
     h("div", {class: "drv-ctl"},
       h("div", {class: "slw" + (ev ? "" : " rng")}, h("div", {class: "trk"}, h("i", {"data-v": "fill"}), h("u", {"data-v": "start"})), slider),
@@ -850,7 +860,7 @@ function sync(id, opt){
   // the line under the slider: what it was, and where it lands in a supposed situation
   const note = $('[data-v="note"]', row), bits = [];
   if (ch){
-    const was = ev ? pct(st.p) + (usesSev(d) && Math.abs(c.sev - st.sev) > 1e-9 ? ", " + num(st.sev) + " × as bad" : "") : num(st.low) + " · " + num(st.mid) + " · " + num(st.high);
+    const was = ev ? pct(st.p) + (usesSev(d) && Math.abs(c.sev - st.sev) > 1e-9 ? ", " + num(st.sev) + (isUp(d) ? " × as big" : " × as bad") : "") : num(st.low) + " · " + num(st.mid) + " · " + num(st.high);
     bits.push(h("span", {}, "Started at ", h("b", {text: was}), " ", h("button", {type: "button", onclick: () => { cur[id] = Object.assign({}, st); sync(id, {force: true}); updateBar(); request(); }, text: "Reset"})));
   }
   const rs = RES.refKind === "nosit" && RES.cur && RES.cur.n ? RES.cur.drivers[id] : null;
@@ -1024,7 +1034,8 @@ function render(){
     dl.textContent = (dv === 0 ? "In line with " : pts(dv / 100) + (dv > 0 ? " above " : " below ")) + refName() + " (" + Math.round(ref.built.mean * 100) + "%)." + (r.n < r.asked ? " Based on the " + r.n.toLocaleString("en-US") + " futures found that match." : "");
   }
   dl.hidden = !ref;
-  $("#t-mid").textContent = pct(b.p50); $("#t-low").textContent = pct(b.p10);
+  $("#t-mid").textContent = pct(b.p50); $("#t-low").textContent = pct(b.p10); $("#t-high").textContent = pct(b.p90);
+  $("#t-beat").textContent = pct(r.beat);
   $("#t-below").textContent = pct(r.below[$("#t-thr").value]);
   $("#t-tight").textContent = Math.round(r.tight.p50 * 100) + "%";
   $("#hero-adj").hidden = !adj;
@@ -1042,11 +1053,15 @@ let histState = null;
 function renderHist(r, ref){
   const svg = $("#hist"), W = 400, H = 176, L = 2, R = 2, T = 24, B = 34, pw = W - L - R, ph = H - T - B, y0 = T + ph;
   const lowq = Math.min(r.built.p05, ref ? ref.built.p05 : 1);
-  const lo = lowq >= 0.63 ? 60 : lowq >= 0.43 ? 40 : lowq >= 0.23 ? 20 : 0, step = lo >= 40 ? 2 : lo === 20 ? 4 : 5, nb = (100 - lo) / step, slot = pw / nb;
-  const agg = hh => { const o = new Array(nb).fill(0); for (let i = 0; i < 100; i++) o[clamp(Math.floor((i - lo) / step), 0, nb - 1)] += hh[i]; return o; };
+  const lo = lowq >= 0.63 ? 60 : lowq >= 0.43 ? 40 : lowq >= 0.23 ? 20 : 0, step = lo >= 40 ? 2 : lo === 20 ? 4 : 5;
+  // the right edge: the plan, or as far past it as more than 1 future in 2,000 goes (at most 120%)
+  let topI = 99;
+  for (const hh of [r.hist, ref ? ref.hist : null]) if (hh) for (let i = hh.length - 1; i > 99; i--) if (hh[i] > 0.0005){ topI = Math.max(topI, i); break; }
+  const hi = Math.min(120, lo + Math.ceil((topI + 1 - lo) / step) * step), nb = (hi - lo) / step, slot = pw / nb;
+  const agg = hh => { const o = new Array(nb).fill(0); for (let i = 0; i < hh.length; i++) o[clamp(Math.floor((i - lo) / step), 0, nb - 1)] += hh[i]; return o; };
   const a = agg(r.hist), c = ref ? agg(ref.hist) : null, top = Math.max(...a, ...(c || [0]));
   const ymax = [0.04, 0.06, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.8, 1].find(v => v >= top) || 1;
-  const y = v => y0 - v / ymax * ph, xv = v => L + (clamp(v * 100, lo, 100) - lo) / (100 - lo) * pw;
+  const y = v => y0 - v / ymax * ph, xv = v => L + (clamp(v * 100, lo, hi) - lo) / (hi - lo) * pw;
   const kids = [];
   for (const g of [ymax / 2, ymax]) kids.push(s("line", {class: "gl", x1: L, x2: W - R, y1: y(g), y2: y(g)}), s("text", {x: L + 2, y: y(g) - 3}, pct(g) + (g === ymax ? " of futures" : "")));
   a.forEach((v, i) => {
@@ -1060,15 +1075,19 @@ function renderHist(r, ref){
     kids.push(s("path", {class: "ref", d: dd}));
   }
   kids.push(s("line", {class: "ax", x1: L, x2: W - R, y1: y0 + 0.5, y2: y0 + 0.5}));
-  for (let t = lo; t <= 100; t += 20) kids.push(s("text", {x: L + (t - lo) / (100 - lo) * pw, y: y0 + 14, "text-anchor": t === lo ? "start" : t === 100 ? "end" : "middle"}, t + "%" + (t === lo && lo > 0 ? " or less" : "")));
+  if (hi > 100) kids.push(s("line", {class: "plan", x1: xv(1), x2: xv(1), y1: T - 4, y2: y0}));
+  const ticks = []; for (let t = lo; t <= 100; t += 20) ticks.push(t);
+  if (hi - 100 >= 8) ticks.push(hi);
+  for (const t of ticks) kids.push(s("text", {x: L + (t - lo) / (hi - lo) * pw, y: y0 + 14, "text-anchor": t === lo ? "start" : t === hi ? "end" : "middle"}, t + "%" + (t === lo && lo > 0 ? " or less" : "")));
   kids.push(s("text", {x: W / 2, y: H - 3, "text-anchor": "middle"}, "capacity built, share of plan"));
   const mx = xv(r.built.mean), right = mx > W - 96;
   kids.push(s("line", {class: "med", x1: mx, x2: mx, y1: T - 12, y2: y0}), s("text", {class: "lab", x: mx + (right ? -5 : 5), y: T - 4, "text-anchor": right ? "end" : "start"}, "average " + Math.round(r.built.mean * 100) + "%"));
   for (let i = 0; i < nb; i++) kids.push(s("rect", {class: "hit", "data-i": i, x: L + i * slot, y: T - 12, width: slot, height: ph + 12}));
   svg.replaceChildren(...kids);
   svg.setAttribute("aria-label", "Spread of capacity built across " + r.n.toLocaleString("en-US") + " futures. On average " + Math.round(r.built.mean * 100) + "% of plan; half of the futures at or above " + pct(r.built.p50) + "; 1 time in 10 at or below " + pct(r.built.p10) + ". Use the left and right arrow keys to read each bar.");
-  histState = {a, c, lo, step, nb, slot, L, y0, at: null};
-  $("#hist-cap").textContent = lo > 0 && a[0] > 0 ? "The first bar holds every future that ends below " + (lo + step) + "%." : "";
+  histState = {a, c, lo, hi, step, nb, slot, L, y0, at: null};
+  $("#hist-cap").textContent = [lo > 0 && a[0] > 0 ? "The first bar holds every future that ends below " + (lo + step) + "%." : "",
+    hi > 100 ? "The dashed line is the plan: " + pct(r.beat) + " of futures end to its right." : ""].filter(Boolean).join(" ");
   $("#hist-lg").replaceChildren(...(ref ? [h("span", {class: "lg"}, h("span", {class: "sw"}), sitLabel()), h("span", {class: "lg"}, h("span", {class: "sw line"}), refShort())] : []));
   // the same in numbers
   const rowsQ = [["p05", "5%"], ["p10", "10%"], ["p25", "25%"], ["p50", "50% (a typical future)"], ["p75", "75%"], ["p90", "90%"], ["p95", "95%"]];
@@ -1080,7 +1099,7 @@ function renderHist(r, ref){
 const sitLabel = () => RES.refKind === "nosit" ? "In this situation" : "Your numbers";
 function histTip(i){
   const st = histState, a0 = st.lo + i * st.step, a1 = a0 + st.step;
-  const title = i === 0 && st.lo > 0 ? "Under " + a1 + "% of plan" : a0 + "% to " + a1 + "% of plan";
+  const title = i === 0 && st.lo > 0 ? "Under " + a1 + "% of plan" : i === st.nb - 1 && st.hi >= 120 ? "At least " + a0 + "% of plan" : a0 + "% to " + a1 + "% of plan";
   return [h("div", {class: "tt", text: title}), tipRow("", st.c ? sitLabel() : "Share of futures", pct(st.a[i])), st.c ? tipRow("ref", refShort(), pct(st.c[i])) : null].filter(Boolean);
 }
 function histFocus(i, x, y){
@@ -1109,7 +1128,7 @@ function histFocus(i, x, y){
 })();
 
 function limitName(id, long){
-  if (id === "ok") return "Nothing: the whole plan gets built";
+  if (id === "ok") return "The plan itself: no link has room to do more";
   if (id === "demand") return "Demand: buyers want less than can be built";
   const n = DATA.linkNames[id]; return n ? (long ? n[1] : n[0]) : id;
 }
@@ -1128,13 +1147,15 @@ function renderLimits(r, ref){
   const ids = Object.keys(m).sort((a, b) => m[b].share - m[a].share), shown = ids.slice(0, 7), rest = ids.slice(7);
   const scale = Math.max(0.3, ...shown.map(id => m[id].share), ...(mr ? shown.map(id => (mr[id] || {share: 0}).share) : [0]));
   const rows = shown.map(id => {
-    const x = m[id], movers = (MOVERS[id] || []).map(k => BY[k].label), sub = movers.length ? "moved by " + movers.slice(0, 2).join(", ") + (movers.length > 2 ? " and " + (movers.length - 2) + " more" : "") : null;
+    const x = m[id], movers = (MOVERS[id] || []).map(k => BY[k].label), room = (MODEL.room || {})[id];
+    const sub = movers.length ? "moved by " + movers.slice(0, 2).join(", ") + (movers.length > 2 ? " and " + (movers.length - 2) + " more" : "")
+      : room ? "no number moves it: spare capacity fixed at " + Math.round((room - 1) * 100) + "%" : null;
     const el = h(MOVERS[id] ? "button" : "div", Object.assign({class: "row"}, MOVERS[id] ? {type: "button", onclick: () => jumpTo(MOVERS[id][0])} : {tabindex: "0"}),
       h("span", {class: "nm"}, limitName(id), sub ? h("small", {text: sub}) : null),
       h("span", {class: "trk"}, h("i", {style: "width:" + (x.share / scale * 100) + "%"}), mr ? h("u", {style: "left:" + ((mr[id] || {share: 0}).share / scale * 100) + "%"}) : null),
       h("span", {class: "val", text: pct(x.share)}));
     return withTip(el, () => [h("div", {class: "tt", text: limitName(id, true)}), tipRow("", sitLabel(), pct(x.share) + " of futures"), mr ? tipRow("ref", refShort(), pct((mr[id] || {share: 0}).share)) : null,
-      h("p", {text: id === "ok" ? "Nothing in the chain falls short and buyers want at least the plan." : "When this is the limit, " + pct(x.avg) + " of the plan gets built on average." + (MOVERS[id] ? " Click to go to the number that moves it." : "")})].filter(Boolean));
+      h("p", {text: id === "ok" ? "Every link delivers its plan, none has room to do more, and buyers want at least the plan." : "When this is the limit, " + pct(x.avg) + " of the plan gets built on average." + (MOVERS[id] ? " Click to go to the number that moves it." : "")})].filter(Boolean));
   });
   if (rest.length){
     const sh = rest.reduce((t, id) => t + m[id].share, 0);
@@ -1160,12 +1181,12 @@ function renderMatters(r){
   }));
 }
 function renderOutputs(r){
-  const lo = 0.4, fr = v => (clamp(v, lo, 1) - lo) / (1 - lo) * 100;
-  const rows = [h("div", {class: "orow hd"}, h("span", {text: "Stage"}), h("span", {text: "40% to 100% of plan"}), h("span", {class: "r", text: "Central"}), h("span", {class: "r", text: "Low"}))];
+  const lo = 0.4, hi = 1.2, fr = v => (clamp(v, lo, hi) - lo) / (hi - lo) * 100;
+  const rows = [h("div", {class: "orow hd"}, h("span", {text: "Stage"}), h("span", {text: "40% to 120% of plan"}), h("span", {class: "r", text: "Central"}), h("span", {class: "r", text: "Low"}))];
   for (const o of MODEL.graph.outputs){
     const q = r.outputs[o.id];
     rows.push(withTip(h("div", {class: "orow", tabindex: "0"}, h("span", {text: o.label}),
-      h("span", {class: "oplot"}, h("i", {style: "left:" + fr(q.p10) + "%;width:" + Math.max(0.5, fr(q.p90) - fr(q.p10)) + "%"}), h("b", {style: "left:" + fr(q.p50) + "%"})),
+      h("span", {class: "oplot"}, h("u", {style: "left:" + fr(1) + "%"}), h("i", {style: "left:" + fr(q.p10) + "%;width:" + Math.max(0.5, fr(q.p90) - fr(q.p10)) + "%"}), h("b", {style: "left:" + fr(q.p50) + "%"})),
       h("span", {class: "r", text: pct(q.p50)}), h("span", {class: "r", text: pct(q.p10)})),
       () => [h("div", {class: "tt", text: o.label}), tipRow("", "Central", pct(q.p50)), h("div", {class: "tr"}, h("span", {text: "1 time in 10 at or below:"}), h("b", {text: pct(q.p10)})), h("div", {class: "tr"}, h("span", {text: "1 time in 10 at or above:"}), h("b", {text: pct(q.p90)}))]));
   }
