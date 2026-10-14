@@ -159,6 +159,24 @@ button.row:hover{background:var(--wash)}
 .row .trk u{position:absolute;top:-3px;bottom:-3px;width:2px;margin-left:-1px;background:var(--ink-2);box-shadow:0 0 0 2px var(--surface)}
 .row .val{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
 .row.other .nm{font-weight:400;color:var(--ink-2)}
+/* the best and worst futures: one column each, a row per number that differs most from all futures */
+.bw-top{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:6px 18px;margin:-4px 0 12px}
+.bw-cols{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;align-items:start}
+.bw-col{padding:16px 18px}
+.bw-h{display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 10px;margin-bottom:4px}
+.bw-h b{font-size:var(--fs-lg);font-weight:600}
+.bw-h span{font-size:var(--fs-sm);color:var(--ink-2)}
+.bw-lim{font-size:var(--fs-sm);color:var(--ink-2);margin:0 0 12px;max-width:62ch}
+.row.bwr{grid-template-columns:minmax(0,1.5fr) minmax(90px,1fr)}
+.db{position:relative;height:14px}
+.db::before{content:"";position:absolute;left:0;right:0;top:50%;height:1px;background:var(--grid)}
+.db i{position:absolute;top:50%;height:2px;margin-top:-1px;background:color-mix(in srgb,var(--series) 45%,var(--line))}
+.db b,.db u{position:absolute;top:50%;width:10px;height:10px;margin:-5px 0 0 -5px;border-radius:50%}
+.db b{background:var(--series);box-shadow:0 0 0 2px var(--surface)}
+.db u{background:var(--surface);border:2px solid var(--ink-2)}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--series);display:inline-block;flex:none}
+.dot.all{background:var(--surface);border:2px solid var(--ink-2);box-sizing:border-box}
+@media (max-width:860px){ .bw-cols{grid-template-columns:minmax(0,1fr)} }
 .orow{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr) 40px 40px;gap:10px;align-items:center;font-size:var(--fs-sm);padding:2px 0}
 .orow.hd{font-size:var(--fs-xs);color:var(--muted)}
 .orow .r{text-align:right;font-variant-numeric:tabular-nums}
@@ -461,6 +479,18 @@ footer{padding-block:48px 72px;font-size:var(--fs-xs);color:var(--muted)}
   <p class="sr" id="live" aria-live="polite"></p>
 </section>
 
+<section id="bw" aria-labelledby="bw-h">
+  <div class="sec-head">
+    <h2 id="bw-h">What the best and worst futures have in common</h2>
+    <p>The best 1 in 10 futures and the worst 1 in 10, set against all of them. The numbers that differ most come first; click one to go to it.</p>
+  </div>
+  <div class="bw-top"><span class="cap" id="bw-sit" hidden></span><div class="legend"><span class="lg"><span class="dot"></span>these futures</span><span class="lg"><span class="dot all"></span>all futures</span></div></div>
+  <div class="bw-cols">
+    <div class="card bw-col" id="bw-best"></div>
+    <div class="card bw-col" id="bw-worst"></div>
+  </div>
+</section>
+
 <section id="links" aria-labelledby="links-h">
   <div class="sec-head">
     <h2 id="links-h">What moves together</h2>
@@ -641,6 +671,11 @@ function compute(a){
   out.hist = O.histogram(R.out.built, 0, 1.2, 120).map(c => c / R.n);
   out.outputs = {}; for (const o of MODEL.graph.outputs) out.outputs[o.id] = q(R.out[o.id]);
   out.limits = O.bindingTable(R);
+  // the best and worst 1 in 10 futures: what they have in common, and what holds them back
+  const grp = cut => { const sub = O.subset(R, cut); return {n: sub.n, mean: sub.n ? O.mean(sub.out.built) : NaN,
+    profile: O.profile(sub, R).filter(x => Math.abs(x.score) >= 0.15).slice(0, 6), limits: O.bindingTable(sub).slice(0, 3)}; };
+  out.groups = {best: Object.assign(grp(r => R.out.built[r] >= out.built.p90), {cut: out.built.p90}),
+                worst: Object.assign(grp(r => R.out.built[r] <= out.built.p10), {cut: out.built.p10})};
   out.matters = O.whatMatters(R, "built");
   out.drivers = {};
   for (const d of R.drivers){
@@ -1019,7 +1054,7 @@ function render(){
   }
   const none = !r.n;
   $("#empty").hidden = !none;
-  for (const id of ["hero", "b-hist", "b-lim", "b-mat", "b-out"]) $("#" + id).hidden = none;
+  for (const id of ["hero", "b-hist", "b-lim", "b-mat", "b-out", "bw"]) $("#" + id).hidden = none;
   if (none){
     $("#empty-t").replaceChildren(h("b", {text: r.tried ? "This situation is too rare to show." : "This cannot happen with your numbers."}),
       r.tried ? "It did not come up once in " + r.tried.toLocaleString("en-US") + " tries. Raise the chances involved, or suppose fewer things at once." : "One of the things you are supposing has a chance of zero, or of 100% when you suppose it does not happen.");
@@ -1041,7 +1076,7 @@ function render(){
   $("#hero-adj").hidden = !adj;
   const hs = $("#hero-scale"); hs.hidden = SCALE === 1;
   if (SCALE !== 1) hs.replaceChildren("Using " + scaleSays() + ". ", h("a", {href: "#master", text: "Change"}));
-  renderHist(r, ref); renderLimits(r, ref); renderMatters(r); renderOutputs(r); renderMaster();
+  renderHist(r, ref); renderLimits(r, ref); renderMatters(r); renderOutputs(r); renderGroups(r); renderMaster();
   $("#mini-v").textContent = Math.round(b.mean * 100) + "% of plan";
   $("#mini-t").textContent = "average · 1-in-10 low " + pct(b.p10);
   $("#live").textContent = "On average " + Math.round(b.mean * 100) + "% of plan gets built. One time in ten, " + pct(b.p10) + " or less.";
@@ -1179,6 +1214,48 @@ function renderMatters(r){
     return withTip(el, () => [h("div", {class: "tt", text: d.label}), tipRow("", "Share of the uncertainty", pct(x.share)), h("div", {class: "tr"}, h("span", {text: "Swing:"}), h("b", {text: swt})),
       h("p", {text: "Shares overlap when numbers are linked, so they can add up to more than 100%. Click to go to this number."})]);
   }));
+}
+/** What the best and worst 1 in 10 futures have in common: for each, the numbers that differ most from all
+    futures (engine profile), each as a sentence and a dot pair (all futures, these futures), and what most often
+    holds them back. */
+function bwValue(d, v){ return d.kind === "event" ? pct(v) : Math.round(v) + unitOf(d); }
+function bwSay(d, x){
+  if (d.kind === "event") return "happens in " + pct(x.picked) + " of these futures, " + pct(x.all) + " of all";
+  return bwValue(d, x.picked).trim() + " here, " + bwValue(d, x.all).trim() + " in all";
+}
+function renderGroups(r){
+  const g = r.groups; if (!g) return;
+  $("#bw-sit").hidden = !anyGiven();
+  $("#bw-sit").textContent = anyGiven() ? "Within the situation you are supposing." : "";
+  const lim = list => {
+    const xs = list.map(x => (x.id === "demand" ? "too little demand" : x.id === "none" || x.id === "plan" ? "the plan itself" : limitName(x.id)) + " (" + pct(x.share) + ")");
+    return xs.length > 1 ? xs.slice(0, -1).join(", ") + " and " + xs[xs.length - 1] : xs[0] || "";
+  };
+  const col = (key, el, title, edge) => {
+    const x = g[key];
+    if (!x || !x.n){ el.replaceChildren(h("p", {class: "cap", text: "Too few futures to say."})); return; }
+    const rows = x.profile.map(pr => {
+      const d = BY[pr.id], cur0 = cur[pr.id] || {};
+      let lo, hi;
+      if (d.kind === "event"){ lo = 0; hi = 1; }
+      else {
+        const a = Math.min(cur0.low != null ? cur0.low : d.low, pr.picked, pr.all), b = Math.max(cur0.high != null ? cur0.high : d.high, pr.picked, pr.all), pad = (b - a) * 0.08 || 1;
+        lo = a - pad; hi = b + pad;
+      }
+      const fx = v => clamp((v - lo) / (hi - lo) * 100, 0, 100), xa = fx(pr.all), xp = fx(pr.picked);
+      const el2 = h("button", {type: "button", class: "row bwr", "data-id": pr.id, "aria-label": d.label + ": " + bwSay(d, pr) + ". Go to this number.", onclick: () => jumpTo(pr.id)},
+        h("span", {class: "nm"}, d.label, h("small", {text: bwSay(d, pr)})),
+        h("span", {class: "db", "aria-hidden": "true"}, h("i", {style: "left:" + Math.min(xa, xp) + "%;width:" + Math.abs(xp - xa) + "%"}), h("u", {style: "left:" + xa + "%"}), h("b", {style: "left:" + xp + "%"})));
+      return withTip(el2, () => [h("div", {class: "tt", text: d.label}), tipRow("", "These futures", bwValue(d, pr.picked).trim()), tipRow("ref", "All futures", bwValue(d, pr.all).trim()),
+        h("p", {text: (d.kind === "event" ? "How often it happens" : "Its average") + " in the " + title.toLowerCase() + ", against all futures. Click to go to this number."})]);
+    });
+    el.replaceChildren(
+      h("div", {class: "bw-h"}, h("span", {class: "k", text: title}), h("b", {text: edge + " " + pct(x.cut) + " of plan"}), h("span", {text: pct(x.mean) + " on average"})),
+      h("p", {class: "bw-lim", text: x.limits.length ? "Most often held back by " + lim(x.limits) + "." : ""}),
+      rows.length ? h("div", {class: "rows"}, ...rows) : h("p", {class: "cap", text: "Nothing stands out: these futures look like all the others."}));
+  };
+  col("best", $("#bw-best"), "Best 1 in 10", "at least");
+  col("worst", $("#bw-worst"), "Worst 1 in 10", "at most");
 }
 function renderOutputs(r){
   const lo = 0.4, hi = 1.2, fr = v => (clamp(v, lo, hi) - lo) / (hi - lo) * 100;

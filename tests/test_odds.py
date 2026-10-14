@@ -157,6 +157,28 @@ def run_checks(browser):
     page.click('#mat-seg [data-m="share"]')
     check("down the chain: six stages with a central and a low value", page.locator("#outs .orow").count() == 7 and re.fullmatch(r"\d+(\.\d)?%", page.locator("#outs .orow").nth(1).locator(".r").first.inner_text()) is not None)
     check("down the chain: runs from 40% to 120% with the plan marked on each stage", "40% to 120% of plan" in page.inner_text("#outs .orow.hd") and page.locator("#outs .oplot u").count() == 6)
+    # 3b. what the best and worst futures have in common
+    g = base["groups"]
+    for key, sel, edge in (("best", "#bw-best", "at least"), ("worst", "#bw-worst", "at most")):
+        head = page.inner_text(sel + " .bw-h")
+        rows_ = page.locator(sel + " .row.bwr")
+        ids = [rows_.nth(i).get_attribute("data-id") for i in range(rows_.count())]
+        check(f"best and worst: the {key} 1 in 10, cut and average from the engine, rows in the engine's order",
+              (edge + " " + page.evaluate("pct(%r)" % g[key]["cut"]) + " of plan") in head and (page.evaluate("pct(%r)" % g[key]["mean"]) + " on average") in head
+              and ids == [x["id"] for x in g[key]["profile"]] and 3 <= len(ids) <= 6 and abs(g[key]["n"] - 1000) <= 30, (head, ids, [x["id"] for x in g[key]["profile"]]))
+        lim_ = page.inner_text(sel + " .bw-lim")
+        check(f"best and worst: the {key} futures say what most often holds them back", lim_.startswith("Most often held back by ") and page.evaluate("pct(%r)" % g[key]["limits"][0]["share"]) in lim_, lim_)
+    check("best and worst: the best futures beat the worst, and the worst include the Taiwan blockade far more often than all futures",
+          g["best"]["mean"] > g["worst"]["mean"] + 0.2 and any(x["id"] == "tw_blockade" and x["picked"] > 3 * x["all"] for x in g["worst"]["profile"]), [x["id"] for x in g["worst"]["profile"]])
+    tw_row = page.locator('#bw-worst .row.bwr[data-id="tw_blockade"]')
+    check("best and worst: an event reads as how often it happens here and in all futures", "happens in " in tw_row.inner_text() and " of these futures, " in tw_row.inner_text() and tw_row.locator(".db b").count() == 1 and tw_row.locator(".db u").count() == 1, tw_row.inner_text())
+    page.evaluate("document.querySelector('#bw').scrollIntoView({block: 'center'})")
+    tw_row.hover()
+    tip = page.inner_text("#tip") if page.is_visible("#tip") else ""
+    check("best and worst: hovering a row gives both numbers", "These futures:" in tip and "All futures:" in tip, tip)
+    page.mouse.move(5, 5)
+    tw_row.click(); page.wait_for_timeout(700)
+    check("best and worst: clicking a row goes to that number", page.evaluate("document.activeElement === document.querySelector('#d-tw_blockade .nf')") and "flash" in (page.get_attribute("#d-tw_blockade", "class") or ""))
     clean_text(page, "start")
     shot(page, "odds_desktop.png")
 
@@ -265,7 +287,7 @@ def run_checks(browser):
     page.click("#situ-clear"); settle(page)
     typed(page, '#d-euv_halt [data-f="p"]', 0)
     page.click('#d-euv_halt [data-sup="true"]'); settle(page)
-    check("suppose: something with no chance is called impossible, not shown as numbers", page.is_visible("#empty") and "cannot happen" in page.inner_text("#empty") and page.is_hidden("#hero") and page.is_hidden("#b-hist") and not errors, page.inner_text("#empty") if page.is_visible("#empty") else errors[:2])
+    check("suppose: something with no chance is called impossible, not shown as numbers", page.is_visible("#empty") and "cannot happen" in page.inner_text("#empty") and page.is_hidden("#hero") and page.is_hidden("#b-hist") and page.is_hidden("#bw") and not errors, page.inner_text("#empty") if page.is_visible("#empty") else errors[:2])
     page.click("#reset-all"); settle(page)
     check("reset all: also drops what was supposed", hero(page) == h0 and page.is_hidden("#situ") and page.is_visible("#hero"))
 
