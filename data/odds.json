@@ -2,7 +2,7 @@
   "version": 1,
   "asOf": "2026-10-14",
   "status": "provisional",
-  "statusNote": "Geopolitics and trade rules (8 Oct 2026) and chip supply (14 Oct 2026) were researched, with sources in each row's About panel. Power, demand and money, and the spare capacity of each link are still first estimates: facts already on this site plus judgement. Change any of them to match your own view.",
+  "statusNote": "Geopolitics and trade rules (8 Oct 2026), chip supply and power (14 Oct 2026) were researched, with sources in each row's About panel. Demand and money, and the spare capacity of each link are still first estimates: facts already on this site plus judgement. Change any of them to match your own view.",
   "period": {"label": "Calendar 2027", "from": "2027-01-01", "months": 12},
   "supplyOutput": "campus",
   "plan": "100 is the AI data-center capacity that today's plans would add in 2027: what buyers have budgeted and suppliers have scheduled, with the shortages already known. Each supply number is the share of that plan one link delivers. A link can beat the plan by as much as its range says or, if no range moves it, by its spare capacity (see room). Buyers want more than the plan (see Unmet demand), so a fall in orders only cuts what gets built once it is bigger than that cushion. More than the plan gets built only when every link on the way beats it too.",
@@ -359,9 +359,15 @@
       "say": {"if": "gas turbines hit their high case", "subj": "gas turbines", "pl": true},
       "question": "What share of the gas turbines that 2027 plans count on will be delivered?",
       "watch": "Deliveries and backlog at GE Vernova, Siemens Energy and Mitsubishi Heavy.",
-      "unit": "% of plan", "low": 93, "mid": 100, "high": 104, "min": 30, "max": 120, "basis": "judgement",
-      "note": "Makers can build about 60 to 70 GW a year against about 110 GW of orders, and slots are sold into 2030-31. Units for 2027 are already scheduled, so the risk is factory slips, not allocation.",
+      "unit": "% of plan", "low": 94, "mid": 100, "high": 104, "min": 30, "max": 120, "basis": "researched",
+      "note": "Wood Mackenzie puts the world's factory output at 60 to 70 GW a year against about 110 GW of orders. GE Vernova alone had 116 GW of orders and reserved slots in June 2026 (53 GW firm) against about 20 GW a year of output, rising to 24 GW in 2028, and is now selling 2031 slots; Siemens Energy has 69 GW on order and Mitsubishi Heavy 35 GW. The turbines that 2027 projects count on were ordered in 2023-24 and are scheduled, and no reports of late deliveries turned up, so the risk is factory slips, not allocation. Little can come early: engine makers such as Caterpillar and Wärtsilä are sold out into 2028.",
       "does": "Below 100, gas-fired power on the grid and on site is short. Other sources cover part of the gap.",
+      "checked": "2026-10-14",
+      "src": [
+        {"t": "Utility Dive: GE Vernova gas turbine backlog climbs to 116 GW (23 Jul 2026)", "u": "https://www.utilitydive.com/news/ge-vernova-gas-turbine-backlog-climbs-to-116-gw/826039/"},
+        {"t": "OilPrice: The gas turbine shortage just became AI's biggest constraint (22 Aug 2026)", "u": "https://oilprice.com/Energy/Energy-General/The-Gas-Turbine-Shortage-Just-Became-AIs-Biggest-Constraint.html"},
+        {"t": "Second Watt: Gas turbine maker backlogs in 2026 (27 Sep 2026)", "u": "https://secondwatt.com/resources/turbine-oem-backlog-2026-lead-times-pricing"}
+      ],
       "effects": [{"t": "ramp", "node": "turbines"}]
     },
     {
@@ -369,9 +375,16 @@
       "say": {"if": "large transformers hit their high case", "subj": "large transformers", "pl": true},
       "question": "What share of the large transformers that 2027 plans count on will be delivered?",
       "watch": "Lead-time surveys and deliveries at Hitachi Energy, Siemens Energy and HD Hyundai Electric.",
-      "unit": "% of plan", "low": 91, "mid": 100, "high": 105, "min": 30, "max": 120, "basis": "judgement",
-      "note": "Lead times run up to four years and prices are up about 80%. The Chain calls this the slowest item to order for any new campus.",
+      "unit": "% of plan", "low": 90, "mid": 99, "high": 104, "min": 30, "max": 120, "basis": "researched",
+      "note": "Wood Mackenzie estimates US power transformers are 15% short in 2026 (substations 8%), worst for the biggest units. Lead times average about 128 weeks (144 for the step-up units at power plants) and reach four years for the largest, and producer prices are up 83% since 2020. Imports supplied about 71% of US large transformers in 2023. A US order of 26 Aug 2026 (EO 14420) lets the Department of Energy block new purchases tied to China and other countries of concern. It bans nothing until its rules, due about 24 Dec 2026, and covers purchases made after it was signed, so units already on order for 2027 are mostly outside it, but Wood Mackenzie expects it to deepen the shortage. New US plants such as Hitachi Energy's in Virginia start in 2028, too late for 2027.",
       "does": "Below 100, grid connections are short by that share.",
+      "checked": "2026-10-14",
+      "src": [
+        {"t": "Wood Mackenzie: US executive order banning Chinese bulk-power equipment set to worsen critical transformer shortage (31 Aug 2026)", "u": "https://www.woodmac.com/press-releases/us-executive-order-banning-chinese-bulk-power-equipment-set-to-worsen-critical-transformer-shortage/"},
+        {"t": "MGRID: Trump's grid equipment order names inverters, batteries and transformers but bans nothing yet (26 Aug 2026)", "u": "https://mgrid.org/2026/08/26/trumps-grid-equipment-order-names-inverters-batteries-and-transformers-but-bans-nothing-yet/"},
+        {"t": "Potencia Partners: EO 14420 and the US transformer supply chain (9 Sep 2026)", "u": "https://potenciapartners.com/pages/eo-14420-transformer-supply-chain"},
+        {"t": "Industrial Sage: Power transformer lead times hit 128 weeks (6 May 2026)", "u": "https://www.industrialsage.com/power-transformer-lead-times-us-grid-shortage/"}
+      ],
       "effects": [{"t": "ramp", "node": "transformers"}]
     },
     {
@@ -379,9 +392,17 @@
       "say": {"if": "grid connections hit their high case", "subj": "grid connections", "pl": true},
       "question": "What share of the grid connections that 2027 plans count on will utilities deliver in time?",
       "watch": "Interconnection data from PJM, ERCOT and other grid operators, and campus energisation dates.",
-      "unit": "% of plan", "low": 89, "mid": 99, "high": 104, "min": 30, "max": 120, "basis": "judgement",
-      "note": "PJM's July 2026 capacity auction missed its supply target. Queues decide where campuses can go, and connection dates slip more often than they are beaten.",
+      "unit": "% of plan", "low": 86, "mid": 97, "high": 103, "min": 30, "max": 120, "basis": "researched",
+      "note": "Texas paused new data-center connections in August 2026 while the state audits about 300 projects. ERCOT aims to report by 10 Dec, the study of the first batch of large loads will miss its April 2027 date, and even the 17 furthest along (6.6 GW) still await approval to switch on. PJM's last two capacity auctions fell short, its backstop purchase of new supply is on hold after FERC asked for changes, and on 9 Oct FERC rejected its plan to connect new large loads that agree to be cut first. Goldman expects only 50 to 60% of the US data-center capacity scheduled for the next two years to arrive on time. Connection dates slip more often than they are beaten.",
       "does": "Below 100, the grid-fed part of new campuses (about two thirds of their power) is short by that share.",
+      "checked": "2026-10-14",
+      "src": [
+        {"t": "Utility Dive: Facing an estimated 474 GW of interconnection requests, Texas hits pause on data centers (5 Aug 2026)", "u": "https://www.utilitydive.com/news/texas-hits-pause-data-center-interconnections/827046/"},
+        {"t": "Utility Dive: ERCOT aims to complete Texas governor's data center audit by December (Aug 2026)", "u": "https://www.utilitydive.com/news/ercot-texas-puc-data-center-audit/828472/"},
+        {"t": "Utility Dive: DOE presses PJM on ratepayer protections from large load costs (8 Oct 2026)", "u": "https://www.utilitydive.com/news/doe-pjm-ferc-ratepayer-protection-large-load-data-center/832479/"},
+        {"t": "Utility Dive: FERC rejects most of PJM's large load interconnection plan (12 Oct 2026)", "u": "https://www.utilitydive.com/news/ferc-pjm-large-load-interconnection-iras-byonc/832716/"},
+        {"t": "OilPrice: The gas turbine shortage just became AI's biggest constraint, citing Goldman Sachs (22 Aug 2026)", "u": "https://oilprice.com/Energy/Energy-General/The-Gas-Turbine-Shortage-Just-Became-AIs-Biggest-Constraint.html"}
+      ],
       "effects": [{"t": "ramp", "node": "grid"}]
     },
     {
@@ -389,21 +410,37 @@
       "say": {"if": "the Three Mile Island restart delivers", "of": "that the Three Mile Island restart delivers"},
       "question": "Will the Crane Clean Energy Center (the 835 MW Three Mile Island restart for Microsoft) be delivering power by 31 Dec 2027?",
       "resolves": "Constellation statements or the reactor's NRC operating status.",
-      "deadline": "2027-12-31", "p": 0.5, "sev": 1, "side": "up", "basis": "judgement",
-      "note": "The restart is under way (The Money). It is small against the gigawatts needed in 2027 and matters more as a signal for 2028 to 2030.",
-      "does": "From the day it delivers, power for data centers rises 2%: one campus's worth against the gigawatts 2027 needs.",
+      "starts": "2027-07-01", "deadline": "2027-12-31", "p": 0.45, "sev": 1, "side": "up", "basis": "researched",
+      "note": "Constellation targets the second half of 2027. The NRC's draft environmental review found no significant impact (June 2026), the change for new fuel is approved and fuel arrives late in 2026; the NRC aims to decide on restoring the operating licence around May 2027. FERC let Crane take over a closing plant's grid rights, clearing many of the upgrades that PJM had said could run into the 2030s. The target sits close to the deadline, and Palisades, the first US restart, cleared by the NRC in mid-2025, is still not running: its fuel loading stopped when a fuel assembly tipped on 30 Aug 2026. The plant is small against the gigawatts 2027 needs and matters more as a signal for 2028 to 2030.",
+      "does": "From the day it delivers, power for data centers rises 2%: one campus's worth against the gigawatts 2027 needs. It would come late in the year, so 2027 gains little.",
+      "checked": "2026-10-14",
+      "src": [
+        {"t": "E&E News: Three Mile Island restart closes in on NRC approval (9 Jun 2026)", "u": "https://www.eenews.net/articles/three-mile-island-restart-closes-in-on-nrc-approval/"},
+        {"t": "CBS 21: Crane Clean Energy Center still on track for the third or fourth quarter of 2027 (28 Jul 2026)", "u": "https://local21news.com/news/local/nrc-fema-talk-environmental-impact-as-crane-clean-energy-center-set-to-open-in-2027"},
+        {"t": "Neutron Bytes: Inside Three Mile Island's quest to clear restart hurdles (11 Aug 2026)", "u": "https://neutronbytes.com/2026/08/11/inside-three-mile-islands-quest-to-clear-restart-hurdles/"},
+        {"t": "World Nuclear News: Constellation seeks regulator's help for 2027 plant restart (1 Apr 2026)", "u": "https://wnn.world-nuclear.org/articles/constellation-seeks-regulators-help-for-2027-plant-restart"},
+        {"t": "The National: Palisades restart on hold after a fuel assembly tipped (9 Oct 2026)", "u": "https://www.thenationalnews.com/future/technology/2026/10/09/palisades-nuclear-reactor-tipped-fuel-assembly/"}
+      ],
       "effects": [{"t": "lift", "node": "grid", "f": 1.02, "timing": "window"}]
     },
 
     {
-      "id": "power_fast", "group": "power", "story": "power", "kind": "event", "label": "Power arrives faster than scheduled",
-      "say": {"if": "power arrives faster than scheduled", "of": "that power arrives faster than scheduled"},
-      "question": "Will a faster route to power (fast-track rules for large loads, connections that cut use at peak times, or generation built on site) open for US data centers before 30 Jun 2027 and connect them sooner than utilities' current schedules?",
-      "resolves": "Grid operators' and utilities' reports on data-center connections in 2027.",
-      "deadline": "2027-06-30", "p": 0.35, "sev": 1, "side": "up", "basis": "judgement",
-      "note": "A first estimate, not yet researched. Utilities and grid operators are testing faster routes for data centers: connecting them if they agree to cut use at peak times, letting them bring their own generation, and studying requests in batches. Transformers still have to keep up.",
-      "does": "If yes, grid connections rise 6% above what they would otherwise be, from the day the faster route opens. The transformers they need still have to be there.",
-      "effects": [{"t": "lift", "node": "grid", "f": 1.06, "timing": "window"}]
+      "id": "power_fast", "group": "power", "story": "power", "kind": "event", "label": "Early grid connections in PJM or MISO",
+      "say": {"if": "early grid connections open in PJM or MISO", "of": "that early grid connections open in PJM or MISO"},
+      "question": "Will a service that lets data centers connect to the PJM or MISO grid before upgrades are finished, in return for being cut when the grid is strained, be approved by FERC and in effect before 30 Jun 2027?",
+      "resolves": "FERC orders and the PJM and MISO tariffs. MISO plans to file its version (FLITS) by 16 Nov 2026.",
+      "starts": "2027-01-01", "deadline": "2027-06-30", "p": 0.5, "sev": 1, "side": "up", "basis": "researched",
+      "note": "In June 2026 FERC approved SPP's service of this kind, which can be cut for up to seven years while upgrades are built; today's plans count on it. The same month FERC told all six grid operators to offer such service to large loads, or show why not, and to study requests in 60 to 90 days; MISO plans to file its version (FLITS) by 16 Nov 2026. In PJM, FERC has accepted such service for data centers beside power plants, but PJM proposed starting it only in June 2029, and on 9 Oct FERC rejected PJM's plan for other new large loads. About even: FERC is pushing hard, but contested filings often take longer than the eight months left.",
+      "does": "If yes, grid connections rise 4% above what they would otherwise be, from the day the service starts: campuses waiting only for grid upgrades can switch on sooner. The transformers and substations they need still have to be there.",
+      "checked": "2026-10-14",
+      "src": [
+        {"t": "White & Case: FERC orders grid operators to promptly revise or justify interconnection rules for data centers and large loads (25 Jun 2026)", "u": "https://www.whitecase.com/insight-alert/ferc-orders-grid-operators-promptly-revise-or-justify-interconnection-rules-data"},
+        {"t": "Utility Dive: FERC approves SPP non-firm, large-load transmission service (8 Jun 2026)", "u": "https://www.utilitydive.com/news/ferc-spp-chills-large-load-transmission-service/822211/"},
+        {"t": "Willkie: FERC greenlights PJM co-located load framework in part (2 Jul 2026)", "u": "https://www.willkie.com/publications/2026/07/ferc-greenlights-pjm-co-located-load-framework-in-part-calls-for-further-tariff-updates"},
+        {"t": "Zero Emission Grid: MISO large load interconnection and FLITS updates (24 Aug 2026)", "u": "https://www.zeroemissiongrid.com/iso-rto/miso-large-load-interconnection/"},
+        {"t": "Utility Dive: FERC rejects most of PJM's large load interconnection plan (12 Oct 2026)", "u": "https://www.utilitydive.com/news/ferc-pjm-large-load-interconnection-iras-byonc/832716/"}
+      ],
+      "effects": [{"t": "lift", "node": "grid", "f": 1.04, "timing": "window"}]
     },
 
     {
