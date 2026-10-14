@@ -2,7 +2,7 @@
   "version": 1,
   "asOf": "2026-10-14",
   "status": "provisional",
-  "statusNote": "Geopolitics and trade rules (8 Oct 2026), chip supply and power (14 Oct 2026) were researched, with sources in each row's About panel. Demand and money, and the spare capacity of each link are still first estimates: facts already on this site plus judgement. Change any of them to match your own view.",
+  "statusNote": "Every starting number was researched: geopolitics and trade rules on 8 Oct 2026; chip supply, power, and demand and money on 14 Oct 2026. Sources are in each row's About panel. The spare capacity of each link is still a first estimate: facts already on this site plus judgement. Change any number to match your own view.",
   "period": {"label": "Calendar 2027", "from": "2027-01-01", "months": 12},
   "supplyOutput": "campus",
   "plan": "100 is the AI data-center capacity that today's plans would add in 2027: what buyers have budgeted and suppliers have scheduled, with the shortages already known. Each supply number is the share of that plan one link delivers. A link can beat the plan by as much as its range says or, if no range moves it, by its spare capacity (see room). Buyers want more than the plan (see Unmet demand), so a fall in orders only cuts what gets built once it is bigger than that cushion. More than the plan gets built only when every link on the way beats it too.",
@@ -448,29 +448,55 @@
       "say": {"if": "unmet demand hits its high case", "subj": "unmet demand"},
       "question": "How much more AI capacity would buyers take in 2027 than today's plans deliver, if suppliers could build it?",
       "watch": "Cloud backlogs at Microsoft, Oracle and CoreWeave, GPU rental prices, Nvidia lead times, and statements such as AWS saying capacity stays short of demand through 2027.",
-      "unit": "% above plan", "low": 3, "mid": 15, "high": 30, "min": 0, "max": 60, "basis": "judgement",
-      "note": "Every critical link in The Chain is sold out and AWS says capacity stays short of demand through 2027, which points to a real cushion. Its size is a judgement, and sceptics argue that part of it is double ordering.",
+      "unit": "% above plan", "low": 5, "mid": 18, "high": 35, "min": 0, "max": 60, "basis": "researched",
+      "note": "Every big cloud says demand outruns supply. Amazon (30 Jul 2026) will not have enough capacity for all its demand in 2026 and expects the same in 2027, with a $496B AWS backlog. Microsoft said demand 'continued to exceed available capacity' as its cloud backlog rose to $678B, all of the gain from customers other than the leading US AI labs. Oracle's backlog reached $664B in September; in June it expected only 12% of its backlog to become revenue within a year. Nvidia's newest chips are scarce and rent at a premium, while older ones are easy to find. Sceptics point to double ordering and to OpenAI's revenue running about $20B below what investors had heard (FT, 8 Oct). The size of the cushion is still a judgement.",
       "does": "Lifts what all buyers want above the plan. A fall in orders only cuts what gets built once it is bigger than this cushion.",
+      "checked": "2026-10-14",
+      "src": [
+        {"t": "Fortune: Amazon raises 2026 capex to $220B as Jassy says AI demand outruns capacity into 2027 (30 Jul 2026)", "u": "https://fortune.com/2026/07/30/andy-jassy-amazon-capex-demand-aws-pga-tour/"},
+        {"t": "Reuters via The Star: Microsoft cloud forecast beats estimates as cash keeps flowing from AI (30 Jul 2026)", "u": "https://www.thestar.com.my/tech/tech-news/2026/07/30/microsoft-tops-quarterly-cloud-growth-estimates-easing-spending-concerns"},
+        {"t": "Crypto Briefing: Oracle reports Q1 FY27 earnings with $664B in remaining obligations (Sep 2026)", "u": "https://cryptobriefing.com/oracle-q1-fy27-earnings-revenue-rpo/"},
+        {"t": "Outlook Business: Oracle forecasts $95B in capex for FY27, plans to raise $40B in debt and equity (11 Jun 2026)", "u": "https://www.outlookbusiness.com/corporate/oracle-forecasts-95-bn-in-capex-for-fy27-plans-to-raise-40-bn-in-debt-and-equity"},
+        {"t": "Thunder Compute: AI GPU rental market trends (1 Oct 2026)", "u": "https://www.thundercompute.com/blog/ai-gpu-rental-market-trends"},
+        {"t": "Yahoo Finance: OpenAI's annualized revenue $20 billion lower than prior investor estimates (8 Oct 2026)", "u": "https://finance.yahoo.com/technology/article/openais-annualized-revenue-20-billion-lower-than-prior-investor-estimates-174058048.html"}
+      ],
       "effects": [{"t": "demlvl", "seg": "all", "add": 100}]
     },
     {
       "id": "capex_2027", "group": "demand", "story": "demand", "kind": "range", "label": "Hyperscaler spending plans for 2027",
       "say": {"if": "hyperscaler spending plans hit their high case", "subj": "hyperscaler spending plans", "pl": true},
-      "question": "What will Amazon, Alphabet, Microsoft, Meta and Oracle plan to spend on capital projects in 2027, as a percentage of their 2026 plans (about $840B together)?",
+      "question": "What will Amazon, Alphabet, Microsoft, Meta and Oracle plan to spend on capital projects in 2027, as a percentage of their 2026 plans (about $825B together)?",
       "resolves": "Their 2027 guidance as it stands at mid-2027 (second-quarter results), midpoints added up.",
-      "unit": "% of 2026 plans", "low": 115, "mid": 130, "high": 150, "min": 60, "max": 220, "basis": "judgement",
-      "note": "2026 plans: Amazon $220B, Alphabet $200B, Microsoft $190B, Meta $137.5B, Oracle $92.5B. Alphabet says 2027 will 'significantly increase' and AWS says capacity stays short of demand through 2027.",
+      "unit": "% of 2026 plans", "low": 112, "mid": 132, "high": 155, "min": 60, "max": 220, "basis": "researched",
+      "note": "2026 plans after the July results: Amazon $220B (raised from $200B), Alphabet $195-205B (raised from $180-190B), Microsoft $175B (down from $190B only because leases are now spread over 25 years), Meta $130-145B and Oracle up to $95B for the year to May 2027. In June, analysts' 2027 forecasts implied about 22% growth (Goldman). Since then Alphabet has repeated a 'significant increase' for 2027 (the Street expects $265B), Morgan Stanley forecasts about 29% more cloud spending and several banks put the four largest above $1T; Goldman's own base case is 45%. Meta gives no 2027 figure but says it keeps underestimating its compute needs. Against that, investors sold Alphabet on its July raise, and Oracle sits one notch above junk.",
       "does": "Hyperscalers place 70% of orders. Their orders move one for one with this number, measured against its starting central case.",
+      "checked": "2026-10-14",
+      "src": [
+        {"t": "Benzinga via Webull: Alphabet's AI bill steals the spotlight from a blockbuster Q2 (23 Jul 2026)", "u": "https://www.webull.com/news/15277620003939328"},
+        {"t": "Fortune: Amazon raises 2026 capex to $220B as Jassy says AI demand outruns capacity into 2027 (30 Jul 2026)", "u": "https://fortune.com/2026/07/30/andy-jassy-amazon-capex-demand-aws-pga-tour/"},
+        {"t": "Reuters via The Star: Microsoft cloud forecast beats estimates as cash keeps flowing from AI (30 Jul 2026)", "u": "https://www.thestar.com.my/tech/tech-news/2026/07/30/microsoft-tops-quarterly-cloud-growth-estimates-easing-spending-concerns"},
+        {"t": "Investing.com via Yahoo Finance: Goldman says consensus 2027 hyperscaler capex estimates are too conservative (11 Jun 2026)", "u": "https://finance.yahoo.com/sectors/technology/articles/goldman-says-consensus-2027-hyperscaler-140152065.html"},
+        {"t": "Seeking Alpha: Cloud capex forecast calls for 29% jump in 2027 as compute demand exceeds capacity (Morgan Stanley)", "u": "https://seekingalpha.com/news/4629570-cloud-capex-forecast-calls-for-29-jump-in-2027-as-compute-demand-exceeds-capacity-ms"},
+        {"t": "Forbes: Big Tech will spend over $700 billion on AI this year (7 Oct 2026)", "u": "https://www.forbes.com/sites/jasonkirsch/2026/10/07/big-tech-will-spend-over-700-billion-on-ai-this-year-follow-the-money-not-the-hype/"},
+        {"t": "Outlook Business: Oracle forecasts $95B in capex for FY27, plans to raise $40B in debt and equity (11 Jun 2026)", "u": "https://www.outlookbusiness.com/corporate/oracle-forecasts-95-bn-in-capex-for-fy27-plans-to-raise-40-bn-in-debt-and-equity"}
+      ],
       "effects": [{"t": "demlvl", "seg": "hyper", "base": "mid"}]
     },
     {
       "id": "lab_revenue", "group": "demand", "story": "demand", "kind": "range", "label": "Lab revenue growth",
       "say": {"if": "lab revenue hits its high case", "subj": "lab revenue", "unit": "(today = 100)"},
-      "question": "Where will the combined annualised revenue of OpenAI and Anthropic stand at the end of 2027, taking today's level (about $135B) as 100?",
+      "question": "Where will the combined annualised revenue of OpenAI and Anthropic stand at the end of 2027, taking today's level (about $115B: OpenAI near $50B in September, Anthropic $65B in July) as 100?",
       "resolves": "Company statements and filings on annualised revenue at the end of 2027.",
-      "unit": "index, today = 100", "low": 120, "mid": 165, "high": 230, "min": 60, "max": 400, "basis": "judgement",
-      "note": "The two labs have signed about $1.14T of compute commitments against about $135B of revenue. In The Money, OpenAI needs about 34% growth a year just to break even on its commitments.",
+      "unit": "index, today = 100", "low": 130, "mid": 200, "high": 300, "min": 60, "max": 450, "basis": "researched",
+      "note": "Anthropic's run rate went from about $9B at the end of 2025 to $65B in July 2026, and the New York Times reported it on course to pass $100B this year; it is preparing to list. OpenAI told investors in October that it is approaching $50B, about $20B below figures that had circulated. They count differently: Anthropic includes sales through its cloud partners. The central case, about $230B at the end of 2027, has growth slowing sharply after a roughly fourfold 2026. The two labs have signed about $1.14T of compute commitments; in The Money, OpenAI needs about 34% growth a year just to break even on its commitments.",
       "does": "Weak revenue cuts what the labs can commit to. Neocloud orders move 0.3 for one with this number and hyperscaler orders 0.1 for one, measured against its starting central case.",
+      "checked": "2026-10-14",
+      "src": [
+        {"t": "Yahoo Finance: OpenAI's annualized revenue $20 billion lower than prior investor estimates (8 Oct 2026)", "u": "https://finance.yahoo.com/technology/article/openais-annualized-revenue-20-billion-lower-than-prior-investor-estimates-174058048.html"},
+        {"t": "CNBC: Anthropic tells investors annualized revenue run rate climbed to $65 billion in July (17 Aug 2026)", "u": "https://www.cnbc.com/2026/08/17/anthropic-says-annualized-revenue-climbed-to-65-billion-in-july.html"},
+        {"t": "Exploding Topics: Anthropic revenue and valuation statistics (Oct 2026)", "u": "https://explodingtopics.com/blog/anthropic-revenue"},
+        {"t": "Futurum: Anthropic files for IPO, looking to beat OpenAI to the punch (2 Jun 2026)", "u": "https://futurumgroup.com/insights/anthropic-files-for-ipo-looking-to-beat-openai-to-the-punch/"}
+      ],
       "effects": [
         {"t": "demlvl", "seg": "neo", "base": "mid", "k": 0.3},
         {"t": "demlvl", "seg": "hyper", "base": "mid", "k": 0.1}
@@ -481,9 +507,15 @@
       "say": {"if": "sovereign orders hit their high case", "subj": "sovereign orders", "pl": true},
       "question": "What share of the Gulf and other sovereign AI capacity announced for 2027 will actually be ordered?",
       "resolves": "Project announcements and operator statements at the end of 2027.",
-      "unit": "% of announced", "low": 50, "mid": 75, "high": 95, "min": 0, "max": 110, "basis": "judgement",
-      "note": "Gulf projects sit inside the war's strike zone and insurers have pulled back. This is the follow-through apart from the war, strikes and export rules, which have their own entries.",
+      "unit": "% of announced", "low": 40, "mid": 65, "high": 90, "min": 0, "max": 110, "basis": "researched",
+      "note": "Follow-through has been slow. Stargate UAE's first 200 MW is due in 2026, but the rest of its first gigawatt waits on US security conditions for chip exports that were still unsettled in June. Saudi Arabia's HUMAIN missed its second-quarter go-live in Riyadh and Dammam with no launch announced, and will not say how many Nvidia chips have arrived. Europe's AI gigafactories and most other national programmes are commitments, not orders. This is the follow-through apart from the war, strikes and export rules, which have their own entries.",
       "does": "Sovereign buyers place 10% of orders. Their orders move one for one with this number, measured against its starting central case.",
+      "checked": "2026-10-14",
+      "src": [
+        {"t": "GuruFocus via TradingView: Nvidia- and Oracle-backed UAE AI project stalls over security snag (Jun 2026)", "u": "https://www.tradingview.com/news/gurufocus:100c9f71c094b:0-nvidia-oracle-backed-multi-billion-dollar-uae-ai-project-stalls-over-security-snag/"},
+        {"t": "Vision2030.ai: HUMAIN data centers in Riyadh and Dammam, September 2026 status (27 Sep 2026)", "u": "https://vision2030.ai/analysis/humain-data-centers-riyadh-dammam-status/"},
+        {"t": "Presenc: Sovereign AI infrastructure tracker 2026 (22 May 2026)", "u": "https://presenc.ai/research/sovereign-ai-infrastructure-tracker-2026"}
+      ],
       "effects": [{"t": "demlvl", "seg": "sov", "base": "mid"}]
     },
     {
@@ -491,9 +523,14 @@
       "say": {"if": "orders pause", "of": "of a pause in orders"},
       "question": "Will Nvidia report a quarter-on-quarter fall in data-center revenue for any fiscal quarter ending in calendar 2027?",
       "resolves": "Nvidia's quarterly results.",
-      "starts": "2027-01-01", "deadline": "2027-12-31", "p": 0.12, "sev": 1, "basis": "judgement",
-      "note": "Nvidia's Q2 FY2027 call pointed to about 70% growth in FY2028, which makes a pause unlikely but not impossible.",
+      "starts": "2027-01-01", "deadline": "2027-12-31", "p": 0.12, "sev": 1, "basis": "researched",
+      "note": "Nvidia's data-center revenue was $89.0B in the quarter to July 2026, up 18% on the quarter and 117% on the year, with Vera Rubin in full production. It guided to $108B of total revenue for the next quarter and forecast about 70% growth for the year to January 2028. A fall would take a shock, such as a credit squeeze among leveraged buyers (CoreWeave's bonds sold off on 14 Oct). Inventories ($31.6B) and receivables ($63.1B) have risen since January. Quarterly falls last came in the downturns of 2019 and early 2023.",
       "does": "All buyers order 12% less from that quarter on.",
+      "checked": "2026-10-14",
+      "src": [
+        {"t": "Nvidia: Financial results for the second quarter of fiscal 2027 (26 Aug 2026)", "u": "https://nvidianews.nvidia.com/news/nvidia-announces-financial-results-for-second-quarter-fiscal-2027"},
+        {"t": "CNBC: Nvidia's 70% growth forecast puts it on track to become tech's No. 2 company by revenue (26 Aug 2026)", "u": "https://www.cnbc.com/2026/08/26/nvidia-70percent-growth-forecast-puts-it-on-track-to-be-tech-no-2-company.html"}
+      ],
       "effects": [{"t": "dem", "seg": "all", "m": 0.88, "timing": "window"}]
     },
     {
@@ -501,9 +538,14 @@
       "say": {"if": "OpenAI raises $30B or more", "of": "that OpenAI raises $30B or more"},
       "question": "Will OpenAI close new equity or debt funding of $30B or more between now and 30 Jun 2027?",
       "resolves": "A company announcement or filings.",
-      "deadline": "2027-06-30", "p": 0.7, "sev": 1, "basis": "judgement",
-      "note": "OpenAI's compute commitments run far ahead of its revenue (The Money), so it depends on raising outside money.",
+      "deadline": "2027-06-30", "p": 0.75, "sev": 1, "basis": "researched",
+      "note": "OpenAI closed $122B at an $852B valuation in March 2026 (SoftBank paid the last of its $30B on 1 Oct), so that round does not count here. Since mid-September it has been in early talks to raise at least $30B more at about $1.4T before the new money, with Abu Dhabi's MGX discussing up to $10B and BlackRock also in talks, as a bridge to a listing its finance chief says will come in 2027. Against that, Sam Altman called this 'an ill-advised moment to go public', and the FT reported revenue about $20B below what investors had heard. Its compute commitments run far ahead of its revenue (The Money), so it depends on outside money.",
       "does": "If it does not, neoclouds order 15% less and hyperscalers 2% less through 2027, and less capital reaches the labs.",
+      "checked": "2026-10-14",
+      "src": [
+        {"t": "ValueAdd VC: OpenAI valuation $852B after the $122B raise; reportedly eyes $1.4T (updated 6 Oct 2026)", "u": "https://valueaddvc.com/blog/openai-valuation-2026-852-billion-after-the-122b-raise"},
+        {"t": "Yahoo Finance: OpenAI's annualized revenue $20 billion lower than prior investor estimates (8 Oct 2026)", "u": "https://finance.yahoo.com/technology/article/openais-annualized-revenue-20-billion-lower-than-prior-investor-estimates-174058048.html"}
+      ],
       "markets": [
         {"src": "polymarket", "id": "1345235", "side": "no", "fit": "related", "label": "OpenAI IPO by 31 Dec 2027", "url": "https://polymarket.com/event/openai-ipo-closing-market-cap-554", "differs": "An IPO would count as funding here, but this market runs six months past this question's date and leaves out private rounds and debt."}
       ],
@@ -518,9 +560,16 @@
       "say": {"if": "credit squeezes AI builders", "of": "of a credit squeeze on AI builders"},
       "question": "Will S&P or Moody's cut Oracle to junk, or a large neocloud default on or restructure its debt, before 31 Dec 2027?",
       "resolves": "Rating agency actions and company filings.",
-      "deadline": "2027-12-31", "p": 0.2, "sev": 1, "basis": "judgement",
-      "note": "S&P has Oracle at BBB-, one notch above junk, with $117B of bonds outstanding. CoreWeave carries $35B of debt with $6.2B of principal due in 2027.",
+      "deadline": "2027-12-31", "p": 0.3, "sev": 1, "basis": "researched",
+      "note": "S&P cut Oracle to BBB-, one notch above junk, on 9 Jul 2026, estimating that about half of its $638B backlog depends on OpenAI; Moody's rates it Baa2 with a negative outlook. Oracle's free cash flow was about -$24B in its last year and S&P sees it reaching -$42B; it plans to raise about $40B in debt and equity this year. On 14 Oct CoreWeave's unsecured 2032 bonds fell below 80 cents on the dollar, yielding over 15%, and its credit default swaps imply roughly even odds of default within five years; it says nothing falls due before 2029 apart from debt repaid from its contracts. More likely than when first set, but either trigger still needs things to get worse.",
       "does": "From that day neoclouds order 45% less and hyperscalers 5% less (Oracle), and less capital reaches neoclouds, sovereign projects and labs.",
+      "checked": "2026-10-14",
+      "src": [
+        {"t": "Computing: Oracle under pressure after ratings downgrade over AI expansion (20 Jul 2026)", "u": "https://www.computing.co.uk/news/2026/ai/oracle-under-pressure-after-ratings-downgrade-over-ai-expansion"},
+        {"t": "Newsquawk: Moody's affirms Oracle's Baa2 rating on equity announcement; outlook remains negative", "u": "https://www.newsquawk.com/headlines/moodys-affirms-oracles-orcl-baa2-rating-on-equity-announcement-outlook-remains-negative"},
+        {"t": "Tech Times: CoreWeave CDS hits 50% default odds (30 Jul 2026)", "u": "https://www.techtimes.com/articles/322222/20260730/coreweave-cds-hits-50-default-odds-bond-market-calls-time-gpu-debt-spiral.htm"},
+        {"t": "GuruFocus: CoreWeave faces financial turmoil as bonds plummet (14 Oct 2026)", "u": "https://www.gurufocus.com/news/9123721/coreweave-faces-financial-turmoil-as-bonds-plummet"}
+      ],
       "effects": [
         {"t": "dem", "seg": "neo", "m": 0.55, "timing": "window"},
         {"t": "dem", "seg": "hyper", "m": 0.95, "timing": "window"},

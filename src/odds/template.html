@@ -1704,8 +1704,9 @@ function gridPick(c){
   $("#dcount").textContent = MODEL.drivers.length + " things that could change the outcome";
   $("#method-plan").textContent = FILE.plan;
   $("#method-basis").textContent = FILE.statusNote + " Each row's About panel says where its number comes from.";
-  const nRes = MODEL.drivers.filter(d => d.basis && d.basis !== "judgement").length;
-  $("#foot").textContent = "Starting numbers as of " + fmtDate(FILE.asOf) + ": " + (nRes ? nRes + " of " + MODEL.drivers.length + " researched, with sources in each About panel; the rest are first estimates by judgement." : "first estimates, not yet researched one by one.") + " Research model, not investment advice.";
+  const nRes = MODEL.drivers.filter(d => d.basis && d.basis !== "judgement").length, nAll = MODEL.drivers.length;
+  $("#foot").textContent = "Starting numbers as of " + fmtDate(FILE.asOf) + ": " + (nRes && nRes === nAll ? "all " + nAll + " researched, with sources in each About panel."
+    : nRes ? nRes + " of " + nAll + " researched, with sources in each About panel; the rest are first estimates by judgement." : "first estimates, not yet researched one by one.") + " Research model, not investment advice.";
   if (!DATA.file){ fail("The model file (data/odds.json) has a problem, so there is nothing to run. The Update desk on The Chain lists what is wrong."); return; }
   const problems = ODDS.check(MODEL);
   if (problems.length){ fail("The model file has a problem: " + problems[0]); return; }
