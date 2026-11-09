@@ -313,7 +313,8 @@ def run_checks(browser):
     TW = "#lk-tw_blockade--cn_minerals"
     want = page.evaluate("""(() => { const M = ODDSLAB.MODEL.drivers, a = M.find(d => d.id === 'tw_blockade'), b = M.find(d => d.id === 'cn_minerals');
         return [pct(ODDS.reading(a, b, 0.5).given), ODDSLAB.tgt(ODDS.reading(a, b, 0.5).given, true), ODDSLAB.tgt(ODDS.reading(b, a, 0.5).given, true)]; })()""")
-    check("links: each reads as a sentence with the engine's numbers", page.text_content(TW + " .say") == "If China blockades Taiwan, the chance that China's mineral controls return goes from 30%% to %s." % want[0], page.text_content(TW + " .say"))
+    CN_P = round(DRIVERS["cn_minerals"]["p"] * 100)
+    check("links: each reads as a sentence with the engine's numbers", page.text_content(TW + " .say") == "If China blockades Taiwan, the chance that China's mineral controls return goes from %d%% to %s." % (CN_P, want[0]), page.text_content(TW + " .say"))
     pressed = lambda sel: page.text_content(sel + ' .steps [aria-pressed="true"]')
     check("links: the five words show each link's strength", pressed(TW) == "Much more likely" and pressed("#lk-tw_blockade--us_chip_rules") == "More likely" and pressed("#lk-tw_blockade--capex_2027") == "Lower" and page.text_content("#lk-tw_blockade--capex_2027 .steps button") == "Much lower", (pressed(TW), pressed("#lk-tw_blockade--us_chip_rules"), pressed("#lk-tw_blockade--capex_2027"), page.text_content("#lk-tw_blockade--capex_2027 .steps button")))
     check("links: a quantity reads with its unit", re.fullmatch(r"If China blockades Taiwan, hyperscaler spending plans go from " + str(DRIVERS["capex_2027"]["mid"]) + r"% to \d+(\.\d)?% of 2026 plans\.", page.text_content("#lk-tw_blockade--capex_2027 .say") or "") is not None, page.text_content("#lk-tw_blockade--capex_2027 .say"))
@@ -322,7 +323,7 @@ def run_checks(browser):
     check("stories: a click opens one", page.evaluate("document.querySelector('#st-uschina').open") is True and page.is_visible(TW + " .say"))
     typed(page, '#d-cn_minerals [data-f="p"]', 60)
     check("links: the sentences follow your chances", "from 60% to" in page.text_content(TW + " .say"), page.text_content(TW + " .say"))
-    typed(page, '#d-cn_minerals [data-f="p"]', 30)
+    typed(page, '#d-cn_minerals [data-f="p"]', CN_P)
     page.click(TW + ' .steps [data-step="3"]'); settle(page)
     check("five words: 'more likely' sets +0.3 and is marked and counted", page.evaluate("ODDSLAB.links.find(l => l.a === 'tw_blockade' && l.b === 'cn_minerals').rho") == 0.3 and pressed(TW) == "More likely" and "changed" in page.get_attribute(TW, "class") and "Started at +0.5 (much more likely)" in page.inner_text(TW + " [data-v=note]") and page.inner_text("#dchanged") == "1 link changed" and "1 changed" in page.inner_text("#st-uschina .st-meta"), page.inner_text(TW + " [data-v=note]"))
     check("five words: the sentence follows", int(re.search(r"to (\d+)%", page.text_content(TW + " .say")).group(1)) < int(want[1]), page.text_content(TW + " .say"))
@@ -354,9 +355,9 @@ def run_checks(browser):
     CT = "#lk-cn_minerals--chip_tariff"
     page.click(CT + ' .steps [data-step="2"]'); settle(page)
     check("no link: a starting link is kept as removed, with a way back", pressed(CT) == "No link" and "off" in page.get_attribute(CT, "class") and "Removed. It started at +0.3" in page.inner_text(CT + " [data-v=note]") and page.evaluate("ODDSLAB.links.find(l => l.a === 'cn_minerals' && l.b === 'chip_tariff').rho") == 0)
-    check("no link: no longer counted or drawn", "33 links in all" in page.inner_text("#lk-count") and page.locator("#grid text.sg").count() == 2 * (len(FILE["links"]) - 1), page.inner_text("#lk-count"))
+    check("no link: no longer counted or drawn", ("%d links in all" % (len(FILE["links"]) - 1)) in page.inner_text("#lk-count") and page.locator("#grid text.sg").count() == 2 * (len(FILE["links"]) - 1), page.inner_text("#lk-count"))
     page.click(CT + " [data-v=note] button"); settle(page)
-    check("reset one link: back at its starting strength", page.evaluate("ODDSLAB.links.find(l => l.a === 'cn_minerals' && l.b === 'chip_tariff').rho") == 0.3 and pressed(CT) == "More likely" and "34 links in all" in page.inner_text("#lk-count") and "changed" not in page.get_attribute(CT, "class"))
+    check("reset one link: back at its starting strength", page.evaluate("ODDSLAB.links.find(l => l.a === 'cn_minerals' && l.b === 'chip_tariff').rho") == 0.3 and pressed(CT) == "More likely" and ("%d links in all" % len(FILE["links"])) in page.inner_text("#lk-count") and "changed" not in page.get_attribute(CT, "class"))
     page.select_option("#lk-a", "jp_quake"); page.select_option("#lk-b", "tglass_ramp")
     check("add a link: offered for a pair with none", page.inner_text("#lk-add button") == "Add link" and page.is_enabled("#lk-add button"))
     page.click("#lk-add button"); settle(page)
@@ -364,11 +365,11 @@ def run_checks(browser):
     check("add a link: a new row at the top of its first driver's story, at no link until given a strength", page.locator(NEW).count() == 1 and page.locator("#st-chips .lk").first.get_attribute("id") == NEW[1:] and page.evaluate("document.querySelector('#st-chips').open") is True and pressed(NEW) == "No link" and "Pick how strong" in page.inner_text(NEW + " [data-v=note]") and page.evaluate("document.activeElement === document.querySelector('%s .steps [aria-pressed=true]')" % NEW))
     page.click(NEW + ' .steps [data-step="1"]'); settle(page)
     page.click(NEW + ' [data-act="fine"]')
-    check("add a link: once set it counts, is drawn, and reads both ways", "35 links in all" in page.inner_text("#lk-count") and page.locator("#grid text.sg").count() == 2 * len(FILE["links"]) + 2 and page.text_content(NEW + " .say").startswith("If an earthquake hits Japan's materials makers, T-glass cloth goes from 99% to ") and "If T-glass cloth hits its high case, the chance of an earthquake" in page.inner_text(NEW + ' .lk-read[data-dir="ba"]'), page.text_content(NEW + " .say"))
+    check("add a link: once set it counts, is drawn, and reads both ways", ("%d links in all" % (len(FILE["links"]) + 1)) in page.inner_text("#lk-count") and page.locator("#grid text.sg").count() == 2 * len(FILE["links"]) + 2 and page.text_content(NEW + " .say").startswith("If an earthquake hits Japan's materials makers, T-glass cloth goes from 99% to ") and "If T-glass cloth hits its high case, the chance of an earthquake" in page.inner_text(NEW + ' .lk-read[data-dir="ba"]'), page.text_content(NEW + " .say"))
     page.select_option("#lk-a", "tw_blockade"); page.select_option("#lk-b", "cn_minerals")
     check("add a link: an existing pair is offered as 'Show this link'", page.inner_text("#lk-add button") == "Show this link")
     page.click(NEW + ' [data-act="delete"]'); settle(page)
-    check("delete an added link: the row goes", page.locator(NEW).count() == 0 and "34 links in all" in page.inner_text("#lk-count"))
+    check("delete an added link: the row goes", page.locator(NEW).count() == 0 and ("%d links in all" % len(FILE["links"])) in page.inner_text("#lk-count"))
     page.select_option("#lk-filter", "tw_blockade")
     n_tw = sum(1 for l in FILE["links"] if "tw_blockade" in (l["a"], l["b"]))
     page.select_option("#lk-filter", "capex_2027")
@@ -400,7 +401,7 @@ def run_checks(browser):
     page.click('#d-euv_halt .lk-in .steps [data-step="0"]'); settle(page)
     check("driver links: once given a strength it shows on both rows and in its story", page.evaluate("ODDSLAB.links.find(l => l.a === 'euv_halt').rho") == -0.6 and "EUV supply stops" in page.inner_text("#d-foundry_ramp .drv-links") and pressed(E) == "Much lower" and page.locator("#st-chips " + E).count() == 1)
     page.click('#d-euv_halt .lk-in [data-act="delete"]'); settle(page)
-    check("driver links: deleting it there removes it everywhere", page.locator(E).count() == 0 and page.is_hidden("#d-euv_halt .lk-in") and "EUV supply stops" not in page.inner_text("#d-foundry_ramp .drv-links") and "34 links in all" in page.inner_text("#lk-count"))
+    check("driver links: deleting it there removes it everywhere", page.locator(E).count() == 0 and page.is_hidden("#d-euv_halt .lk-in") and "EUV supply stops" not in page.inner_text("#d-foundry_ramp .drv-links") and ("%d links in all" % len(FILE["links"])) in page.inner_text("#lk-count"))
     for key, v in (("digestion--capex_2027", "0.95"), ("lab_revenue--capex_2027", "0.95"), ("lab_revenue--digestion", "-0.95")):
         page.evaluate("document.querySelector('#lk-%s').closest('details').open = true" % key)
         if page.is_hidden(f"#lk-{key} .lk-fine"):
@@ -423,7 +424,7 @@ def run_checks(browser):
     check("grid: arrow keys move across the pairs", page.is_visible("#tip") and " and " in page.inner_text("#tip .tt"))
     page.keyboard.press("Escape")
     page.click("#reset-all"); settle(page)
-    check("reset all: every link back to its start", page.locator("#stories .lk.changed").count() == 0 and page.is_hidden("#lk-warn") and "34 links in all" in page.inner_text("#lk-count") and hero(page) == h0 and page.locator("#grid circle.dot").count() == 0 and page.locator(".lchip.changed").count() == 0)
+    check("reset all: every link back to its start", page.locator("#stories .lk.changed").count() == 0 and page.is_hidden("#lk-warn") and ("%d links in all" % len(FILE["links"])) in page.inner_text("#lk-count") and hero(page) == h0 and page.locator("#grid circle.dot").count() == 0 and page.locator(".lchip.changed").count() == 0)
     clean_text(page, "links")
 
     # 9b. how strongly things move together: every link at once
@@ -439,7 +440,7 @@ def run_checks(browser):
     page.mouse.move(5, 5)
     page.click('#ms-cols .ms-col[data-k="0"]'); settle(page)
     check("master: 'none' unlinks everything for the results", page.evaluate("ODDSLAB.scale") == 0 and hero(page) == round(lite[0]["mean"] * 100) and page.get_attribute('#ms-cols .ms-col[data-k="0"]', "aria-pressed") == "true" and page.is_visible("#hero-scale") and "no links at all" in page.inner_text("#hero-scale") and page.inner_text("#dchanged") == "No links at all" and page.is_enabled("#reset-all") and "The results above use no links at all" in page.inner_text("#ms-cap"), (hero(page), lite[0]["mean"], page.inner_text("#dchanged")))
-    check("master: your links stay as you set them", page.evaluate("ODDSLAB.links.find(l => l.a === 'tw_blockade' && l.b === 'cn_minerals').rho") == 0.5 and page.text_content(TW + " .say") == "If China blockades Taiwan, the chance that China's mineral controls return goes from 30%% to %s." % want[0])
+    check("master: your links stay as you set them", page.evaluate("ODDSLAB.links.find(l => l.a === 'tw_blockade' && l.b === 'cn_minerals').rho") == 0.5 and page.text_content(TW + " .say") == "If China blockades Taiwan, the chance that China's mineral controls return goes from %d%% to %s." % (CN_P, want[0]))
     page.click('#d-tw_blockade [data-sup="true"]'); settle(page)
     check("master: with no links, supposing one thing moves nothing else", page.inner_text("#d-cn_minerals .drv-note").strip() == "", page.inner_text("#d-cn_minerals .drv-note"))
     page.click("#situ-clear"); settle(page)

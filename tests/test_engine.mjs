@@ -423,7 +423,7 @@ const TOY = {
   }
 
   const byId = Object.fromEntries(M.drivers.map(d => [d.id, d])), yearEnd = M.period.start + M.period.len;
-  check("dates become months from the file's date", M.period.start > 0 && M.period.start < 12 && close(byId.tw_blockade.window, yearEnd, 0.05) && byId.cn_minerals.from > 0 && byId.cn_minerals.from < byId.cn_minerals.window && close(byId.digestion.from, M.period.start, 0.01), [M.period, byId.tw_blockade.window, byId.cn_minerals.from]);
+  check("dates become months from the file's date", M.period.start > 0 && M.period.start < 12 && close(byId.tw_blockade.window, yearEnd, 0.05) && byId.nuclear_restart.from > M.period.start && byId.nuclear_restart.from < byId.nuclear_restart.window && close(byId.digestion.from, M.period.start, 0.01) && byId.cn_minerals.from == null, [M.period, byId.tw_blockade.window, byId.nuclear_restart.from, byId.cn_minerals.from]);
   check("\"base\": \"mid\" is tied to the starting central case", byId.capex_2027.effects[0].base === byId.capex_2027.mid && byId.sov_follow.effects[0].base === byId.sov_follow.mid && file.drivers.find(d => d.id === "capex_2027").effects[0].base === "mid");
 
   const N = 40000, R = O.simulate(M, {n: N}), sb = O.summary(R.out.built), sd = O.summary(R.out.demand);
@@ -433,7 +433,8 @@ const TOY = {
   check("every outcome is a sensible number in every future", finite && R.n === N);
   check("baseline: most of the plan gets built, with a real downside", sb.p50 > 0.85 && sb.p50 < 0.98 && sb.p10 > 0.6 && sb.p10 < sb.p50 - 0.03 && sb.p95 < 1.1 && O.probBelow(R.out.built, 0.6) < 0.06, sb);
   let beat = 0, maxB = 0; for (let i = 0; i < N; i++){ if (R.out.built[i] > 1) beat++; if (R.out.built[i] > maxB) maxB = R.out.built[i]; }
-  check("baseline: the plan is beaten in some futures, by less than spare capacity allows", beat / N > 0.005 && beat / N < 0.3 && maxB > 1.02 && maxB < 1.2, [beat / N, maxB]);
+  // rare since the 9 Nov 2026 research (sold-out links, approvals and crews): about 0.4%, so the floor is 0.1%
+  check("baseline: the plan is beaten in some futures, by less than spare capacity allows", beat / N > 0.001 && beat / N < 0.3 && maxB > 1.02 && maxB < 1.2, [beat / N, maxB]);
   const up = O.subset(R, r => R.out.built[r] > 1), upLim = O.bindingTable(up), ranged = new Set(M.drivers.flatMap(d => d.effects.filter(e => e.t === "ramp").map(e => e.node)));
   check("when the plan is beaten, the limit is a link a range moves (not a fixed assumption)", upLim.filter(x => ranged.has(x.id) || x.id === "demand").reduce((a, x) => a + x.share, 0) > 0.95, upLim.slice(0, 6));
   const wmUp = O.whatMatters(R, "built"), ups = M.drivers.filter(d => d.side === "up");

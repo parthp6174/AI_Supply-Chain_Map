@@ -1,22 +1,21 @@
 {
   "version": 1,
-  "asOf": "2026-10-14",
+  "asOf": "2026-11-09",
   "status": "provisional",
-  "statusNote": "Every starting number was researched: geopolitics and trade rules on 8 Oct 2026; chip supply, power, and demand and money on 14 Oct 2026; the spare capacity of each link on 9 Nov 2026. Sources are in each row's About panel and, for spare capacity, under How it works. Change any number to match your own view.",
+  "statusNote": "Every starting number was researched: geopolitics and trade rules on 8 Oct 2026; chip supply, power, and demand and money on 14 Oct 2026; spare capacity and politics at home (after the 3 Nov elections) on 9 Nov 2026, when China's mineral pause was also rechecked. Sources are in each row's About panel and, for spare capacity, under How it works. Change any number to match your own view.",
   "period": {"label": "Calendar 2027", "from": "2027-01-01", "months": 12},
   "supplyOutput": "campus",
   "plan": "100 is the AI data-center capacity that today's plans would add in 2027: what buyers have budgeted and suppliers have scheduled, with the shortages already known. Each supply number is the share of that plan one link delivers. A link can beat the plan by as much as its range says or, if no range moves it, by its spare capacity (see room). Buyers want more than the plan (see Unmet demand), so a fall in orders only cuts what gets built once it is bigger than that cushion. More than the plan gets built only when every link on the way beats it too.",
   "room": {
-    "note": "Spare capacity: how far above the plan a link could deliver in 2027 if everything around it goes right. A link moved by a range has none of its own: its range says how far it can go. Other links follow their state on The Chain. Late in 2026 almost every input is booked for 2027 and new plants take two years or more, so a sold-out link can add only what overtime and better yields give. Links The Chain does not rate get their own number where research found them as tight as its chokepoints: NAND flash, optical fiber, server CPUs, circuit boards, construction crews, and the switchgear and backup power in each building. Suppliers outside the model (other generators, on-site equipment, hard drives) can do 5% more.",
+    "note": "Spare capacity: how far above the plan a link could deliver in 2027 if everything around it goes right. A link moved by a range has none of its own: its range says how far it can go. Other links follow their state on The Chain. Late in 2026 almost every input is booked for 2027 and new plants take two years or more, so a sold-out link can add only what overtime and better yields give. Links The Chain does not rate get their own number where research found them as tight as its chokepoints: NAND flash, optical fiber, server CPUs, circuit boards, and the switchgear and backup power in each building. Construction has its own range under Politics at home (approvals and crews). Suppliers outside the model (other generators, on-site equipment, hard drives) can do 5% more.",
     "byState": {"short": 1.03, "tight": 1.05, "adequate": 1.08, "none": 1.12},
-    "links": {"build": 1.05, "electrical": 1.04, "nand": 1.03, "fiber": 1.03, "cpu": 1.06, "pcb": 1.05},
+    "links": {"electrical": 1.04, "nand": 1.03, "fiber": 1.03, "cpu": 1.06, "pcb": 1.05},
     "otherSuppliers": 1.05,
     "why": {
       "short": "DRAM and HBM for 2027 are already allocated; Coherent says its indium phosphide lasers are essentially sold out through 2027 and Lumentum almost through 2029; helium lost about 30% of world supply when Qatar's plant was hit, and new sources are years away.",
       "tight": "Optical module makers say demand will exceed capacity throughout 2027 (Applied Optoelectronics: the industry may meet less than 80% of demand); Ajinomoto's ABF film lines run at virtually full capacity and its next plant opens in 2032.",
       "adequate": "SUMCO expects its 300 mm wafer lines to run full from late 2026; ASML is close to fully booked for 2027, though building machines faster lets it add some tools.",
       "none": "No chokepoint on The Chain, but shortages spread widely in 2026 and many suppliers' capacity is committed long term, so 12% is the most a typical one can stretch.",
-      "build": "87% of US contractors have craft jobs they cannot fill and 42% say worker shortages delayed projects (AGC, Sep 2026).",
       "electrical": "Medium-voltage switchgear takes 52 to 104 weeks and large generators 90 to 110; new plants arrive in years, not quarters.",
       "nand": "Kioxia says its NAND is sold out for 2026 and likely 2027 and cannot speed up deliveries; TrendForce sees balance only in the second half of 2027.",
       "fiber": "TrendForce: fiber plants run at 92% with a shortfall of 180 million fiber-km in 2026, preform expansions take 18 to 24 months, and shortages last until at least 2028.",
@@ -55,6 +54,7 @@
   },
   "groups": [
     {"id": "geo", "label": "Geopolitics and trade rules"},
+    {"id": "politics", "label": "Politics at home"},
     {"id": "chips", "label": "Chip supply"},
     {"id": "power", "label": "Power"},
     {"id": "demand", "label": "Demand and money"}
@@ -62,6 +62,7 @@
   "stories": [
     {"id": "uschina", "label": "US–China tension", "blurb": "A Taiwan crisis, export controls and tariffs tend to arrive together."},
     {"id": "gulf", "label": "The Gulf war", "blurb": "The longer the war lasts, the more it hits helium, Gulf data centers and borrowing costs."},
+    {"id": "politics", "label": "Politics at home", "blurb": "The 3 Nov 2026 elections made data centers a voting issue: a pause in one state, limits in towns elsewhere and nervous lenders tend to come together."},
     {"id": "chips", "label": "Chip supply", "blurb": "Wafers, packaging, memory and materials are planned against the same forecasts, often by the same few suppliers."},
     {"id": "power", "label": "Power", "blurb": "Turbines, transformers and grid connections share steel, copper, labour and regulators."},
     {"id": "demand", "label": "AI demand and money", "blurb": "Spending plans, lab revenue, funding and credit rise and fall with confidence in AI."}
@@ -150,12 +151,13 @@
       "id": "cn_minerals", "group": "geo", "story": "uschina", "kind": "event", "label": "China's mineral controls return",
       "say": {"if": "China's mineral controls return", "of": "that China's mineral controls return"},
       "question": "Will China's export controls on gallium, germanium, antimony or rare earths be back in force for US buyers at any point before 31 Dec 2027?",
-      "resolves": "MOFCOM announcements. China's pauses run with the US-China truce, which now ends on 10 Jan 2027 unless it is extended again.",
-      "starts": "2027-01-10", "deadline": "2027-12-31", "p": 0.3, "sev": 0.3, "basis": "researched",
-      "note": "The truce was extended on 24 Sep 2026, during Xi's state visit, by only two months to 10 Jan 2027, with no resolution on tariffs, technology limits or rare earths; we found no separate notice from China's commerce ministry yet, so the pauses are assumed to run with it. China's licences for dysprosium, terbium and yttrium, in force since April 2025, still slow supply. Severity stays at 0.3 of The Chain's worst case: during the 2024 and 2025 ban, supply kept moving through third countries at higher prices.",
+      "resolves": "MOFCOM announcements: yes if any of these controls applies to US buyers again, including if a pause lapses without a published extension.",
+      "deadline": "2027-12-31", "p": 0.4, "sev": 0.3, "basis": "researched",
+      "note": "China's pause on its October 2025 controls (MOFCOM Announcement No. 70) ends in law on 10 Nov 2026, and by 9 Nov Beijing had published no extension. Washington says the arrangement of 28 Sep, which runs the wider truce to 10 Jan 2027, covers rare earths; China's own statement did not mention them. The pause on shipping gallium, germanium and antimony to the US ends on 27 Nov. Licences for seven medium and heavy rare earths, in force since April 2025, were never paused. A truce that rests on short political extensions makes a return in 2027 more likely than when this was first set. Severity stays at 0.3 of The Chain's worst case: during the 2024 and 2025 ban, supply kept moving through third countries at higher prices.",
       "does": "Applies The Chain's minerals scenario from the day controls return: gallium, rare earths, tungsten and indium go back behind licences. The hit lands hardest on lasers, through indium.",
-      "checked": "2026-10-08",
+      "checked": "2026-11-09",
       "src": [
+        {"t": "Tech Times: China's rare earth export-control pause ends Tuesday in law; Beijing has published no extension (9 Nov 2026)", "u": "https://www.techtimes.com/articles/330288/20261109/china-rare-earth-export-controls-pause-ends-tuesday-law-beijing-has-published-no-extension.htm"},
         {"t": "Phemex News: US-China trade truce extended two months to 10 Jan 2027 (26 Sep 2026)", "u": "https://phemex.com/news/article/uschina-trade-truce-extended-two-months-to-january-10-2027-97909"},
         {"t": "Rare Earth Exchanges: truce extended to January 2027, rare earths unresolved (24 Sep 2026)", "u": "https://rareearthexchanges.com/news/us-china-trade-truce-rare-earth-chokepoints/"},
         {"t": "CNBC: China suspends some critical mineral export curbs to the US (10 Nov 2025)", "u": "https://www.cnbc.com/2025/11/10/china-suspends-some-critical-mineral-export-curbs-to-the-us-as-trade-truce-takes-hold.html"}
@@ -220,6 +222,41 @@
         {"t": "Crypto Briefing: ASML can ship about 65 low-NA EUV systems in 2026 (15 Jul 2026)", "u": "https://cryptobriefing.com/asml-65-euv-machines-ai-chip-supply/"}
       ],
       "effects": [{"t": "scen", "id": "euv", "timing": "window"}]
+    },
+
+    {
+      "id": "pol_texas", "group": "politics", "story": "politics", "kind": "event", "label": "Texas pauses data centers",
+      "say": {"if": "Texas pauses data centers", "of": "that Texas pauses data centers"},
+      "question": "Will Texas have a statewide pause on new data-center approvals, permits or grid connections, by executive order or law, in force on 1 Apr 2027?",
+      "resolves": "Executive orders and laws of the State of Texas, and orders of the PUCT, ERCOT and TCEQ.",
+      "starts": "2027-01-01", "deadline": "2027-04-01", "p": 0.65, "sev": 1, "basis": "researched",
+      "note": "Governor Abbott halted new data-center grid connections on 3 Aug 2026 and environmental permits on 21 Sep, pending audits due in December. On 3 Nov Texas elected Gina Hinojosa, who takes office on 19 Jan and promised \"a moratorium, a ban, on all data center approvals\" until the Legislature, which meets from 12 Jan with a newly Democratic House, passes protections. She can keep or widen Abbott's directives with the same executive tools, though reshaping the grid regulator is slow because its commissioners need a two-thirds Senate vote. Texas holds about a third of the US data-center capacity under construction. Not higher because she may narrow the pause to new projects, settle quickly with the Legislature, or lose in court.",
+      "does": "For six months from the day it starts, grid connections and on-site power for new campuses fall 10%: the pause holds back the Texas projects not yet switched on, in a state with about a third of US construction.",
+      "checked": "2026-11-09",
+      "src": [
+        {"t": "Texas Tribune via KFOX: Gina Hinojosa won the governor's race. What happens to Texas data centers now? (4 Nov 2026)", "u": "https://kfoxtv.com/news/local/gina-hinojosa-won-the-governors-race-what-happens-to-texas-data-centers-now-11-04-2026"},
+        {"t": "King & Spalding: What the 2026 election results mean for data center projects in Texas, Ohio and Georgia (6 Nov 2026)", "u": "https://www.kslaw.com/insights/articles/navigating-new-headwinds-what-the-2026-election-results-mean-for-data-center-projects-in-texas"},
+        {"t": "Baxtel: 2026 is the year Texas passes Virginia in data center capacity (13 Oct 2026)", "u": "https://baxtel.com/news/2026-is-the-year-texas-passes-virginia-in-data-center-capacity"},
+        {"t": "Electric Choice: Data center moratoriums by state in 2026 (updated 5 Nov 2026)", "u": "https://www.electricchoice.com/datacenters/moratoriums/"}
+      ],
+      "effects": [{"t": "shock", "node": "grid", "s": 0.1, "timing": "window", "dur": 6}, {"t": "shock", "node": "onsite", "s": 0.1, "timing": "window", "dur": 6}]
+    },
+    {
+      "id": "pol_approvals", "group": "politics", "story": "politics", "kind": "range", "label": "Local approvals and crews",
+      "say": {"if": "local approvals and crews hit their high case", "subj": "local approvals and crews", "pl": true},
+      "question": "What share of the data-center construction that 2027 plans count on will get its local and state approvals, permits and crews in time?",
+      "watch": "Data Center Watch's quarterly count of blocked or delayed projects, state moratorium bills and orders, local ballot measures and contractor surveys.",
+      "unit": "% of plan", "low": 92, "mid": 99, "high": 102, "min": 50, "max": 110, "basis": "researched",
+      "note": "Opposition has spread: by 4 Nov 2026 there were 583 data-center restrictions in force across 46 states, and New York, Virginia, Pennsylvania and Massachusetts had tightened permits or zoning by executive order while several states paused tax breaks. On 3 Nov voters backed limits in 40 of 41 local measures, and seven in ten Americans oppose a new data center in their own community (Washington Post-ABC-Ipsos). Data Center Watch counted about 120 projects worth some $198B blocked or delayed in the first half of 2026, more than half of the large projects newly proposed in the second quarter. Most capacity due in 2027 already has its permits and today's plans already allow for known delays, which is why the central case loses only 1%. Crews are short too: 87% of contractors have craft jobs they cannot fill, and immigration enforcement touched 29% of firms.",
+      "does": "Below 100, construction of new campuses is short by that share. A statewide pause in Texas is its own row.",
+      "checked": "2026-11-09",
+      "src": [
+        {"t": "Electric Choice: Data center moratoriums by state in 2026 (updated 5 Nov 2026)", "u": "https://www.electricchoice.com/datacenters/moratoriums/"},
+        {"t": "Fox Business: Voters reject data center expansion across US as AI industry faces growing backlash (5 Nov 2026)", "u": "https://www.foxbusiness.com/politics/data-centers-ballot-voters-sent-unmistakable-message"},
+        {"t": "Trending Topics on Data Center Watch: US data center opposition stalls 120 projects in 2026 (24 Sep 2026)", "u": "https://www.trendingtopics.eu/us-data-center-opposition-q2-2026/"},
+        {"t": "AGC: Construction workforce shortages remain acute despite soft market conditions; data centers strain (3 Sep 2026)", "u": "https://www.agc.org/news/2026/09/03/construction-workforce-shortages-remain-acute-despite-soft-market-conditions-data-centers-strain"}
+      ],
+      "effects": [{"t": "ramp", "node": "build"}]
     },
 
     {
@@ -422,10 +459,10 @@
       "say": {"if": "grid connections hit their high case", "subj": "grid connections", "pl": true},
       "question": "What share of the grid connections that 2027 plans count on will utilities deliver in time?",
       "watch": "Interconnection data from PJM, ERCOT and other grid operators, and campus energisation dates.",
-      "unit": "% of plan", "low": 86, "mid": 97, "high": 103, "min": 30, "max": 120, "basis": "researched",
-      "note": "Texas paused new data-center connections in August 2026 while the state audits about 300 projects. ERCOT aims to report by 10 Dec, the study of the first batch of large loads will miss its April 2027 date, and even the 17 furthest along (6.6 GW) still await approval to switch on. PJM's last two capacity auctions fell short, its backstop purchase of new supply is on hold after FERC asked for changes, and on 9 Oct FERC rejected its plan to connect new large loads that agree to be cut first. Goldman expects only 50 to 60% of the US data-center capacity scheduled for the next two years to arrive on time. Connection dates slip more often than they are beaten.",
+      "unit": "% of plan", "low": 87, "mid": 98, "high": 103, "min": 30, "max": 120, "basis": "researched",
+      "note": "Texas paused new data-center connections in August 2026 while the state audits about 300 projects. ERCOT aims to report by 10 Dec, the study of the first batch of large loads will miss its April 2027 date, and even the 17 furthest along (6.6 GW) still await approval to switch on. A Texas pause that carries into 2027 is now its own row (Politics at home), so this range was raised by a point on 9 Nov to leave it out. PJM's last two capacity auctions fell short, its backstop purchase of new supply is on hold after FERC asked for changes, and on 9 Oct FERC rejected its plan to connect new large loads that agree to be cut first. Goldman expects only 50 to 60% of the US data-center capacity scheduled for the next two years to arrive on time. Connection dates slip more often than they are beaten.",
       "does": "Below 100, the grid-fed part of new campuses (about two thirds of their power) is short by that share.",
-      "checked": "2026-10-14",
+      "checked": "2026-11-09",
       "src": [
         {"t": "Utility Dive: Facing an estimated 474 GW of interconnection requests, Texas hits pause on data centers (5 Aug 2026)", "u": "https://www.utilitydive.com/news/texas-hits-pause-data-center-interconnections/827046/"},
         {"t": "Utility Dive: ERCOT aims to complete Texas governor's data center audit by December (Aug 2026)", "u": "https://www.utilitydive.com/news/ercot-texas-puc-data-center-audit/828472/"},
@@ -641,6 +678,9 @@
     {"a": "lab_revenue", "b": "digestion", "rho": -0.4, "why": "Slow revenue is the likeliest cause of a pause in orders."},
     {"a": "openai_funding", "b": "credit_squeeze", "rho": -0.5, "why": "A failed round would hit the lenders and landlords who built for OpenAI."},
     {"a": "digestion", "b": "credit_squeeze", "rho": 0.4, "why": "A pause in orders cuts the revenue that leveraged builders need."},
-    {"a": "digestion", "b": "openai_funding", "rho": -0.3, "why": "Both reflect how much confidence there is in AI demand."}
+    {"a": "digestion", "b": "openai_funding", "rho": -0.3, "why": "Both reflect how much confidence there is in AI demand."},
+    {"a": "pol_texas", "b": "pol_approvals", "rho": -0.4, "why": "A statewide pause in Texas and limits in towns elsewhere grow out of the same backlash."},
+    {"a": "pol_texas", "b": "credit_squeeze", "rho": 0.2, "why": "Investors sold AI builders on the election results; a Texas pause would add to the pressure on leveraged builders."},
+    {"a": "pol_approvals", "b": "grid_ramp", "rho": 0.3, "why": "Fights over power lines and substations go with fights over the campuses themselves."}
   ]
 }
