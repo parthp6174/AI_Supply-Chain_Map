@@ -241,6 +241,8 @@ input.sl:focus-visible::-moz-range-thumb{box-shadow:0 0 0 1px var(--ink),0 0 0 4
 .facts dd{margin:0;color:var(--ink-2);max-width:66ch}
 .tagb{display:inline-block;border:1px solid var(--line);border-radius:999px;padding:0 8px;font-size:var(--fs-xs);color:var(--ink-2);margin-right:6px;white-space:nowrap}
 .srcs{margin:6px 0 0;padding-left:1.2em;font-size:var(--fs-xs);display:grid;gap:3px}
+#method-room .srcs{padding-left:2em}
+#method-room details ul{margin:6px 0 0}
 .drv-mkt{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:8px}
 .mchip{display:inline-flex;align-items:baseline;gap:6px;border:1px solid var(--ink-2);border-radius:999px;padding:2px 10px;font-size:var(--fs-xs);line-height:1.35;color:var(--ink-2);text-decoration:none;background:var(--surface);max-width:100%}
 .mchip.related{border-color:var(--line);border-style:dashed}
@@ -550,7 +552,7 @@ footer{padding-block:48px 72px;font-size:var(--fs-xs);color:var(--muted)}
       <ul>
         <li>Stockpiles and delivery times. A shortfall cuts what is built in the same year.</li>
         <li>Timing detail. An event is equally likely to start on any day between now, or its earliest possible date, and its deadline.</li>
-        <li>Uncertain spare capacity. A link that no number on this page moves can deliver a fixed amount above the plan: 8% if The Chain rates it short, 10% if tight, 15% if adequate and 20% otherwise (10% for construction crews and for the switchgear and backup power in each building).</li>
+        <li id="method-room">Uncertain spare capacity. A link that no number on this page moves can deliver a fixed amount above the plan.</li>
         <li>Workarounds. A shortfall in a scarce input passes down the chain exactly as in The Chain's stress model.</li>
       </ul>
       <h3>Where the starting numbers come from</h3>
@@ -1704,6 +1706,16 @@ function gridPick(c){
   $("#dcount").textContent = MODEL.drivers.length + " things that could change the outcome";
   $("#method-plan").textContent = FILE.plan;
   $("#method-basis").textContent = FILE.statusNote + " Each row's About panel says where its number comes from.";
+  // spare capacity, written from the model file so it cannot drift from the numbers in use
+  const R = FILE.room || {}, S = R.byState || {}, L = R.links || {}, W = R.why || {}, pc = v => Math.round(((v || 1) - 1) * 100) + "%";
+  const own = Object.keys(L).map(k => limitName(k) + " " + pc(L[k]));
+  const whyName = {short: "Rated short", tight: "Rated tight", adequate: "Rated adequate", none: "Not rated", otherSuppliers: "Suppliers outside the model"};
+  const whys = Object.keys(W).map(k => h("li", {}, h("b", {text: (whyName[k] || limitName(k)) + ": "}), W[k]));
+  $("#method-room").replaceChildren("Uncertain spare capacity. A link that no number on this page moves can deliver a fixed amount above the plan: " + pc(S.short) + " if The Chain rates it short, " + pc(S.tight) + " if tight, " + pc(S.adequate) + " if adequate and " + pc(S.none) + " otherwise"
+    + (own.length ? ", with its own figure for " + own.join(", ") : "") + ". Suppliers outside the model can do " + pc(R.otherSuppliers) + " more.",
+    whys.length || (R.src || []).length ? h("details", {class: "numbers"}, h("summary", {text: "Why these numbers" + (R.checked ? " (researched " + fmtDate(R.checked) + ")" : "")}),
+      whys.length ? h("ul", {}, whys) : null,
+      (R.src || []).length ? h("ol", {class: "srcs", "aria-label": "Sources"}, R.src.map(x => h("li", {}, h("a", {href: x.u, target: "_blank", rel: "noopener", text: x.t})))) : null) : null);
   const nRes = MODEL.drivers.filter(d => d.basis && d.basis !== "judgement").length, nAll = MODEL.drivers.length;
   $("#foot").textContent = "Starting numbers as of " + fmtDate(FILE.asOf) + ": " + (nRes && nRes === nAll ? "all " + nAll + " researched, with sources in each About panel."
     : nRes ? nRes + " of " + nAll + " researched, with sources in each About panel; the rest are first estimates by judgement." : "first estimates, not yet researched one by one.") + " Research model, not investment advice.";

@@ -411,6 +411,16 @@ const TOY = {
   for (const s of stories) if (!file.links.some(l => (l.story || (byId0[l.a] || {}).story) === s)) bad.push("story " + s + " has no links");
   check("every driver and link in the model file is complete (" + file.drivers.length + " drivers, " + file.links.length + " links)", bad.length === 0 && file.drivers.length >= 20, bad);
   check("buyer groups add up to 1", close(file.buyers.reduce((a, b) => a + b.share, 0), 1, 1e-9));
+  // spare capacity: every state, a reason only for entries that exist, the date it was checked and its sources
+  {
+    const RM = file.room || {}, BS = RM.byState || {}, ST = ["short", "tight", "adequate", "none"], rbad = [];
+    for (const k of ST) if (typeof BS[k] !== "number") rbad.push("byState needs '" + k + "'");
+    for (let i = 1; i < ST.length; i++) if (BS[ST[i]] < BS[ST[i - 1]]) rbad.push("a less tight state should not have less room (" + ST[i] + " < " + ST[i - 1] + ")");
+    for (const k of Object.keys(RM.why || {})) if (!ST.includes(k) && k !== "otherSuppliers" && !(k in (RM.links || {}))) rbad.push("why: '" + k + "' is not a state, a link in room.links or otherSuppliers");
+    if (!/^\d{4}-\d\d-\d\d$/.test(RM.checked || "")) rbad.push("room needs the date it was checked");
+    if (!(RM.src || []).length || RM.src.some(x => !x || !x.t || !/^https?:\/\//.test(x.u || ""))) rbad.push("room needs sources, each with a title (t) and a web link (u)");
+    check("spare capacity is complete: every state, reasons that match its entries, the date checked and sources", rbad.length === 0, rbad);
+  }
 
   const byId = Object.fromEntries(M.drivers.map(d => [d.id, d])), yearEnd = M.period.start + M.period.len;
   check("dates become months from the file's date", M.period.start > 0 && M.period.start < 12 && close(byId.tw_blockade.window, yearEnd, 0.05) && byId.cn_minerals.from > 0 && byId.cn_minerals.from < byId.cn_minerals.window && close(byId.digestion.from, M.period.start, 0.01), [M.period, byId.tw_blockade.window, byId.cn_minerals.from]);

@@ -249,6 +249,13 @@ def run_checks(browser):
     foot = page.inner_text("#foot")
     want = ("all %d researched" % len(DRIVERS)) if n_res == len(DRIVERS) else ("%d of %d researched" % (n_res, len(DRIVERS)))
     check("footer: says how many numbers are researched (and no 'rest' once all are)", want in foot and (n_res < len(DRIVERS) or "the rest" not in foot), foot)
+    room = FILE["room"]
+    pc = lambda v: "%d%%" % round((v - 1) * 100)
+    room_t = page.inner_text("#method-room")
+    room_want = "%s if The Chain rates it short, %s if tight, %s if adequate and %s otherwise" % tuple(pc(room["byState"][k]) for k in ("short", "tight", "adequate", "none"))
+    check("how it works: spare capacity is written from the model file, with a reason for each entry and its sources",
+          room_want in room_t and ("Suppliers outside the model can do %s more" % pc(room["otherSuppliers"])) in room_t
+          and page.locator("#method-room details li b").count() == len(room.get("why", {})) and page.locator("#method-room ol.srcs a").count() == len(room.get("src", [])), room_t[:400])
     check("about: only events that have a size get a size slider: how bad for a risk, how big for something that could go right", page.locator("#m-cn_minerals [data-f='sev']").count() == 1 and "How bad, if it happens" in page.text_content("#m-cn_minerals .sevrow label")
           and page.locator("#d-tglass_new [data-f='sev']").count() == 1 and "How big, if it happens" in page.text_content("#d-tglass_new .sevrow label") and page.locator("#d-cowos_ramp [data-f='sev']").count() == 0)
     typed(page, '#d-cn_minerals [data-f="p"]', 100)
